@@ -13,4 +13,4 @@ What is done:
   
   --> Very basic LibC
   
-  --> ???
+  --> CMOS & PIT clocks
