@@ -7,7 +7,7 @@ What is done:
   
   --> Interrupts (ISR's and IRQ's)
   
-  --> Memory Allocation (Kernel is lower half, memory at 0xFFC00000 is reserved for page tables), kernel memory obtained from grub
+  --> Memory Allocation (Kernel is lower half, memory at 0xFFC00000 is reserved for page tables), memory map is obtained from grub
   
   --> VFS
   
