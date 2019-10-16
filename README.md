@@ -2,6 +2,7 @@
 Reworked Smplos WIP
 
 What is done:
+
   --> GDT
   
   --> Interrupts (ISR's and IRQ's)
@@ -10,4 +11,6 @@ What is done:
   
   --> VFS
   
-  -->
+  --> Very basic LibC
+  
+  --> ???
