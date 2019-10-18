@@ -1,5 +1,5 @@
 #include <kernel/io/terminal.h>
-#include <kernel/debug/debug.h>
+//#include <kernel/debug/debug.h>
 #include <kernel/video/vga.h>
 #include <stdarg.h>
 #include <stdint.h>

@@ -2,7 +2,7 @@
 #include <kernel/global.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <kernel/debug/debug.h>
+//#include <kernel/debug/debug.h>
 #include <kernel/memory/memory.h>
 #include <kernel/arch.h>
 #include <kernel/fs/vfs.h>

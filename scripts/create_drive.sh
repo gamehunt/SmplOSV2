@@ -5,6 +5,7 @@ sudo losetup /dev/loop1 ../disk.img -o 1048576
 sudo mkdosfs -F32 -f 2 /dev/loop1
 sudo mkdir /mnt/smplos
 sudo mount /dev/loop1 /mnt/smplos
-sudo grub-install --root-directory=/mnt/smplos --no-floppy --modules="normal part_msdos ext2 multiboot" /dev/loop0
+sudo grub-install --target=i386-pc --root-directory=/mnt/smplos --no-floppy --modules="normal part_msdos ext2 multiboot" /dev/loop0
 sync
+cp grub.cfg /mnt/smplos/boot/grub/grub.cfg
 sleep 3

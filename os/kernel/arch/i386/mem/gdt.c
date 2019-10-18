@@ -1,5 +1,5 @@
 #include <kernel/memory/memory.h>
-#include <kernel/debug/debug.h>
+//#include <kernel/debug/debug.h>
 struct gdt_entry gdt[6];
 struct gdt_ptr gp;
 tss_entry_t tss_entry;

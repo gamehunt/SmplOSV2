@@ -1,6 +1,6 @@
 #include <kernel/misc/panic.h>
 #include <kernel/io/terminal.h>
-#include <kernel/debug/debug.h>
+//#include <kernel/debug/debug.h>
 #include <kernel/misc/log.h>
 
 void kpanic(crash_info_t crash){
