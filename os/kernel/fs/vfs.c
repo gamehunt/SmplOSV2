@@ -1,4 +1,5 @@
 #include <kernel/fs/vfs.h>
+#include <string.h>
 
 static uint16_t fsidx = 0; 
 
@@ -52,16 +53,23 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 static fs_node_t* vfs_create(char* name,fs_node_t* par,uint8_t type){
 	fs_node_t* new = allocate_fs_node();
 	new->type = type;
-	memcpy(new->name,name,strlen(name));
+	strcpy(new->name,name);
 	new->parent = par;
 	par->ccount++;
-	par->childs = krealloc(par->childs,par->ccount*sizeof(fs_node_t*));
-	par->childs[par->ccount-1] = new; //Something corrupts this array TODO: fix
+	if(par->ccount == 1){
+		par->childs = kmalloc(sizeof(fs_node_t*));
+	}else{
+		par->childs = krealloc(par->childs,par->ccount*sizeof(fs_node_t*));
+	}
+	par->childs[par->ccount-1] = new; 
 	//printf("Created: %s in %s (0x%x)\n",par->childs[par->ccount-1]->name,par->name,(uint32_t)par->childs[par->ccount-1]);
 	return par->childs[par->ccount-1]; 
 }
 
 static void vfs_update_node(fs_node_t* node){
+	if(!node->childs){
+		return;
+	}
 	fs_node_t** newchilds = kmalloc(sizeof(fs_node_t*)*node->ccount);
 	for(int i=0;i<node->ccount;i++){
 		if(node->childs[i]){
@@ -73,11 +81,16 @@ static void vfs_update_node(fs_node_t* node){
 }
 
 static uint8_t vfs_remove(fs_node_t* n){
+	if(!n){
+		return 0;
+	}
 	uint32_t last_ccount = n->ccount;
 	for(int i=0;i<last_ccount;i++){
 		vfs_remove(n->childs[i]);
 	}
-	kfree(n->childs);
+	if(n->childs){
+		kfree(n->childs);
+	}
 	if(n->parent){
 		for(int i=0;i<n->parent->ccount;i++){
 			if(!strcmp(n->name,n->parent->childs[i]->name)){
@@ -105,7 +118,7 @@ void dump_node(fs_node_t* node,uint32_t tabs){
 	for(int i=0;i<tabs;i++){
 		printf("-");
 	}
-	printf("%s\n",node->name);
+	printf("%s %a\n",node->name,node->childs);
 	for(int i=0;i<node->ccount;i++){
 		dump_node(node->childs[i],tabs+1);
 	}
@@ -132,7 +145,8 @@ void init_vfs(){
 }
 
 static char* canonize_absolute(char* path){
-	char* npath;
+	//printf("CANONIZE\n");
+	char* npath = kmalloc(sizeof(char)*256);
 	uint32_t size = strlen(path);	
 	if(path[0]!='/'){
 		size++;
@@ -149,7 +163,8 @@ static char* canonize_absolute(char* path){
 	if(path[strlen(path)-1] != '/'){
 		strcat(npath,"/");
 	}
-	return npath;
+	//printf("CANONIZE END\n");
+	return npath; //npath
 }
 
 static uint32_t path_size(char* path){
@@ -163,6 +178,7 @@ static uint32_t path_size(char* path){
 }
 
 static char* path_block(char* path,uint32_t block){
+	//printf("BLOCK\n");
 	uint32_t blocks = 0 ;
 	int a=-1;
 	int b=-1;
@@ -179,8 +195,10 @@ static char* path_block(char* path,uint32_t block){
 		}
 	}
 	if(a > 0 && b > 0){
+		//printf("BLOCK END\n");
 		return substr(path,a,b);
 	}
+	//printf("BLOCK END\n");
 	return path;
 }
 fs_node_t* kseek(char* path){
@@ -238,7 +256,7 @@ uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
 	}
 	return 0;
 }
-uint8_t kmount(char* path, uint16_t fsid){
+fs_node_t* kmount(char* path, uint16_t fsid){
 	printf("Mounting %s\n",path);
 	fs_t* fs = 0;
 	if(fsidx <= fsid){
@@ -252,9 +270,9 @@ uint8_t kmount(char* path, uint16_t fsid){
 	}
 	fs_node_t* mountpoint;
 	if(!(mountpoint = kseek(path))){
-		mountpoint = kcreate(path,0);
+		mountpoint = create_vfs_mapping(path);
 		if(!mountpoint){
-			kerr("Failed to create mounpoint!\n",path);
+			kerr("Failed to create mounpoint!\n");
 			return 0;
 		}
 		mountpoint->fsid = fsid;
@@ -297,7 +315,7 @@ uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer
 	return 0;
 }
 
-uint8_t create_vfs_mapping(char* path){
+fs_node_t* create_vfs_mapping(char* path){
 	kinfo("Mapping %s\n",path);
 	return kcreate(path,0);
 }

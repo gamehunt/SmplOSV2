@@ -17,10 +17,10 @@ void write_context(context_t* ctx){
 void ctx_dump(context_t* ctx){
 	//terminal_putchar('c');
 	kerr("Requested context dump:\n");
-	//kerr("EIP: 0x%x\n",ctx->eip);
-	//kerr("ESP: 0x%x\n",ctx->esp);
-	//kerr("EBP: 0x%x\n",ctx->ebp);
-	//kerr("CR3: 0x%x\n",ctx->cr3);
+	kerr("EIP: 0x%x\n",ctx->eip);
+	kerr("ESP: 0x%x\n",ctx->esp);
+	kerr("EBP: 0x%x\n",ctx->ebp);
+	kerr("CR3: 0x%x\n",ctx->cr3);
 }
 
 void init_sched(){

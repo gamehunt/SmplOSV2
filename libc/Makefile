@@ -7,6 +7,7 @@ string/memcmp.o \
 string/strcat.o \
 string/strcmp.o \
 string/substr.o \
+string/strcpy.o \
 stdio/putchar.o \
 stdio/puts.o \
 stdio/vprintf.o \

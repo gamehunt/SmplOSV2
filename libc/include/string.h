@@ -16,4 +16,5 @@ int strlen(const char* str);
 char * strcat(char *dest, const char *src);
 uint32_t strcmp(const char *X, const char *Y);
 char* substr(const char *src, int m, int n);
+void strcpy(char dest[], const char source[]);
 CH_END

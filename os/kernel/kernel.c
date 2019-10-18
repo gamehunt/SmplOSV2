@@ -30,7 +30,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
   	init_pci();
 	init_pit();
 	init_rtc();
-	init_vfs(); //VFS don't work if in onde dir more than 2 childs TODO: fix that
+	init_vfs(); 
 	init_tty();
 	init_sched();
 }

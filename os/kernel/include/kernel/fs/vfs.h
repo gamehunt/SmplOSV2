@@ -23,11 +23,11 @@ typedef struct fs_node fs_node_t;
 
 typedef struct{
 	fs_node_t* (*mount)(fs_node_t* root);
-	uint8_t (*umount)(fs_node_t* root);
-	uint32_t (*read)(fs_node_t* node, uint64_t offset, uint32_t size, uint8_t* buffer);
-	uint32_t (*write)(fs_node_t* node, uint64_t offset, uint32_t size, uint8_t* buffer);
-	fs_node_t* (*seek)(char* name,fs_node_t* par);
-	fs_node_t* (*create)(char* name,fs_node_t* par,uint8_t type);
+	uint8_t (*umount)(fs_node_t*);
+	uint32_t (*read)(fs_node_t*, uint64_t, uint32_t, uint8_t*);
+	uint32_t (*write)(fs_node_t*, uint64_t, uint32_t, uint8_t*);
+	fs_node_t* (*seek)(char*,fs_node_t*);
+	fs_node_t* (*create)(char*,fs_node_t*,uint8_t);
 	uint8_t (*remove)(fs_node_t*);
 }fs_t;
 
@@ -39,7 +39,7 @@ void init_vfs();
 uint16_t register_fs(fs_t* fs);
 uint8_t unregister_fs(uint16_t fs);
 
-uint8_t create_vfs_mapping(char* path);
+fs_node_t* create_vfs_mapping(char* path);
 
 fs_node_t* allocate_fs_node();
 
@@ -52,7 +52,7 @@ fs_node_t* kcreate(char* path, uint8_t type);
 uint8_t kremove(char* path);
 uint32_t kread(char* path,uint64_t offset, uint32_t size, uint8_t* buffer);
 uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer);
-uint8_t kmount(char* path, uint16_t type);
+fs_node_t* kmount(char* path, uint16_t type);
 uint8_t kumount();
 uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
 uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
