@@ -6,6 +6,8 @@ uint16_t tty_fsid;
 
 fs_node_t* tty_root = 0;
 uint32_t tty_stream = 0;
+uint8_t enabled = 0;
+
 
 fs_node_t* tty_mount(fs_node_t* root){
 	//printf("HERE %s\n",root->name);
@@ -20,7 +22,8 @@ uint32_t tty_write(fs_node_t* node, uint64_t offset, uint32_t size, uint8_t* buf
 }
 
 uint8_t tty_is_enabled(){
-	return 0;
+	//return tty_root?1:0;
+	return enabled;
 }
 
 fs_node_t* tty_get_root(){
@@ -43,18 +46,17 @@ uint32_t tty_get_output_stream(){
 
 void init_tty(){
 	
-	fs_t tty_fs;
-	int* dada = kmalloc(sizeof(int));
-	*dada = 40;
-	tty_fs.mount = &tty_mount;
-	tty_fs.write = &tty_write;
+	fs_t* tty_fs = kmalloc(sizeof(fs_t));
+	tty_fs->mount = &tty_mount;
+	tty_fs->write = &tty_write;
 		
-	tty_fsid = register_fs(&tty_fs);
+	tty_fsid = register_fs(tty_fs);
 	if(kmount("/dev/stdout/",tty_fsid)){
 		if(!kmount("/dev/stderr/",tty_fsid)){
 			kerr("Failed to create stderr output handler\n");
 		}
 		tty_set_output_stream(TTY_OUTPUT_STREAM_STDOUT);
+		enabled = 1;
 		kinfo("TTY initialized: %d fsid\n",tty_fsid);
 	}else{
 		kerr("Failed to initialize tty\n");
