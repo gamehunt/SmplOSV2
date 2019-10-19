@@ -18,8 +18,8 @@
 #define PAGE_DIRTY 0x40
 #define PAGE_SIZE 0x80
 
-#define KHEAP_SIZE 1024*8 //8kib should be enough for now
-#define KHEAP_MAX_SIZE 2*1024*1024 //2mib is maximum
+#define KHEAP_SIZE 8*1024 //8kib
+#define KHEAP_MAX_SIZE 2*1024*1024 //16mib
 
 struct gdt_entry {
   uint16_t limit;
@@ -77,6 +77,11 @@ struct tss_entry_struct
 } __attribute__((packed));
  
 typedef struct tss_entry_struct tss_entry_t;
+
+uint32_t* kernel_page_directory;
+uint32_t* current_page_directory;
+extern void enable_paging();
+extern void set_page_directory(uint32_t pdir);
 
 
 void add_gdt_entry(int num,uint32_t base,uint32_t limit,uint32_t access,uint32_t gran);

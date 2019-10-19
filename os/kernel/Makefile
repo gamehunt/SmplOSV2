@@ -36,8 +36,7 @@ dev/cmos.o\
 dev/rtc.o\
 dev/tty.o\
 fs/vfs.o\
-$(ARCHDIR)/proc/sched_asm.o\
-$(ARCHDIR)/proc/sched.o\
+
 
 KERNEL_LINK_OBJS=\
 $(CRTI_OBJS)\

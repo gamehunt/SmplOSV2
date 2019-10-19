@@ -51,4 +51,5 @@ void gdt_install() {
 
 void tss_set_kernel_stack(uintptr_t stack) {
 	tss_entry.esp0 = stack;
+	//tss_flush();
 }

@@ -11,10 +11,6 @@
 #include <kernel/global.h>
 extern uint32_t k_end;
 
-extern void enable_paging();
-extern void set_page_directory(uint32_t pdir);
-
-uint32_t* k_pd;
 
 uint32_t table_mappings[1024] __attribute__((aligned(4096))); // mappings for pte's is last pte
 
@@ -60,7 +56,7 @@ void map(uint32_t p_addr,uint32_t v_addr){
 		kpanic(crash);
 	}
 	uint32_t pte = v_addr_to_pte(v_addr);
-	uint32_t i_pd_entry = k_pd[pde];
+	uint32_t i_pd_entry = kernel_page_directory[pde];
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		uint32_t pte = kfalloc();
 		//printf("New PT at %a\n",pte);
@@ -68,9 +64,9 @@ void map(uint32_t p_addr,uint32_t v_addr){
 		if(paging_flag){
 			flush_tlb(0xFFC00000 + pde*4096);
 		}
-		k_pd[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW );
+		kernel_page_directory[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW );
 	}
-	i_pd_entry = k_pd[pde];
+	i_pd_entry = kernel_page_directory[pde];
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
@@ -83,7 +79,27 @@ void map(uint32_t p_addr,uint32_t v_addr){
 
 }
 
+uint32_t virtual2physical(uint32_t v_addr){
+	uint32_t pde = v_addr_to_pde(v_addr);
+	uint32_t pte = v_addr_to_pte(v_addr);
+	uint32_t i_pd_entry = kernel_page_directory[pde];
+	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
+		return 0;
+	}
+	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
+	uint32_t i_pt_entry = k_pt[pte];
+	if(flags(i_pt_entry) & PAGE_PRESENT){
+		return address(i_pt_entry);
+	}
+	return 0;
+}
 
+uint32_t* copy_page_directory(uint32_t* src){
+	uint32_t* new_pdir = (uint32_t*)kpalloc();
+	memcpy(new_pdir,src,4096);
+	return paging_flag?virtual2physical(new_pdir):new_pdir;
+	//return new_pdir;
+}
 
 //allocates page with given frame or address
 void kmpalloc(uint32_t addr, uint32_t frame){
@@ -117,7 +133,7 @@ uint32_t* kcpalloc(uint32_t n){
 void kpfree(uint32_t v_addr){
 	uint32_t pde = v_addr_to_pde(v_addr);
 	uint32_t pte = v_addr_to_pte(v_addr);
-	uint32_t i_pd_entry = k_pd[pde];
+	uint32_t i_pd_entry = kernel_page_directory[pde];
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		return;
 	}
@@ -134,7 +150,7 @@ void kpfree(uint32_t v_addr){
 				}
 			}
 			if(flag){
-				k_pd[pde] = 0x0;
+				kernel_page_directory[pde] = 0x0;
 				kpfree(0xFFC00000 + pde*4096);
 			}
 		}
@@ -147,14 +163,14 @@ void kpfree(uint32_t v_addr){
 }
 void init_paging(){
 	asm("cli");
-	k_pd = (uint32_t*)kfalloc();
-	k_pd[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
-	kmpalloc((uint32_t)k_pd,0);
+	kernel_page_directory = (uint32_t*)kfalloc();
+	kernel_page_directory[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
+	kmpalloc((uint32_t)kernel_page_directory,0);
 	extern uint32_t k_frame_stack_size;
 	for(int i=0;i<0x2000000;i+=4096){
 		kmpalloc(i,0);
 	}
-	set_page_directory((uint32_t)k_pd);
+	set_page_directory((uint32_t)kernel_page_directory);
 	enable_paging();
 	paging_flag = 1;
 	kinfo("Paging initialized\n");

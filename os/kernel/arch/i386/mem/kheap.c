@@ -20,7 +20,7 @@ void init_kheap(){
 	//while(1);
 	heap_ptr = kcpalloc(KHEAP_SIZE/4096);	
 	
-	memset(memory,0,KHEAP_SIZE);
+	memset(memory,0,KHEAP_MAX_SIZE*sizeof(mem_t));
 	kinfo("Kernel heap located at %a (%d KB)\n",(uint32_t)heap_ptr,KHEAP_SIZE/1024);
 	mid = 0;
 	allocated = 0;
@@ -83,9 +83,9 @@ void optimize_list(){
 uint32_t* kmalloc(uint32_t size){
 	//printf("%d\n",allocated);
 	//print_memory();
-	if(cur_size-allocated < size){
+	while(cur_size-allocated < size){
 		cur_size+=4096;
-		knpalloc((uint32_t)heap_ptr + cur_size);
+		knpalloc((uint32_t)heap_ptr + cur_size + 1);
 	}
 	for(int i=0;i<mid;i++){
 		if(memory[i].free && memory[i].size>=size){
@@ -154,6 +154,7 @@ void print_memory(){
 	for(int i=0;i<mid;i++){
 		printf("%a - %d - %s\n",memory[i].addr,memory[i].size,memory[i].free?"free":"used");
 	}
+	kinfo("Current heap size: %d, allocated %d\n",cur_size, allocated);
 }
 
 //allocates aligned memory !! Wastes lot's of memory if alignment is large

@@ -64,18 +64,18 @@ void pci_probe(){
          for(uint8_t slot = 0; slot < 32; slot++) {
              for(uint8_t function = 0; function < 8; function++)
             {
-		    pci_device_t* dev = malloc(sizeof(pci_device_t));
+					pci_device_t* dev = kmalloc(sizeof(pci_device_t));
                     dev->bus = bus;
                     dev->slot = slot;
                     dev->func = function;
                     uint16_t vendor = pci_get_vendor(dev);
                     if(vendor == 0xffff){
-			free(dev);
-		    }else{
+						kfree(dev);
+					}else{
                     	uint16_t device = pci_get_device(dev);
                     	kinfo("\tvendor: 0x%x device: 0x%x\taddr: 0x%x\n",vendor, device, dev);
                     	add_pci_dev(dev);
-		    }
+					}
             }
          }
      }

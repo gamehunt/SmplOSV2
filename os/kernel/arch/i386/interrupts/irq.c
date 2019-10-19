@@ -11,7 +11,8 @@ void irq_unset_handler(uint8_t irq){
 	irq_handlers[irq] = 0;
 }
 void irq_end(uint8_t int_no){
-	if (int_no >= 12) {
+	//printf("%dE\n",int_no);
+	if (int_no >= 8) {
 		outb(0xA0, 0x20);
 	}
 	outb(0x20, 0x20);
@@ -19,7 +20,7 @@ void irq_end(uint8_t int_no){
 
 void irq_handler(regs_t r){
 	asm("cli");
-	//printf("%d",r->int_no);
+	//printf("IRQ TICK START\n");
 	irq_handler_t handler;
 	if(r -> int_no > 47 || r->int_no < 32){
 		handler = 0;
@@ -28,7 +29,9 @@ void irq_handler(regs_t r){
 	}
 	if(handler){
 		handler(r);
+	}else{
+		irq_end(r->int_no - 32);
 	}
-	irq_end(r->int_no - 32);
+	//printf("IRQ TICK END\n");
 	asm("sti");
 }

@@ -71,4 +71,6 @@ void idt_install() {
 	idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
 
   	idt_load();
+  	
+  	asm("sti");
 }

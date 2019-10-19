@@ -6,6 +6,7 @@
 static uint16_t last_id = 0;
 static uint16_t max_id = 0;
 static uint32_t __sys_ticks = 0;
+uint8_t in_call = 0;
 pit_listener_t* pit_listeners[MAX_PIT_LISTENERS];
 
 
@@ -43,20 +44,24 @@ void pit_phase(int hz) {
 }
 
 void pit_tick(regs_t r){
-	irq_end(TIMER_IRQ);
-	for(uint16_t i=0;i<max_id;i++){
-		if((uint32_t)pit_listeners[i] && !(__sys_ticks % pit_listeners[i]->time)){
-			pit_listeners[i]->handler(r);
+		irq_end(0);
+		__sys_ticks++;
+		for(uint16_t i=0;i<max_id;i++){
+			if((uint32_t)pit_listeners[i] && !(__sys_ticks % pit_listeners[i]->time)){
+				pit_listeners[i]->handler(r);
+			}
 		}
-	}
-	__sys_ticks++;
+
+	
 }
 
 uint32_t pit_system_ticks(){
+	
 	return __sys_ticks;
 }
 
 void  init_pit(){
-	pit_phase(100);
 	irq_set_handler(TIMER_IRQ,pit_tick);
+	pit_phase(100);
+	
 }
