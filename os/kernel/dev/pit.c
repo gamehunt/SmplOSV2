@@ -44,15 +44,14 @@ void pit_phase(int hz) {
 }
 
 void pit_tick(regs_t r){
-		irq_end(0);
 		__sys_ticks++;
 		for(uint16_t i=0;i<max_id;i++){
 			if((uint32_t)pit_listeners[i] && !(__sys_ticks % pit_listeners[i]->time)){
 				pit_listeners[i]->handler(r);
 			}
 		}
-
-	
+		__schedule(r);
+		irq_end(0);
 }
 
 uint32_t pit_system_ticks(){

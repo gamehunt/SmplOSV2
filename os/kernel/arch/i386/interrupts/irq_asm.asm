@@ -27,6 +27,8 @@ IRQ 15, 47
 extern irq_handler
 
 irq_stub:
+  cli
+
   pusha
   
   push ds
@@ -54,5 +56,6 @@ irq_stub:
 
   add esp, 8
 
+  sti
   iret
 	

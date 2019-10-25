@@ -36,6 +36,8 @@ dev/cmos.o\
 dev/rtc.o\
 dev/tty.o\
 fs/vfs.o\
+$(ARCHDIR)/proc/proc.o\
+
 
 
 KERNEL_LINK_OBJS=\

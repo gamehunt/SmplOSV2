@@ -16,10 +16,8 @@ uint32_t* heap_ptr;
 uint32_t cur_size;
 
 void init_kheap(){
-	//Pre alloc all kernel heap
-	//while(1);
+	//Pre alloc basic kernel heap
 	heap_ptr = kcpalloc(KHEAP_SIZE/4096);	
-	
 	memset(memory,0,KHEAP_MAX_SIZE*sizeof(mem_t));
 	kinfo("Kernel heap located at %a (%d KB)\n",(uint32_t)heap_ptr,KHEAP_SIZE/1024);
 	mid = 0;
@@ -48,6 +46,7 @@ void optimize_list(){
  	}
 //	print_memory();
 //	printf("Sorted\n");
+	//Megre blocks
 	for(int i=0;i<mid;i++){
 		if(memory[i].free){
 			uint32_t second = i+1;
@@ -60,6 +59,7 @@ void optimize_list(){
 		}
 	}
 //	printf("Merged\n");
+	//Copy new array
 	mem_t new_memory[KHEAP_MAX_SIZE];
 	uint32_t new_memory_id = 0;
 	for(int i=0;i<mid;i++){
@@ -81,11 +81,11 @@ void optimize_list(){
 
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
-	//printf("%d\n",allocated);
+	//printf("%d %d\n",cur_size,allocated);
 	//print_memory();
 	while(cur_size-allocated < size){
+		knpalloc((uint32_t)heap_ptr + cur_size);
 		cur_size+=4096;
-		knpalloc((uint32_t)heap_ptr + cur_size + 1);
 	}
 	for(int i=0;i<mid;i++){
 		if(memory[i].free && memory[i].size>=size){
@@ -119,6 +119,7 @@ uint32_t* kmalloc(uint32_t size){
 		}
 	}
 	uint32_t addr = (uint32_t)heap_ptr+allocated;
+	
 	mem_t alloc;
 	alloc.size = size;
 	alloc.addr = addr;
