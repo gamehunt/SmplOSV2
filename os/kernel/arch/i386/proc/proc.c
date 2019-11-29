@@ -59,7 +59,6 @@ proc_t* create_process(const char* name,void* routine){
 
 void idle(){
 	while(1){
-		return;
 		asm("hlt");
 	}
 }

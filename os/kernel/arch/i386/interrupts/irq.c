@@ -19,7 +19,7 @@ void irq_end(uint8_t int_no){
 }
 
 void irq_handler(regs_t r){
-	asm("sti");
+	asm("cli");
 	irq_handler_t handler;
 	if(r -> int_no > 47 || r->int_no < 32){
 		handler = 0;
@@ -31,5 +31,5 @@ void irq_handler(regs_t r){
 	}else{
 		irq_end(r->int_no - 32);
 	}
-	asm("cli");
+	asm("sti");
 }

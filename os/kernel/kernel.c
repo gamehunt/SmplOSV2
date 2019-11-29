@@ -8,10 +8,11 @@
 #include <kernel/fs/vfs.h>
 
 
-//TODO make all shit thread-safe
+//TODO Make all shit thread-safe
+//TODO InitRD
+//TODO Module loading (ELF)
+
 void kernel_main(multiboot_info_t *mbt,uint32_t magic){
-	//mbt = (uint32_t*)((uint32_t)mbt + 0xC0000000);
-        //while(1);
 	terminal_init();	
 	if(magic != 0x2BADB002){
 		char message[60];
@@ -37,6 +38,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	//Below this point is multithreading
 	init_sched();
+	
 	for(;;) {
 		asm("hlt");
     }
