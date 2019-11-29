@@ -19,7 +19,10 @@
 #define PAGE_SIZE 0x80
 
 #define KHEAP_SIZE 8*1024 //8kib
-#define KHEAP_MAX_SIZE 2*1024*1024 //16mib
+#define KHEAP_MAX_SIZE 2*1024*1024 //2mib
+
+#define USER_STACK_BOTTOM 0xAFF00000
+#define USER_STACK_TOP    0xB0000000
 
 struct gdt_entry {
   uint16_t limit;
@@ -47,10 +50,12 @@ typedef struct memory_node memory_node_t;
 
 struct tss_entry_struct
 {
+   //...................................................................
    uint32_t prev_tss;   // The previous TSS - if we used hardware task switching this would form a linked list.
    uint32_t esp0;       // The stack pointer to load when we change to kernel mode.
    uint32_t ss0;        // The stack segment to load when we change to kernel mode.
    uint32_t esp1;       // everything below here is unusued now.. 
+   //...................................................................
    uint32_t ss1;
    uint32_t esp2;
    uint32_t ss2;

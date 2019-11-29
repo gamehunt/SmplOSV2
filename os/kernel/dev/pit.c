@@ -6,7 +6,6 @@
 static uint16_t last_id = 0;
 static uint16_t max_id = 0;
 static uint32_t __sys_ticks = 0;
-uint8_t in_call = 0;
 pit_listener_t* pit_listeners[MAX_PIT_LISTENERS];
 
 
@@ -16,6 +15,9 @@ uint32_t pit_add_listener(pit_listener_t* listener){
 		return 0;
 	}
 	pit_listeners[last_id] = listener;
+	if(!pit_listeners[last_id]->time){
+		pit_listeners[last_id]->time = 1;
+	}
 	uint32_t id = last_id;
 	last_id++;
 	while((uint32_t)pit_listeners[last_id] && last_id<MAX_PIT_LISTENERS){
@@ -50,8 +52,8 @@ void pit_tick(regs_t r){
 				pit_listeners[i]->handler(r);
 			}
 		}
-		__schedule(r);
 		irq_end(0);
+		schedule(r);
 }
 
 uint32_t pit_system_ticks(){

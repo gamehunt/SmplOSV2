@@ -7,6 +7,8 @@
 #include <kernel/arch.h>
 #include <kernel/fs/vfs.h>
 
+
+//TODO make all shit thread-safe
 void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	//mbt = (uint32_t*)((uint32_t)mbt + 0xC0000000);
         //while(1);
@@ -32,6 +34,8 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_rtc();
 	init_vfs(); 
 	init_tty();
+	
+	//Below this point is multithreading
 	init_sched();
 	for(;;) {
 		asm("hlt");

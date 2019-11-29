@@ -18,7 +18,7 @@
 
 typedef struct{
 	irq_handler_t handler;
-	uint32_t time; //call every 'time' tick
+	uint32_t time; //call every 'time' tick >= 0
 }pit_listener_t;
 
 uint32_t pit_add_listener(pit_listener_t* l);

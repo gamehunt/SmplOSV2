@@ -1,5 +1,7 @@
 #include <kernel/fs/vfs.h>
 
+#include <kernel/global.h>
+
 #define MAX_PROCESSES 256
 
 #define PROC_INVALID 0
@@ -23,10 +25,10 @@ proc_t* current_proc;
 
 proc_t* processes[MAX_PROCESSES];
 
-uint32_t current_piid;
+int32_t current_piid =-1;
 uint32_t total_prcs = 0;
 
-void init_sched();
-void switch_ctx();
+void schedule(regs_t reg);
 
 proc_t* create_process(const char* name,void* routine);
+void setup_ctx(context_t* ctx,regs_t r);

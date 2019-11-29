@@ -10,3 +10,8 @@ KERNEL_LINKS='-nostdlib  -lk -lgcc'
 LIBK_CFLAGS="$KERNEL_CFLAGS -D__smplos_libk"
 LIBC_CFLAGS="$KERNEL_CFLAGS -D__smplos_libc"
 BUILDDIRS="libc os"
+
+export PREFIX="$HOME/opt/cross"
+export TARGET=i686-elf
+export PATH="$PREFIX/bin:$PATH"
+

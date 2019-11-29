@@ -1,47 +1,47 @@
 #include <kernel/proc/proc.h>
-#include <kernel/global.h>
+#include <kernel/memory/memory.h>
 
 void setup_ctx(context_t* ctx,regs_t r){
+	
+	current_page_directory = ctx->cr3;
+	
 	tss_set_kernel_stack(ctx->esp);
+	set_page_directory(ctx->cr3);
 	
 	r->useresp = ctx->esp;
 	r->ebp = ctx->ebp;
 	r->eip = ctx->eip;
+	
+	//kinfo("ENTER EIP: %a\n",ctx->eip);
 }
 
-void setup_next(regs_t r){
-		static uint8_t s = 0;
-		
-		if(s){
-			current_proc->state->eip = r->eip;
-			current_proc->state->esp = r->useresp;
-			current_proc->state->ebp = r->ebp;
-		}else{
-			s = 1;
-		}
-		
-		current_piid++;
-		
-		if(current_piid >= total_prcs){
-			current_piid = 0;
-		}
-		current_proc = processes[current_piid];
-		setup_ctx(current_proc->state,r);
-}
+void save_ctx(context_t* ctx,regs_t r){
+	
+	ctx->cr3 = current_page_directory;
+	
+	ctx->esp = r->useresp;
+	ctx->ebp = r->ebp;
+	ctx->eip = r->eip;
+	
+	//kinfo("EXIT EIP: %a\n",ctx->eip);
 
-void kidle(){
-	while(1){
-		asm("hlt");
-	}
 }
 
 proc_t* create_process(const char* name,void* routine){
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	new_proc->state = kmalloc(sizeof(context_t));
 	new_proc->state->eip = (uint32_t)routine;
-	new_proc->state->esp = routine?(uint32_t)kmalloc(4096):0;
+	void* stack = kmalloc(4096);
+	memset(stack,4096,0);
+	new_proc->state->esp = routine?(uint32_t)stack+4096:0;
 	new_proc->state->ebp = routine?new_proc->state->esp:0;
+	if(routine){
+		new_proc->state->esp -= sizeof(uintptr_t);
+		*((uintptr_t *)new_proc->state->esp) = (uintptr_t)0xDEADBEEF; //TODO
+		printf("%a\n",*((uintptr_t *)new_proc->state->esp));
+	}
 	
+	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
 	new_proc->status = routine?PROC_RUN:PROC_CREATED;
 	
 	new_proc->pid = total_prcs;
@@ -51,21 +51,37 @@ proc_t* create_process(const char* name,void* routine){
 	
 	total_prcs++;
 	
-	kinfo("Process created: %s with pid %d\n",name,new_proc->pid);
+	kinfo("Process created: %s with pid %d (stack %a)\n",name,new_proc->pid,new_proc->state->ebp);
 	
 	return new_proc;
 }
 
 
+void idle(){
+	while(1){
+		return;
+		asm("hlt");
+	}
+}
+
+
 void init_sched(){
 	asm("cli");
-
-	current_proc = create_process("[kidle]",kidle);
-	current_piid = total_prcs - 1;
-	
+	create_process("kidle",&idle); //spawn kernel idle process
 	asm("sti");
 }
 
-void __schedule(regs_t r){
-	setup_next(r);
+void schedule(regs_t reg){
+	if(total_prcs){
+		if(current_piid >= 0){
+			proc_t* current = processes[current_piid];
+			save_ctx(current->state,reg);
+			
+		}
+		current_piid++;
+		if(current_piid >= total_prcs){
+			current_piid = 0;
+		}
+		setup_ctx(processes[current_piid]->state,reg);
+	}
 }
