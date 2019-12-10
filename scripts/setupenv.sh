@@ -27,7 +27,7 @@ if echo "$TARGET" | grep -Eq -- '-elf($|-)'; then
 fi
 
 echo Final CC for kernel: $CC $KERNEL_CFLAGS
-if [ -d "$SYSROOT" ] 
+if [ ! -d "$SYSROOT" ] 
 then
 	echo Creating sysroot...
 	mkdir $SYSROOT
