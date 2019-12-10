@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo n
 echo p
 echo 1

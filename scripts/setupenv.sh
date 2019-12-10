@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e 
 . ./config.sh
 export TARGET=$TARGET
@@ -15,7 +16,7 @@ echo $AR
 echo $AS
 export D_ASM=${DEFAULT_ASM}
 echo Default assembler: $D_ASM 
-export SYSROOT="/home/gamehunt/SmplOSV2/sysroot"
+export SYSROOT="/home/user/SmplOSV2/sysroot"
 export SYSINC="/include"
 export SYSLIB="/lib"
 export KERNEL_LINKS="$KERNEL_LINKS"
@@ -26,3 +27,11 @@ if echo "$TARGET" | grep -Eq -- '-elf($|-)'; then
 fi
 
 echo Final CC for kernel: $CC $KERNEL_CFLAGS
+if [ -d "/path/to/dir" ] 
+then
+	echo Creating sysroot...
+	mkdir $SYSROOT
+	mkdir $SYSROOT/include
+	mkdir $SYSROOT/lib
+	mkdir $SYSROOT/boot
+fi
