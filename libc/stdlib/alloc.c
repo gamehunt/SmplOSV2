@@ -7,16 +7,16 @@ void* malloc(size_t size){
 	return 0;
 }
 
-void* valloc(size_t size){
+void* valloc(size_t size,uint32_t alig){
 	#ifdef __smplos_libk
-		return (void*)kvalloc(size);
+		return (void*)kvalloc(size,alig);
 	#endif
 	return 0;
 }
 
-void* realloc(size_t size){
+void* realloc(uint32_t* ptr,size_t size){
 	#ifdef __smplos_libk
-		return (void*)krealloc(size);
+		return (void*)krealloc(ptr,size);
 	#endif
 	return 0;
 }
@@ -24,11 +24,5 @@ void* realloc(size_t size){
 void free(void* mem){
 	#ifdef __smplos_libk
 		return (void*)kfree(mem);
-	#endif
-}
-
-void vfree(void* mem){
-	#ifdef __smplos_libk
-		return (void*)kvfree(mem);
 	#endif
 }

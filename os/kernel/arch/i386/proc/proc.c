@@ -37,7 +37,7 @@ proc_t* create_process(const char* name,void* routine){
 	new_proc->state->ebp = routine?new_proc->state->esp:0;
 	if(routine){
 		new_proc->state->esp -= sizeof(uintptr_t);
-		*((uintptr_t *)new_proc->state->esp) = (uintptr_t)0xDEADBEEF; //TODO
+		*((uintptr_t *)new_proc->state->esp) = (uintptr_t)routine; //TODO
 		printf("%a\n",*((uintptr_t *)new_proc->state->esp));
 	}
 	

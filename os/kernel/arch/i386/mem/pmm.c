@@ -64,7 +64,7 @@ void init_pmm(multiboot_info_t *mbt){
 	}
 	
 	memset(k_frame_stack,0,k_frame_stack_size);
-	k_temp_frame_stack = (uint32_t)&k_end + k_frame_stack_size;
+	k_temp_frame_stack = (uint32_t*)((uint32_t)&k_end + k_frame_stack_size*sizeof(uint32_t));
 	memset(k_temp_frame_stack,0,k_frame_stack_size);
 	mmap = mbt->mmap_addr;
 	uint32_t useful_mem = 0;
@@ -72,8 +72,8 @@ void init_pmm(multiboot_info_t *mbt){
 		if(mmap->type == 1){
 			for(int i = 0; i< mmap->len; i+= 4096){
 				//kinfo("0x%e 0%x\n",mmap->addr+i,((uint32_t)&k_end+k_frame_stack_size));
-				if(mmap->addr+i > ((uint32_t)&k_end+k_frame_stack_size)){
-					//kinfo("%a\n",mmap->addr+i);
+				if(mmap->addr+i > 0x1000000){
+		//			kinfo("%a\n",mmap->addr+i);
 					k_temp_frame_stack_push(mmap->addr+i);
 					useful_mem++;
 				}
@@ -83,7 +83,9 @@ void init_pmm(multiboot_info_t *mbt){
 	}
 	//reverse the stack to get smallest frame first (needs for correct pte allocation)
 	for(int i=0;i<useful_mem;i++){
-		k_frame_stack_push(k_temp_frame_stack_pop());
+		uint32_t v = k_temp_frame_stack_pop();
+		//kinfo("%a; esp = %d\n",v,k_temp_frame_stack_esp);
+		k_frame_stack_push(v);
 	}
 	kinfo("Initialized frame stack with size %l, esp = %l\n",k_frame_stack_size,k_frame_stack_esp);
 }

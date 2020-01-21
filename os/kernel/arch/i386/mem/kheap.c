@@ -1,187 +1,98 @@
 #include <kernel/memory/memory.h>
 #include <kernel/global.h>
+#include <string.h>
 //Very,very,VERY simple allocator, alloc: O(n), free: O(n)
-
-typedef struct{
-	uint32_t size;
-	uint32_t addr;
-	uint8_t free;
-} mem_t;
-
-mem_t memory[KHEAP_MAX_SIZE];
-
-uint32_t mid;
 uint32_t allocated;
-uint32_t* heap_ptr;
-uint32_t cur_size;
+uint32_t* heap_start;
+
+uint32_t* zones[KHEAP_SIZE/4];
+uint32_t z_esp = 0;
 
 void init_kheap(){
-	//Pre alloc basic kernel heap
-	heap_ptr = kcpalloc(KHEAP_SIZE/4096);	
-	memset(memory,0,KHEAP_MAX_SIZE*sizeof(mem_t));
-	kinfo("Kernel heap located at %a (%d KB)\n",(uint32_t)heap_ptr,KHEAP_SIZE/1024);
-	mid = 0;
-	allocated = 0;
-	cur_size = KHEAP_SIZE;
+	heap_start = kcpalloc(4);
+	memset(zones,0,KHEAP_SIZE/4);
 }
-
-void optimize_list(){
-	//Sort array by addresses
-	int i, j;
-	mem_t temp;
-	if(!mid){
-		return;
-	}
- 	for (i = 0; i < (mid - 1); ++i)
- 	{
-      		for (j = 0; j < mid - 1 - i; ++j )
-      		{
-           		if (memory[j].addr > memory[j+1].addr)
-           		{
-                		temp = memory[j+1];
-                		memory[j+1] = memory[j];
-                		memory[j] = temp;
-           		}
-      		}
- 	}
-//	print_memory();
-//	printf("Sorted\n");
-	//Megre blocks
-	for(int i=0;i<mid;i++){
-		if(memory[i].free){
-			uint32_t second = i+1;
-			while(second < mid && memory[second].free){
-				memory[i].size+=memory[second].size;
-				memory[second].size = KHEAP_MAX_SIZE;
-				second++;
-			}
-			i = second;
-		}
-	}
-//	printf("Merged\n");
-	//Copy new array
-	mem_t new_memory[KHEAP_MAX_SIZE];
-	uint32_t new_memory_id = 0;
-	for(int i=0;i<mid;i++){
-		if(memory[i].size < KHEAP_MAX_SIZE){
-			new_memory[new_memory_id] = memory[i];
-			new_memory_id++;
-		}
-	}
-	mid = new_memory_id;
-	for(int i=0;i<mid;i++){
-		memory[i] = new_memory[i];
-	}
-	//printf("Copied\n");
-	
-}
-
-
-
 
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
-	//printf("%d %d\n",cur_size,allocated);
-	//print_memory();
-	while(cur_size-allocated < size){
-		knpalloc((uint32_t)heap_ptr + cur_size);
-		cur_size+=4096;
+	//kinfo("KMALLOC(%d)\n",size);
+	if(size < 4){
+//		kwarn("Tried to allocate less than 4 bytes(%d): increasing allocation size...\n",size);
+		size = 4;
 	}
-	for(int i=0;i<mid;i++){
-		if(memory[i].free && memory[i].size>=size){
-			if(memory[i].size > size){
-				memory[i].size -= size;
-				uint32_t addr = memory[i].addr;
-				memory[i].addr += size;
-				mem_t newb;
-				newb.addr = addr;	
-				newb.free = 0;
-				newb.size = size;
-	
-				memory[mid] = newb;
-				mid++;
-				allocated+=size;
-				if(mid > KHEAP_MAX_SIZE){
-					crash_info_t crash;
-					crash.description = "Global allocator fault";
-					crash.extra_info = "Block list overflow";
-					kpanic(crash);
-				}
-				optimize_list();
-				return addr;
-			}else{
-				memory[i].free = 0;
-				allocated+=size;
-				optimize_list();
-				return memory[i].addr;
+	if(KHEAP_SIZE <= size + sizeof(uint32_t) + allocated){
+		kerr("Failed to alloc %d: OUT OF MEM\n",size);
+		return 0;
+	}
+	if(z_esp){
+		for(uint32_t i=0;i<KHEAP_SIZE/4;i++){
+			if(!zones[i]){
+				continue;
 			}
-			
+			if(zones[i][1] > size){
+				uint32_t old = zones[i][1];
+				uint32_t* res = zones[i];
+				res[0] = size;
+				allocated += (size+sizeof(uint32_t));
+				zones[i]=(uint32_t)zones[i] + (size+sizeof(uint32_t));
+				zones[i][1] = old - size;
+				//kinfo("KMALLOC-END(%d)\n",size);
+				return res+1;
+			}else if(zones[i][1] == size){
+				uint32_t* addr = zones[i];
+				zones[i] = 0;
+				addr[0] = size;
+				allocated += (size+sizeof(uint32_t));
+				free_esp();
+				//kinfo("KMALLOC-END(%d)\n",size);
+				return addr+1;
+			}
 		}
 	}
-	uint32_t addr = (uint32_t)heap_ptr+allocated;
-	
-	mem_t alloc;
-	alloc.size = size;
-	alloc.addr = addr;
-	alloc.free = 0;
-
-	allocated+=size;
-	memory[mid] = alloc;
-	mid++;
-	if(mid > KHEAP_MAX_SIZE){
-		crash_info_t crash;
-		crash.description = "Global allocator fault";
-		crash.extra_info = "Block list overflow";
-		kpanic(crash);
-	}
-	optimize_list();
-	return addr;
+	uint32_t* heap_ptr = (uint32_t)heap_start + allocated;
+	*heap_ptr = size; 
+	allocated+=(size+sizeof(uint32_t));
+	//kinfo("KMALLOC-END(%d)\n",size);
+	return (heap_ptr+1);
 }
 
-//frees memory. DONT WORK FOR KVALLOC()!!!
-void kfree(uint32_t addr){
-	for(int i=0;i<mid;i++){
-		if(memory[i].addr == addr && !memory[i].free){
-			memory[i].free = 1;
-			allocated -= memory[i].size;
-			break;
+void free_esp(){
+	if(z_esp+1 > KHEAP_SIZE/4 || zones[z_esp+1]){
+		for(uint32_t i=0;i<KHEAP_SIZE/4;i++){
+			if(!zones[i]){
+				z_esp = i;
+				break;
+			}
 		}
+	}else{
+		z_esp+=1;
 	}
-	optimize_list();
 }
 
-void print_memory(){
-	kinfo("Memory list contains %d cache entries\n",mid);
-	for(int i=0;i<mid;i++){
-		printf("%a - %d - %s\n",memory[i].addr,memory[i].size,memory[i].free?"free":"used");
+//frees memory. 
+void kfree(uint32_t* addr){
+	if(addr[-1] != 0){
+		uint32_t size = addr[-1];
+		allocated -= (addr[-1] + sizeof(uint32_t));
+		addr[-1] = 0;
+		addr[0] = size;
+		zones[z_esp] = addr-1;
+		free_esp();
+	}else{
+		kwarn("We probably tried to free unallocated memory\n");
 	}
-	kinfo("Current heap size: %d, allocated %d\n",cur_size, allocated);
 }
 
 //allocates aligned memory !! Wastes lot's of memory if alignment is large
 uint32_t* kvalloc(uint32_t size,uint32_t alignment){
-	uint32_t* mem = kmalloc(size+sizeof(uint32_t*)+alignment-1);
-	uint32_t* ptr = (uint32_t**)(((uint32_t)mem + (alignment - 1) + sizeof(uint32_t*)) & ~(alignment - 1));
-	((uint32_t**)ptr)[-1] = mem;
-	return ptr;
+	kwarn("kvalloc stub\n");
+	return kmalloc(size);
 }
 
-//free's aligned memory. Use this for aligned allocations 
-void kvfree(uint32_t* addr){
-	kfree(((uint32_t**)addr)[-1]);
-}
-
-//reallocates memory, currently just do new allocation and copy contents of old pointer to it !!! SLOW AND WASTEFUL TODO: optimize that
+//reallocates memory, currently just do new allocation and copy contents of old pointer to it !!!
 uint32_t* krealloc(uint32_t* ptr,uint32_t newsize){
-	uint32_t* new_pointer = kmalloc(newsize);
-	for(int i=0;i<mid;i++){
-		//printf("%a %a\n",memory[i].addr,(uint32_t)ptr);
-		if(memory[i].addr == (uint32_t)ptr && !memory[i].free){
-			//printf("Moving %a to %a (%d bytes)\n",ptr,new_pointer,newsize>memory[i].size?memory[i].size:newsize);
-			memmove(new_pointer,ptr,newsize>memory[i].size?memory[i].size:newsize);
-			break;
-		}
-	}
+	uint32_t* addr = kmalloc(newsize);
+	memmove(addr,ptr,ptr[-1]);
 	kfree(ptr);
-	return new_pointer;
+	return addr;
 }

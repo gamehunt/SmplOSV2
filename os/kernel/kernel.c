@@ -6,7 +6,7 @@
 #include <kernel/memory/memory.h>
 #include <kernel/arch.h>
 #include <kernel/fs/vfs.h>
-
+#include <kernel/module/symbol.h>
 
 //TODO Make all shit thread-safe
 //TODO InitRD
@@ -36,10 +36,12 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_vfs(); 
 	init_tty();
 	
-	//Below this point is multithreading
+	//Below this point is multiproc.
 	init_sched();
 	
 	for(;;) {
 		asm("hlt");
     }
 }
+
+EXPORT_SYMBOL(kernel_main)

@@ -18,11 +18,9 @@
 #define PAGE_DIRTY 0x40
 #define PAGE_SIZE 0x80
 
-#define KHEAP_SIZE 8*1024 //8kib
-#define KHEAP_MAX_SIZE 2*1024*1024 //2mib
+#define KHEAP_SIZE 4*4096 //16kib
 
-#define USER_STACK_BOTTOM 0xAFF00000
-#define USER_STACK_TOP    0xB0000000
+#define SYMTABLE 0x1007000
 
 struct gdt_entry {
   uint16_t limit;

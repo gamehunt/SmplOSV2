@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <kernel/memory/memory.h>
 #include <kernel/global.h>
+#include <kernel/misc/panic.h>
 extern uint32_t k_end;
 
 
@@ -117,14 +118,16 @@ uint32_t* kpalloc(){
 //Allocates next page with addr vaddr
 uint32_t* knpalloc(uint32_t vaddr){
 	kmpalloc(vaddr,kfalloc());
+	return(uint32_t*)vaddr;
 }
 
 //Allocates n pages, which mapped as continious
 uint32_t* kcpalloc(uint32_t n){
 	uint32_t* ptr = kpalloc();
 		
-	for(int i=0;i<n-1;i++){
-		knpalloc((uint32_t)ptr + 4096);
+	for(int i=1;i<n;i++){
+		//kinfo("%a\n",ptr + 4096*i);
+		knpalloc((uint32_t)ptr + 4096*i);
 	}
 	return ptr;
 }
@@ -167,8 +170,19 @@ void init_paging(){
 	kernel_page_directory[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
 	kmpalloc((uint32_t)kernel_page_directory,0);
 	extern uint32_t k_frame_stack_size;
-	for(int i=0;i<0x2000000;i+=4096){
+	for(int i=0;i<0x1000000;i+=4096){
 		kmpalloc(i,0);
+	}
+	//while(1);
+	uint32_t* symtable = kpalloc();
+	if((uint32_t)symtable != SYMTABLE){
+		crash_info_t crash;
+		char ea[80];
+		crash.description = "Failed to place SYMTABLE to default position\n";
+		sprintf(ea,"Try changing SYMTABLE in memory.h to the address %a\n",(uint32_t)symtable);
+		crash.extra_info = ea;
+		crash.regs = 0;
+		kpanic(crash);
 	}
 	set_page_directory((uint32_t)kernel_page_directory);
 	enable_paging();
