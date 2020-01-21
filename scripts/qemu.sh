@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ./build.sh
 sudo rsync -a ../sysroot/ /mnt/smplos/
 sync
