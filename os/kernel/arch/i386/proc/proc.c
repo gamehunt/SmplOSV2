@@ -38,7 +38,7 @@ proc_t* create_process(const char* name,void* routine){
 	if(routine){
 		new_proc->state->esp -= sizeof(uintptr_t);
 		*((uintptr_t *)new_proc->state->esp) = (uintptr_t)routine; //TODO
-		printf("%a\n",*((uintptr_t *)new_proc->state->esp));
+		//printf("%a\n",*((uintptr_t *)new_proc->state->esp));
 	}
 	
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);

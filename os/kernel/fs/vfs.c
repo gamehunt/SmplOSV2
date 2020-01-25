@@ -1,6 +1,8 @@
 #include <kernel/fs/vfs.h>
 #include <string.h>
 
+fs_t* fss[MAX_FS];
+fs_node_t* root;
 static uint16_t fsidx = 0; 
 
 uint8_t vfs_set_flag(uint8_t flags,uint8_t flag){

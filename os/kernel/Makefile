@@ -36,9 +36,10 @@ dev/cmos.o\
 dev/rtc.o\
 dev/tty.o\
 fs/vfs.o\
+fs/tar.o\
 $(ARCHDIR)/proc/proc.o\
-
-
+module/symtable.o\
+module/module.o\
 
 KERNEL_LINK_OBJS=\
 $(CRTI_OBJS)\

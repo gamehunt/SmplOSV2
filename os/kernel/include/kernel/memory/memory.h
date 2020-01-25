@@ -20,7 +20,7 @@
 
 #define KHEAP_SIZE 4*4096 //16kib
 
-#define SYMTABLE 0x1007000
+
 
 struct gdt_entry {
   uint16_t limit;

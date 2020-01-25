@@ -29,9 +29,6 @@ SECTIONS
 	.data BLOCK(4K) : ALIGN(4K)
 	{
 		*(.data)
-		PROVIDE(sym_start = .);
-		*(.sym)
-		PROVIDE(sym_end = .);
 	}
  
 	/* Read-write data (uninitialized) and stack */

@@ -59,7 +59,7 @@ void init_tty(){
 		}
 		tty_set_output_stream(TTY_OUTPUT_STREAM_STDOUT);
 		enabled = 1;
-		kinfo("TTY initialized: %d fsid\n",tty_fsid);
+		kinfo("TTY initialized: fsid %d\n",tty_fsid);
 	}else{
 		kerr("Failed to initialize tty\n");
 	}

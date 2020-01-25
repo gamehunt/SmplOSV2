@@ -31,9 +31,7 @@ typedef struct{
 	uint8_t (*remove)(fs_node_t*);
 }fs_t;
 
-fs_t* fss[MAX_FS];
 
-fs_node_t* root;
 
 void init_vfs();
 uint16_t register_fs(fs_t* fs);

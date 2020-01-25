@@ -64,7 +64,7 @@ void init_pmm(multiboot_info_t *mbt){
 	}
 	
 	memset(k_frame_stack,0,k_frame_stack_size);
-	k_temp_frame_stack = (uint32_t*)((uint32_t)&k_end + k_frame_stack_size*sizeof(uint32_t));
+	k_temp_frame_stack = (uint32_t*)((uint32_t)&k_frame_stack + k_frame_stack_size*sizeof(uint32_t));
 	memset(k_temp_frame_stack,0,k_frame_stack_size);
 	mmap = mbt->mmap_addr;
 	uint32_t useful_mem = 0;

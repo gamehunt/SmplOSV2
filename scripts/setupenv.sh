@@ -16,7 +16,7 @@ echo $AR
 echo $AS
 export D_ASM=${DEFAULT_ASM}
 echo Default assembler: $D_ASM 
-export SYSROOT="/home/user/SmplOSV2/sysroot"
+export SYSROOT="/home/gamehunt/SmplOSV2/sysroot"
 export SYSINC="/include"
 export SYSLIB="/lib"
 export KERNEL_LINKS="$KERNEL_LINKS"

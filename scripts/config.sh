@@ -12,8 +12,8 @@ KERNEL_LINKS='-nostdlib  -lk -lgcc'
 LIBK_CFLAGS="$KERNEL_CFLAGS -D__smplos_libk"
 LIBC_CFLAGS="$KERNEL_CFLAGS -D__smplos_libc"
 BUILDDIRS="libc os"
-LOOPDEV1=/dev/loop17
-LOOPDEV2=/dev/loop18
+LOOPDEV1=/dev/loop1
+LOOPDEV2=/dev/loop2
 
 export PREFIX="$HOME/opt/cross"
 export TARGET=i686-elf
