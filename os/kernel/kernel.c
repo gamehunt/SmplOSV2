@@ -41,6 +41,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	gdt_install();
 	remap_PIC(0x20,0x28);
 	idt_install();	
+	
 	init_pmm(mbt);
 	init_paging();
 	init_kheap();
@@ -50,7 +51,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_rtc();
 	init_vfs(); 
 	init_tty();
-	init_tar();
+	
+	ramdisk_load();
+
 	//Below this point is multiproc.
 	init_sched();
 	

@@ -13,3 +13,7 @@ void add_ramdisk_module(multiboot_module_t* mod){
 uint32_t count_ramdisk_modules(){
 	return last;
 }
+
+uint8_t load_module(fs_node_t* node){
+	return 0;
+}
