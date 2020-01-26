@@ -1,4 +1,5 @@
 #include <kernel/module/symtable.h>
+#include <kernel/fs/vfs.h>
 
 sym_entry_t** symtable = SYMTABLE;
 uint32_t last_sym = 0;
@@ -29,4 +30,5 @@ sym_entry_t* seek_ksym(char name[64]){
 void init_symtable(){
 	create_ksym("get_ksym",&get_ksym);
 	create_ksym("seek_ksym",&seek_ksym);
+	create_ksym("dump_vfs",&dump_vfs);
 }

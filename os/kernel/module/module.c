@@ -1,4 +1,7 @@
 #include <kernel/module/module.h>
+#include <kernel/module/elf.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/misc/function.h>
 
 multiboot_module_t* ramdisk_modules[64];
 uint32_t last = 0;
@@ -15,5 +18,15 @@ uint32_t count_ramdisk_modules(){
 }
 
 uint8_t load_module(fs_node_t* node){
-	return 0;
+	uint8_t* buffer = kmalloc(node->size);
+	if(!knread(node,0,node->size,buffer)){
+		kerr("Failed to read module file\n");
+	}
+
+	if(elf_load_file(buffer)){
+		//further load
+	}else{
+		kerr("Failed to load elf file\n");
+		return 0;
+	}
 }

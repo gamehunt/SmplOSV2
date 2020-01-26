@@ -1,1 +1,1 @@
-tar -cvf ../os/ramdisk.rmdsk ../os/ramdisk
+tar -cvf ../ramdisk.rmdsk ../ramdisk

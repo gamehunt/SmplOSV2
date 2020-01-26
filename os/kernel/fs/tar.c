@@ -15,13 +15,15 @@ static unsigned int getsize(const char *in)
  
 }
 uint32_t header_size(tar_hdr_t* hdr){
-	return getsize(hdr);
+	return getsize(hdr->size);
 }
 fs_node_t* header2node(tar_hdr_t* hdr){
 	fs_node_t* node = allocate_fs_node();
 	node->size = header_size(hdr);
 	memcpy(node->name,hdr->filename,strlen(hdr->filename));
 	node->inode = hdr;
+	node->fsid = 2;
+	node->flags = 0;
 	return node;
 }
 static uint32_t path_size(char* path){
@@ -117,8 +119,9 @@ uint8_t tar_umount(fs_node_t* root){
 
 
 uint32_t tar_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
-	if(node->flags & VFS_MOUNTPOINT){
-		//kinfo("HERE\n");
+	//kinfo("TAR: %d\n",size);
+	if(vfs_check_flag(node->flags,VFS_MOUNTPOINT)){
+		
 		if(offset+1 > node->size){
 			return 0;
 		}
@@ -129,8 +132,10 @@ uint32_t tar_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffe
 		if(offset + size > node->size){
 			return 0;
 		}
+		//kinfo("HERE\n");
 		tar_hdr_t* hdr = ((tar_hdr_t*)node->inode);
-		memcpy(buffer,(uint32_t)hdr+offset+512,size);
+		memcpy(buffer,(uint32_t)hdr+(uint32_t)offset+512,size);
+		//printf("%a %d %a %a %a %a\n",(uint32_t)hdr+(uint32_t)offset+512,size,buffer[0],buffer[1],buffer[2],buffer[3]);
 		return size;
 	}
 }

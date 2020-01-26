@@ -41,6 +41,7 @@ $(ARCHDIR)/proc/proc.o\
 module/symtable.o\
 module/module.o\
 module/ramdisk.o\
+module/elf.o\
 
 KERNEL_LINK_OBJS=\
 $(CRTI_OBJS)\

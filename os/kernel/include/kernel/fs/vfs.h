@@ -32,7 +32,7 @@ typedef struct{
 }fs_t;
 
 
-
+void dump_vfs();
 void init_vfs();
 uint16_t register_fs(fs_t* fs);
 uint8_t unregister_fs(uint16_t fs);

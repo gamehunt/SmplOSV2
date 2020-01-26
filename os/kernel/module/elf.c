@@ -1,0 +1,201 @@
+#include <kernel/module/elf.h>
+#include <kernel/module/symtable.h>
+
+uint8_t   elf_check_format(elf32_hdr_t *hdr){
+	if(!hdr) return 0;
+	if(hdr->e_ident[EI_MAG0] != ELFMAG0) {
+		return 0;
+	}
+	if(hdr->e_ident[EI_MAG1] != ELFMAG1) {
+		return 0;
+	}
+	if(hdr->e_ident[EI_MAG2] != ELFMAG2) {
+		return 0;
+	}
+	if(hdr->e_ident[EI_MAG3] != ELFMAG3) {
+		return 0;
+	}
+//	kinfo("Format passed\n");
+	return 1;
+}
+uint8_t   elf_check_supported(elf32_hdr_t *hdr){
+	if(!elf_check_format(hdr)){
+		return 0;
+	}
+	if(hdr->e_ident[EI_CLASS] != ELFCLASS32) {
+//kinfo("1\n");
+		return 0;
+	}
+	if(hdr->e_ident[EI_DATA] != ELFDATA2LSB) {
+//kinfo("2\n");
+		return 0;
+	}
+	if(hdr->e_machine != EM_386) {
+///kinfo("3\n");
+		return 0;
+	}
+	if(hdr->e_ident[EI_VERSION] != EV_CURRENT) {
+//kinfo("4n");
+		return 0;
+	}
+	if(hdr->e_type != ET_REL && hdr->e_type != ET_EXEC) {
+//kinfo("5\n");
+		return 0;
+	}
+	return 1;
+}
+
+int   elf_get_symval(elf32_hdr_t *hdr, int table, uint32_t idx){
+	if(table == SHN_UNDEF || idx == SHN_UNDEF) return 0;
+	elf32_sect_hdr_t *symtab = elf_section(hdr, table);
+	uint32_t symtab_entries = symtab->sh_size / symtab->sh_entsize;
+	if(idx >= symtab_entries) {
+		kerr("Symbol Index out of Range (%d:%d).\n", table, idx);
+		return ELF_RELOC_ERR;
+	}
+	int symaddr = (int)hdr + symtab->sh_offset;
+	elf32_sym_t *symbol = &((elf32_sym_t *)symaddr)[idx];
+	if(symbol->st_shndx == SHN_UNDEF) {
+		// External symbol, lookup value
+		elf32_sect_hdr_t *strtab = elf_section(hdr, symtab->sh_link);
+		const char *name = (const char *)hdr + strtab->sh_offset + symbol->st_name;
+
+		sym_entry_t *sym = seek_ksym(name);
+		uint32_t target = 0;
+		if(sym){
+			target = (uint32_t)sym->addr;
+		}
+		if(target == 0) {
+			// Extern symbol not found
+			if(ELF32_ST_BIND(symbol->st_info) & STB_WEAK) {
+				// Weak symbol initialized as 0
+				return 0;
+			} else {
+				kerr("Undefined External Symbol : %s.\n", name);
+				return ELF_RELOC_ERR;
+			}
+		} else {
+			return (int)target;
+		}
+	} else if(symbol->st_shndx == SHN_ABS) {
+		return symbol->st_value;
+	} else {
+		// Internally defined symbol
+		elf32_sect_hdr_t *target = elf_section(hdr, symbol->st_shndx);
+		return (int)hdr + symbol->st_value + target->sh_offset;
+	}
+}
+
+
+int   elf_make_bss(elf32_hdr_t* hdr){
+	elf32_sect_hdr_t *shdr = elf_sheader(hdr);
+ 
+	unsigned int i;
+	// Iterate over section headers
+	for(i = 0; i < hdr->e_shnum; i++) {
+		elf32_sect_hdr_t *section = &shdr[i];
+ 
+		// If the section isn't present in the file
+		if(section->sh_type == SHT_NOBITS) {
+			// Skip if it the section is empty
+			if(!section->sh_size) continue;
+			// If the section should appear in memory
+			if(section->sh_flags & SHF_ALLOC) {
+				// Allocate and zero some memory
+				void *mem = malloc(section->sh_size);
+				memset(mem, 0, section->sh_size);
+ 
+				// Assign the memory offset to the section offset
+				section->sh_offset = (int)mem - (int)hdr;
+				kinfo("Allocated memory for a section (%ld).\n", section->sh_size);
+			}
+		}
+	}
+	return 0;
+}
+int   elf_make_relocations(elf32_hdr_t* hdr){
+	elf32_sect_hdr_t *shdr = elf_sheader(hdr);
+ 
+	unsigned int i, idx;
+	// Iterate over section headers
+	for(i = 0; i < hdr->e_shnum; i++) {
+		elf32_sect_hdr_t *section = &shdr[i];
+ 
+		// If this is a relocation section
+		if(section->sh_type == SHT_REL) {
+			// Process each entry in the table
+			for(idx = 0; idx < section->sh_size / section->sh_entsize; idx++) {
+				elf32_rel_t *reltab = &((elf32_rel_t *)((int)hdr + section->sh_offset))[idx];
+				int result = elf_do_reloc(hdr, reltab, section);
+				// On error, display a message and return
+				if(result == ELF_RELOC_ERR) {
+					kerr("Failed to relocate symbol.\n");
+					return ELF_RELOC_ERR;
+				}
+			}
+		}
+	}
+	return 0;
+}
+int   elf_do_reloc(elf32_hdr_t *hdr, elf32_rel_t *rel, elf32_sect_hdr_t *reltab){
+	elf32_sect_hdr_t *target = elf_section(hdr, reltab->sh_info);
+ 
+	int addr = (int)hdr + target->sh_offset;
+	int *ref = (int *)(addr + rel->r_offset);
+	int symval = 0;
+	if(ELF32_R_SYM(rel->r_info) != SHN_UNDEF) {
+		symval = elf_get_symval(hdr, reltab->sh_link, ELF32_R_SYM(rel->r_info));
+		if(symval == ELF_RELOC_ERR) return ELF_RELOC_ERR;
+	}
+	switch(ELF32_R_TYPE(rel->r_info)) {
+		case R_386_NONE:
+			// No relocation
+			break;
+		case R_386_32:
+			// Symbol + Offset
+			*ref = DO_386_32(symval, *ref);
+			break;
+		case R_386_PC32:
+			// Symbol + Offset - Section Offset
+			*ref = DO_386_PC32(symval, *ref, (int)ref);
+			break;
+		default:
+			// Relocation type not supported, display error and return
+			kerr("Unsupported Relocation Type (%d).\n", ELF32_R_TYPE(rel->r_info));
+			return ELF_RELOC_ERR;
+	}
+	return symval;
+}
+void *elf_load_reloc(elf32_hdr_t *hdr){
+	int result;
+	result = elf_make_bss(hdr);
+	if(result == ELF_RELOC_ERR) {
+		kerr("Unable to load ELF file.\n");
+		return 0;
+	}
+	result = elf_make_relocations(hdr);
+	if(result == ELF_RELOC_ERR) {
+		kerr("Unable to load ELF file.\n");
+		return 0;
+	}
+	// TODO : Parse the program header (if present)
+	if((void *)hdr->e_entry){
+		//TODO
+	}
+	return 1;
+}
+void *elf_load_file(uint8_t *file){
+	elf32_hdr_t *hdr = (elf32_hdr_t *)file;
+	if(!elf_check_supported(hdr)) {
+		kerr("ELF File cannot be loaded.\n");
+		return 0;
+	}
+	switch(hdr->e_type) {
+		case ET_EXEC:
+			// TODO : Implement
+			return 0;
+		case ET_REL:
+			return elf_load_reloc(hdr);
+	}
+	return 0;
+}

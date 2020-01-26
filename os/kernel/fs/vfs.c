@@ -305,7 +305,9 @@ uint8_t kumount(char* path){
 }
 
 uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
+	//kinfo("KNR: %a %d %a\n",node,size,buffer);
 	if(node && fss[node->fsid]->read){
+	//	kinfo("f: %d\n",node->fsid);
 		return  fss[node->fsid]->read(node,offset,size,buffer);
 	}
 	return 0;
