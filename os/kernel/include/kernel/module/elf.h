@@ -167,9 +167,11 @@ uint8_t  elf_check_format(elf32_hdr_t *hdr);
 uint8_t  elf_check_supported(elf32_hdr_t *hdr);
 
 int   elf_get_symval(elf32_hdr_t *hdr, int table, uint32_t idx);
+void* elf_get_symbol(elf32_hdr_t *hdr,char name[64]);
 
 int   elf_make_bss(elf32_hdr_t* hdr);
 int   elf_make_relocations(elf32_hdr_t* hdr);
 int   elf_do_reloc(elf32_hdr_t *hdr, elf32_rel_t *rel, elf32_sect_hdr_t *reltab);
 void *elf_load_reloc(elf32_hdr_t *file);
 void *elf_load_file(uint8_t  *file);
+

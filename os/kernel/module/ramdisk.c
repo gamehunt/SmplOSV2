@@ -15,12 +15,7 @@ uint8_t ramdisk_load(){
 		knread(ramdisk_root,(uint64_t)i,(uint32_t)1228,(uint8_t*)&hdr_addr);
 		tar_hdr_t* hdr= (tar_hdr_t*)hdr_addr;
 		fs_node_t* fsnode = header2node(hdr);
-		kinfo("Loading ramdisk module '%s'\n",fsnode->name);
-		if(!load_module(fsnode)){
-			kerr("Failed to load ramdisk module '%s'\n",fsnode->name);
-		}else{
-			kinfo("Loaded ramdisk module '%s'\n",fsnode->name);
-		}
+		load_module(fsnode);
 	}
 	kinfo("Ramdisk loaded\n");
 }

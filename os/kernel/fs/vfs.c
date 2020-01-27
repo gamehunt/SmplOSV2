@@ -52,7 +52,8 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 	}
 	return 0;
 }
-static fs_node_t* vfs_create(char* name,fs_node_t* par,uint8_t type){
+ fs_node_t* vfs_create(char* name,fs_node_t* par,uint8_t type){
+	//printf("VFS_CR\n");
 	fs_node_t* new = allocate_fs_node();
 	new->type = type;
 	strcpy(new->name,name);
@@ -61,7 +62,9 @@ static fs_node_t* vfs_create(char* name,fs_node_t* par,uint8_t type){
 	if(par->ccount == 1){
 		par->childs = kmalloc(sizeof(fs_node_t*));
 	}else{
+		//kinfo("HERE\n");
 		par->childs = krealloc(par->childs,par->ccount*sizeof(fs_node_t*));
+		//kinfo("NOT HERE\n");
 	}
 	par->childs[par->ccount-1] = new; 
 	//printf("Created: %s in %s (0x%x)\n",par->childs[par->ccount-1]->name,par->name,(uint32_t)par->childs[par->ccount-1]);
@@ -144,6 +147,7 @@ void init_vfs(){
 	register_fs(vfs);
 	root = allocate_fs_node();
 	memcpy(root->name,"[fsroot]",strlen("[fsroot]"));
+	root->fsid = 0;
 }
 
 static char* canonize_absolute(char* path){
@@ -231,6 +235,7 @@ fs_node_t* kcreate(char* path, uint8_t type){
 	if(!par){
 		kerr("Failed to create parent node!\n");
 	}
+	//kinfo("HERE %d,%a\n",par->fsid,fss[par->fsid]->create);
 	node = fss[par->fsid]->create(name,par,type);
 	return node;
 }

@@ -1,7 +1,8 @@
 #include <kernel/module/symtable.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/misc/log.h>
 
-sym_entry_t** symtable = SYMTABLE;
+sym_entry_t* symtable[1024];
 uint32_t last_sym = 0;
 
 sym_entry_t* create_ksym(char name[64],uint32_t* addr){
@@ -13,6 +14,9 @@ sym_entry_t* create_ksym(char name[64],uint32_t* addr){
 }
 
 sym_entry_t* get_ksym(uint32_t id){
+	if(id > last_sym){
+		return 0;
+	}
 	sym_entry_t* entry = symtable[id];
 	return entry;
 }
@@ -31,4 +35,5 @@ void init_symtable(){
 	create_ksym("get_ksym",&get_ksym);
 	create_ksym("seek_ksym",&seek_ksym);
 	create_ksym("dump_vfs",&dump_vfs);
+	create_ksym("kinfo",&kinfo);
 }

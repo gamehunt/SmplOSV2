@@ -11,6 +11,9 @@
 //TODO Make all shit thread-safe
 //TODO InitRD
 //TODO Module loading (ELF)
+
+extern fs_node_t* root;
+
 extern uint32_t* k_frame_stack;  
 void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	terminal_init();	
@@ -40,6 +43,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	//while(1);
 	gdt_install();
 	remap_PIC(0x20,0x28);
+	
 	idt_install();	
 	
 	init_pmm(mbt);
@@ -50,8 +54,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_pit();
 	init_rtc();
 	init_vfs(); 
+	create_vfs_mapping("/huy");
 	init_tty();
-	
+
 	ramdisk_load();
 
 	//Below this point is multiproc.

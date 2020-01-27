@@ -173,17 +173,6 @@ void init_paging(){
 	for(int i=0;i<0x1000000;i+=4096){
 		kmpalloc(i,0);
 	}
-	//while(1);
-	uint32_t* symtable = kpalloc();
-	if((uint32_t)symtable != SYMTABLE){
-		crash_info_t crash;
-		char ea[80];
-		crash.description = "Failed to place SYMTABLE to default position\n";
-		sprintf(ea,"Try changing SYMTABLE in memory.h to the address %a\n",(uint32_t)symtable);
-		crash.extra_info = ea;
-		crash.regs = 0;
-		kpanic(crash);
-	}
 	set_page_directory((uint32_t)kernel_page_directory);
 	enable_paging();
 	paging_flag = 1;

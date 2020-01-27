@@ -24,9 +24,19 @@ uint8_t load_module(fs_node_t* node){
 	}
 
 	if(elf_load_file(buffer)){
-		//further load
+		elf32_hdr_t *ehdr = (elf32_hdr_t *)buffer;
+		elf32_sym_t* module_header = (elf32_sym_t*)elf_get_symbol(ehdr,"__module_header");
+		if(!module_header){
+			kerr("Failed to find module header\n");
+			return 0;
+		}else{
+			elf32_sect_hdr_t *target = elf_section(ehdr, module_header->st_shndx);
+			int abs = (int)ehdr + module_header->st_value + target->sh_offset;
+			kernel_mod_hdr_t* str = (kernel_mod_hdr_t*)abs;
+			kinfo("Loading module '%s'\n",str->name);
+			return str->load();
+		}
 	}else{
-		kerr("Failed to load elf file\n");
 		return 0;
 	}
 }

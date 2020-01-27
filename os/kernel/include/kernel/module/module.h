@@ -23,7 +23,6 @@ typedef struct kernel_module kernel_module_t;
 #define KERNEL_MODULE(__name,__load,__unload) \
 	kernel_mod_hdr_t __module_header = {__name,__load,__unload};\
 
-
 multiboot_module_t* get_ramdisk_module(uint32_t id);
 void add_ramdisk_module(multiboot_module_t* mod);
 uint32_t count_ramdisk_modules();

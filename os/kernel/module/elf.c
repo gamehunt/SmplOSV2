@@ -44,7 +44,49 @@ uint8_t   elf_check_supported(elf32_hdr_t *hdr){
 	}
 	return 1;
 }
+void *elf_get_symbol(elf32_hdr_t *target,char sname[64]){
+	elf32_sect_hdr_t * sym_shdr;
+	char * shstrtab = 0;
+	char * symstrtab = 0;
+	uint16_t i = 0;
+	//INFO("0x%x %d 0x%x",target,sizeof(target),target[4305]);
+	//INFO("%d\n",(unsigned int)target->e_shentsize * target->e_shnum/target->e_shentsize)
+	for (unsigned int x = 0; x < (unsigned int)target->e_shentsize * target->e_shnum; x += target->e_shentsize) {
+			elf32_sect_hdr_t * shdr = (elf32_sect_hdr_t *)((uintptr_t)target + (target->e_shoff + x));
+			if (shdr->sh_type == SHT_SYMTAB) {
+				sym_shdr = shdr;
+			}
+			if (i == target->e_shstrndx) {
+				shstrtab = (char *)((uintptr_t)target + shdr->sh_offset);
+			}
+			i++;
+		
+	} 
+	for (unsigned int x = 0; x < (unsigned int)target->e_shentsize * target->e_shnum; x += target->e_shentsize) {
+			elf32_sect_hdr_t * shdr = (elf32_sect_hdr_t *)((uintptr_t)target + (target->e_shoff + x));
+			if (shdr->sh_type == SHT_STRTAB && (!strcmp((char *)((uintptr_t)shstrtab + shdr->sh_name), ".strtab"))) {
+				symstrtab = (char *)((uintptr_t)target + shdr->sh_offset);
+			}
+	}
+	if (!sym_shdr || !shstrtab || !symstrtab) {
+		kerr("Failed to find symbol '%s': symtable issue %d%d%d\n",sname,!sym_shdr,!shstrtab,!symstrtab);
+		return 0;
+	}
+	elf32_sym_t * table = (elf32_sym_t *)((uintptr_t)target + sym_shdr->sh_offset);
+	while ((uintptr_t)table - ((uintptr_t)target + sym_shdr->sh_offset) < sym_shdr->sh_size) {
+		if (table->st_name) {
+			char * name = (char *)((uintptr_t)symstrtab + table->st_name);
 
+			if(!strcmp(name,sname)){
+				return table;
+			}
+			
+			
+		}
+		table++;
+	}	
+	return 0;
+}
 int   elf_get_symval(elf32_hdr_t *hdr, int table, uint32_t idx){
 	if(table == SHN_UNDEF || idx == SHN_UNDEF) return 0;
 	elf32_sect_hdr_t *symtab = elf_section(hdr, table);
@@ -102,7 +144,7 @@ int   elf_make_bss(elf32_hdr_t* hdr){
 			// If the section should appear in memory
 			if(section->sh_flags & SHF_ALLOC) {
 				// Allocate and zero some memory
-				void *mem = malloc(section->sh_size);
+				void *mem = kmalloc(section->sh_size);
 				memset(mem, 0, section->sh_size);
  
 				// Assign the memory offset to the section offset

@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <kernel/misc/function.h>
 
-#define SYMTABLE 0x1007000
-
 struct symtable_entry{
 	uint32_t* addr;
 	char name[64];
