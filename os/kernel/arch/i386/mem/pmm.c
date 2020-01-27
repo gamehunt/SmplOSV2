@@ -1,15 +1,18 @@
 #include <kernel/memory/memory.h>
 #include <kernel/global.h>
 #include <kernel/misc/panic.h>
+#include <kernel/misc/stat.h>
 extern uint32_t k_end;
 
 uint32_t* k_frame_stack = &k_end;
-uint32_t* k_temp_frame_stack;
+static uint32_t* k_temp_frame_stack;
 
-long k_frame_stack_esp = 0;
-long k_temp_frame_stack_esp = 0;
+static long k_frame_stack_esp = 0;
+static long k_temp_frame_stack_esp = 0;
 
-uint32_t k_frame_stack_size;
+static uint32_t k_frame_stack_size;
+
+static uint16_t stat,stat1;
 
 uint32_t k_frame_stack_pop(){
 	if(k_frame_stack_esp < 0){	
@@ -18,10 +21,8 @@ uint32_t k_frame_stack_pop(){
 		kpanic(crash);	
 		return 0;
 	} 
-	//while(1);
 	uint32_t addr = k_frame_stack[k_frame_stack_esp-1];
 	k_frame_stack_esp--;
-	//while(1);
 	return addr;
 }
 
@@ -49,10 +50,10 @@ uint32_t k_temp_frame_stack_pop(){
 
 void init_pmm(multiboot_info_t *mbt){
 	kinfo("Kernel frame stack at %a\n",k_frame_stack);
+	stat = create_stat("pmm_stack_pushed",0);
+	stat1 = create_stat("pmm_stack_popped",0);
 	multiboot_memory_map_t* mmap = mbt->mmap_addr;
 	uint32_t k_frame_stack_size = 0;
-	//kinfo("%a\n",(uint32_t)(mbt->mmap_addr));
-	//while(1);	
 	while((uint32_t)mmap < mbt->mmap_addr+ mbt->mmap_length) {
 		kinfo("0x%e - 0x%e - 0x%x\n",mmap->addr,mmap->addr+mmap->len,mmap->type);
 		if(mmap->type == 1){
@@ -71,9 +72,7 @@ void init_pmm(multiboot_info_t *mbt){
 	while((uint32_t)mmap < mbt->mmap_addr + mbt->mmap_length) {
 		if(mmap->type == 1){
 			for(int i = 0; i< mmap->len; i+= 4096){
-				//kinfo("0x%e 0%x\n",mmap->addr+i,((uint32_t)&k_end+k_frame_stack_size));
 				if(mmap->addr+i > 0x1000000){
-		//			kinfo("%a\n",mmap->addr+i);
 					k_temp_frame_stack_push(mmap->addr+i);
 					useful_mem++;
 				}
@@ -84,7 +83,6 @@ void init_pmm(multiboot_info_t *mbt){
 	//reverse the stack to get smallest frame first (needs for correct pte allocation)
 	for(int i=0;i<useful_mem;i++){
 		uint32_t v = k_temp_frame_stack_pop();
-		//kinfo("%a; esp = %d\n",v,k_temp_frame_stack_esp);
 		k_frame_stack_push(v);
 	}
 	kinfo("Initialized frame stack with size %l, esp = %l\n",k_frame_stack_size,k_frame_stack_esp);
@@ -93,13 +91,15 @@ void init_pmm(multiboot_info_t *mbt){
 //Allocates frame
 
 uint32_t kfalloc(){
+
+	i_update_stat(stat1,1);
 	uint32_t frame =  k_frame_stack_pop();
-	//while(1);
 	return frame;
 }
 
 //Frees frame
 void kffree(uint32_t addr){
+	i_update_stat(stat,1);
 	k_frame_stack_push(addr);
 }
 

@@ -1,4 +1,5 @@
 #include <kernel/memory/memory.h>
+#include <kernel/misc/stat.h>
 #include <kernel/global.h>
 #include <string.h>
 //Very,very,VERY simple allocator, alloc: O(n), free: O(n)
@@ -16,11 +17,17 @@ typedef struct mem_block mem_t;
 
 static mem_t* free = 0;
 
+static uint32_t stat_alloc,stat_free,stat_merges,stat_alloc_total,stat_freed_total,stat_max_load;
 
 void init_kheap(){
 	heap_start = kcpalloc(KHEAP_SIZE/4096);
 	heap_start_static = heap_start;
-	//free = kcpalloc(4);
+	stat_alloc = create_stat("kheap_alloc_times",0);
+	stat_free = create_stat("kheap_free_times",0);
+	stat_merges = create_stat("kheap_merges",0);
+	stat_alloc_total = create_stat("kheap_alloc_total",0);
+	stat_freed_total = create_stat("kheap_freed_total",0);
+	stat_max_load = create_stat("kheap_max_load",0);
 }
 
 static inline mem_t* header(void* alloc){
@@ -103,6 +110,7 @@ void merge()
 		header_curr = (uint32_t)curr;
 		header_next = (uint32_t)curr->next;
 		if (header_curr + curr->size + sizeof(mem_t) == header_next) {
+			i_update_stat(stat_merges,1);
 			curr->size += curr->next->size + sizeof(mem_t);
 			curr->next = curr->next->next;
 			if (curr->next) {
@@ -117,15 +125,19 @@ void merge()
 }
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
+	i_update_stat(stat_alloc,1);
 	mem_t* block = free_block(size);
 	if(block){
+		i_update_stat(stat_alloc_total,size);
+		i_update_stat(stat_max_load,size);
 		return ptr(block);
 	}else{
-		//kinfo("ALLOC %d\n",size);
 		if((uint32_t)heap_start + sizeof(mem_t)+size > heap_start_static+KHEAP_SIZE*8){
 			kerr("Out of memory\n");
 			return 0;
 		}
+		i_update_stat(stat_alloc_total,size);
+		i_update_stat(stat_max_load,size);
 		mem_t* nblock = heap_start;
 		heap_start = (uint32_t*)((uint32_t)heap_start + sizeof(mem_t)+size);
 		nblock->size = size;
@@ -140,7 +152,10 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 	//kinfo("FREE %a\n",addr);
+	i_update_stat(stat_free,1);
 	mem_t* block = header(addr);
+	i_update_stat(stat_freed_total,block->size);
+	i_update_stat(stat_max_load,-block->size);
 	free_insert(block);
 	merge();
 }
