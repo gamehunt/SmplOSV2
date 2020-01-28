@@ -32,3 +32,5 @@ void schedule(regs_t reg);
 
 proc_t* create_process(const char* name,void* routine);
 void setup_ctx(context_t* ctx,regs_t r);
+
+void kill(uint32_t pid);

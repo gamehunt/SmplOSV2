@@ -52,7 +52,8 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 
 	//Below this point is multiproc.
 	init_sched();
-	kinfo("TA: %d KB(%d times) TF: %d KB (%d times) - %d merged - %d KB peak\n",get_stat("kheap_alloc_total")/1024,get_stat("kheap_alloc_times"),get_stat("kheap_freed_total")/1024,get_stat("kheap_free_times"),get_stat("kheap_merges"),get_stat("kheap_max_load")/1024);
+	
+	//kinfo("TA: %d KB(%d times) TF: %d KB (%d times) - %d merged - %d KB peak\n",get_stat("kheap_alloc_total")/1024,get_stat("kheap_alloc_times"),get_stat("kheap_freed_total")/1024,get_stat("kheap_free_times"),get_stat("kheap_merges"),get_stat("kheap_max_load")/1024);
 	for(;;) {
 		asm("hlt");
     }

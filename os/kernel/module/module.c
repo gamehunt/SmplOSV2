@@ -1,3 +1,4 @@
+
 #include <kernel/module/module.h>
 #include <kernel/module/elf.h>
 #include <kernel/fs/vfs.h>
@@ -34,7 +35,8 @@ uint8_t load_module(fs_node_t* node){
 			int abs = (int)ehdr + module_header->st_value + target->sh_offset;
 			kernel_mod_hdr_t* str = (kernel_mod_hdr_t*)abs;
 			kinfo("Loading module '%s'\n",str->name);
-			return str->load();
+			//create_process(str->name,str->load);
+			str->load();
 		}
 	}else{
 		return 0;

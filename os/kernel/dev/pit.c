@@ -46,6 +46,7 @@ void pit_phase(int hz) {
 }
 
 void pit_tick(regs_t r){
+		//kinfo("TICK %d\n",__sys_ticks);
 		__sys_ticks++;
 		for(uint16_t i=0;i<max_id;i++){
 			if((uint32_t)pit_listeners[i] && !(__sys_ticks % pit_listeners[i]->time)){
