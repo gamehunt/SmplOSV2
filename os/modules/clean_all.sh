@@ -6,5 +6,7 @@ do
   make clean
   cd $HOME/SmplOSV2/os/modules
 done < "$input"
+rm -rf bin
+mkdir bin
 cd ramdisk_modules
 ./clean_all.sh

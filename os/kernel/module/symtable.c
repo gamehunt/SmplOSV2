@@ -1,11 +1,12 @@
 #include <kernel/module/symtable.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/misc/log.h>
+#include <kernel/memory/memory.h>
 
-sym_entry_t* symtable[1024];
-uint32_t last_sym = 0;
+static sym_entry_t* symtable[1024];
+static uint32_t last_sym = 0;
 
-sym_entry_t* create_ksym(char name[64],uint32_t* addr){
+sym_entry_t* symbol_export(char name[64],uint32_t* addr){
 	sym_entry_t* entry = kmalloc(sizeof(sym_entry_t));
 	memcpy(entry->name,name,64);
 	entry->addr = addr;
@@ -13,7 +14,7 @@ sym_entry_t* create_ksym(char name[64],uint32_t* addr){
 	last_sym++;
 }
 
-sym_entry_t* get_ksym(uint32_t id){
+sym_entry_t* symbol_get(uint32_t id){
 	if(id > last_sym){
 		return 0;
 	}
@@ -21,10 +22,10 @@ sym_entry_t* get_ksym(uint32_t id){
 	return entry;
 }
 
-sym_entry_t* seek_ksym(char name[64]){
+sym_entry_t* symbol_seek(char name[64]){
 	for(int i=0;i<last_sym;i++){
-		if(!strcmp(name,get_ksym(i)->name)){
-			return get_ksym(i);
+		if(!strcmp(name,symbol_get(i)->name)){
+			return symbol_get(i);
 		}
 	}
 	return 0;
@@ -32,8 +33,13 @@ sym_entry_t* seek_ksym(char name[64]){
 
 
 void init_symtable(){
-	create_ksym("get_ksym",&get_ksym);
-	create_ksym("seek_ksym",&seek_ksym);
-	create_ksym("dump_vfs",&dump_vfs);
-	create_ksym("kinfo",&kinfo);
+	symbol_export("symbol_get",&symbol_get);
+	symbol_export("symbol_export",&symbol_export);
+	symbol_export("symbol_seek",&symbol_seek);
+	symbol_export("kinfo",&kinfo);
+	symbol_export("kwarn",&kwarn);
+	symbol_export("kerr",&kerr);
+	symbol_export("kmalloc",&kmalloc);
+	symbol_export("kfree",&kfree);
+	symbol_export("krealloc",&krealloc);
 }

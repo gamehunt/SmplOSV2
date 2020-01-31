@@ -102,7 +102,7 @@ int   elf_get_symval(elf32_hdr_t *hdr, int table, uint32_t idx){
 		elf32_sect_hdr_t *strtab = elf_section(hdr, symtab->sh_link);
 		const char *name = (const char *)hdr + strtab->sh_offset + symbol->st_name;
 
-		sym_entry_t *sym = seek_ksym(name);
+		sym_entry_t *sym = symbol_seek(name);
 		uint32_t target = 0;
 		if(sym){
 			target = (uint32_t)sym->addr;

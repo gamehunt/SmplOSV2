@@ -108,3 +108,14 @@ uint32_t* kpalloc();
 uint32_t* knpalloc(uint32_t vaddr);
 //Allocates n pages, which mapped as continious
 uint32_t* kcpalloc(uint32_t n);
+
+uint32_t* kmalloc(uint32_t size);
+//frees memory. 
+void kfree(uint32_t* addr);
+
+//allocates aligned memory !! Wastes lot's of memory if alignment is large
+uint32_t* kvalloc(uint32_t size,uint32_t alignment);
+
+//reallocates memory, currently just do new allocation and copy contents of old pointer to it !!!
+uint32_t* krealloc(uint32_t* ptr,uint32_t newsize);
+

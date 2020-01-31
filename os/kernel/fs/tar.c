@@ -14,12 +14,12 @@ static unsigned int getsize(const char *in)
     return size;
  
 }
-uint32_t header_size(tar_hdr_t* hdr){
+uint32_t tar_header_size(tar_hdr_t* hdr){
 	return getsize(hdr->size);
 }
-fs_node_t* header2node(tar_hdr_t* hdr){
+fs_node_t* tar_header2node(tar_hdr_t* hdr){
 	fs_node_t* node = allocate_fs_node();
-	node->size = header_size(hdr);
+	node->size = tar_header_size(hdr);
 	memcpy(node->name,hdr->filename,strlen(hdr->filename));
 	node->inode = hdr;
 	node->fsid = 2;
@@ -83,12 +83,12 @@ static char* canonize_absolute(char* path){
 	return npath; //npath
 }
 fs_node_t* tar_mount(fs_node_t* root){
-	tar_hdr_t** hdrs = kmalloc(sizeof(tar_hdr_t*)*count_ramdisk_modules());
+	tar_hdr_t** hdrs = kmalloc(sizeof(tar_hdr_t*)*module_ramdisk_count());
 	root->inode = hdrs;
 	
-	for(int i=0;i<count_ramdisk_modules();i++){
+	for(int i=0;i<module_ramdisk_count();i++){
 		unsigned int j;
-		uint32_t address = ((multiboot_module_t*)get_ramdisk_module(i))->mod_start;
+		uint32_t address = ((multiboot_module_t*)module_ramdisk_get(i))->mod_start;
 		for (j = 0; ; j++)
 		{
  
@@ -149,7 +149,7 @@ fs_node_t* tar_seek(char* s,fs_node_t* root){
 		//char* name = path_block(path,path_size(path)-1);
 		//kinfo("%s\n",name);
 		if(!strcmp(hdr->filename,s)){
-			fs_node_t* node = header2node(hdr);
+			fs_node_t* node = tar_header2node(hdr);
 			node->inode = hdr;
 			return node;
 		}

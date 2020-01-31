@@ -19,7 +19,7 @@ fs_node_t* tar_mount(fs_node_t* root);
 uint8_t tar_umount(fs_node_t* root);
 uint32_t tar_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
 fs_node_t* tar_seek(char* s,fs_node_t* root);
-fs_node_t* header2node(tar_hdr_t* hdr);
-uint32_t header_size(tar_hdr_t* hdr);
+fs_node_t* tar_header2node(tar_hdr_t* hdr);
+uint32_t tar_header_size(tar_hdr_t* hdr);
 
 void init_tar();

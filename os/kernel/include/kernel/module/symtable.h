@@ -9,9 +9,9 @@ struct symtable_entry{
 };
 typedef struct symtable_entry sym_entry_t;
 
-sym_entry_t* create_ksym(char name[64],uint32_t* addr);
-sym_entry_t* get_ksym(uint32_t id);
-sym_entry_t* seek_ksym(char name[64]);
+sym_entry_t* symbol_export(char name[64],uint32_t* addr);
+sym_entry_t* symbol_get(uint32_t id);
+sym_entry_t* symbol_seek(char name[64]);
 
 void init_symtable();
 

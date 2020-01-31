@@ -325,6 +325,6 @@ uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer
 }
 
 fs_node_t* create_vfs_mapping(char* path){
-	kinfo("Mapping %s\n",path);
+	//kinfo("Mapping %s\n",path);
 	return kcreate(path,0);
 }
