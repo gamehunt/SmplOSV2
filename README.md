@@ -16,3 +16,5 @@ What is done:
   --> CMOS & PIT clocks
   
   --> Basic scheduling
+  
+  --> InitRD and module loading
