@@ -2,6 +2,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/misc/log.h>
 #include <kernel/memory/memory.h>
+#include <kernel/io/io.h>
 
 static sym_entry_t* symtable[1024];
 static uint32_t last_sym = 0;
@@ -42,4 +43,10 @@ void init_symtable(){
 	symbol_export("kmalloc",&kmalloc);
 	symbol_export("kfree",&kfree);
 	symbol_export("krealloc",&krealloc);
+	symbol_export("outb",&outb);
+	symbol_export("outw",&outw);
+	symbol_export("outl",&outl);
+	symbol_export("inb",&inb);
+	symbol_export("inw",&inw);
+	symbol_export("inl",&inl);
 }

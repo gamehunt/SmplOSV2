@@ -18,7 +18,7 @@
 #define PAGE_DIRTY 0x40
 #define PAGE_SIZE 0x80
 
-#define KHEAP_SIZE 4*4096 //16kib
+#define KHEAP_SIZE 4096*4096 //16 mib heap
 
 
 
