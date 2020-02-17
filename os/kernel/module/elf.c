@@ -149,7 +149,7 @@ int   elf_make_bss(elf32_hdr_t* hdr){
  
 				// Assign the memory offset to the section offset
 				section->sh_offset = (int)mem - (int)hdr;
-				kinfo("Allocated memory for a section (%ld).\n", section->sh_size);
+				kinfo("Allocated memory for a section (%d).\n", section->sh_size);
 			}
 		}
 	}
