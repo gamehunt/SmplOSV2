@@ -286,7 +286,7 @@ uint32_t ata_read_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* b
 	for(uint32_t i = 0;i<size;i++){
 		if(!ata_read_sector(dev,lba + i*512,(uint16_t*)((uint32_t)buffer+i*512))){
 			kwarn("Failed to read sector!");
-			readen -= 512;
+			readen -= 1;
 		}
 	}
 	
@@ -298,7 +298,7 @@ uint32_t ata_write_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* 
 	for(uint32_t i = 0;i<size;i++){
 		if(!ata_write_sector(dev,lba + i*512,(uint16_t*)((uint32_t)buffer+i*512))){
 			kwarn("Failed to write sector!");
-			writen -= 512;
+			writen -= 1;
 		}
 	}
 	
