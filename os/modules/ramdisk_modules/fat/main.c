@@ -2,11 +2,10 @@
 #include <kernel/misc/log.h>
 
 uint8_t load(){
-	kinfo("Test1 module load()\n");
 	return 0;
 }
 uint8_t unload(){
 	return 0;
 }
 
-KERNEL_MODULE("test1",load,unload,1,"test");
+KERNEL_MODULE("fat",load,unload,1,"ata");

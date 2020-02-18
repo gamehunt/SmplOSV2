@@ -8,12 +8,13 @@ uint32_t __exported(){
 	return 0xAABBCCD;
 }
 
-void load(){
+uint8_t load(){
 	kinfo("Test module load()\n");
 	symbol_export("__exported",&__exported);
+	return 0;
 }
-void unload(){
-	
+uint8_t unload(){
+	return 0;
 }
 
 KERNEL_MODULE("test",load,unload,0,"");

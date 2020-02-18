@@ -69,6 +69,8 @@
 #define ATA_DRIVADDR_WTG 6 //Write gate, 0 = write in progress
 #define ATA_DRIVADDR_RES 7 //Reserved
 
+//TODO DMA
+
 typedef struct{
 	uint16_t __pad[59];
 	uint32_t lba28_sectors;//60 - 61
@@ -306,7 +308,7 @@ uint32_t ata_write_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* 
 }
 
 fs_node_t* ata_mount(fs_node_t* node){
-	node->inode = (uint32_t*)devices[device_idx-1];
+	node->inode = (uint32_t)devices[device_idx];
 	return node;
 }
 
@@ -317,7 +319,7 @@ uint32_t ata_write(fs_node_t* node, uint64_t offs, uint32_t size, uint8_t* buffe
 	return ata_write_device((ata_device_t*)node->inode,offs,size,buffer);
 }
 
-void load(){
+uint8_t load(){
 	fs_t* atafs = kmalloc(sizeof(fs_t));
 	atafs->mount = &ata_mount;
 	atafs->read = &ata_read;
@@ -342,20 +344,15 @@ void load(){
 				path[8] = '\0';
 				kmount(path,id);
 				device_idx++;
-				kfree(buffer);
 			}
 		}
 	}
-	uint8_t buffer[512];
-	//kinfo("HERE\n");
-	ata_read_device(devices[0],0,1,buffer);
-	
-	kinfo("First 3 bytes: %a %a %a\n",buffer[0],buffer[1],buffer[2]);
+	return 0;
 }
 
 
-void unload(){
-	
+uint8_t unload(){
+	return 0;
 }
 
 KERNEL_MODULE("ata",load,unload,0,"");

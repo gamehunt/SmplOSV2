@@ -112,11 +112,11 @@ uint8_t module_load(fs_node_t* node){
 			}
 			if(!module_check_dependencies(str)){
 				mod_desc->state = 2;
-				kinfo("Delaying module '%s' due to dependencies\n",str->name);
+				//kinfo("Delaying module '%s' due to dependencies\n",str->name);
 				return 0;
 			}
 			kinfo("Loading module '%s'\n",str->name);
-			if(str->load()){
+			if(!str->load()){
 				mod_desc->state = 1;
 				kinfo("Success!\n");
 				module_try_dependencies_reload();
@@ -144,7 +144,7 @@ void modules_load(){
 
 uint8_t module_is_loaded(char name[32]){
 	for(uint32_t m = 0;m<last_loaded;m++){
-		if(!strcmp(name,loaded_modules[m]->name)){
+		if(!strcmp(name,loaded_modules[m]->name) && loaded_modules[m]->state == 1){
 			return 1;
 		}
 	}
@@ -152,27 +152,28 @@ uint8_t module_is_loaded(char name[32]){
 }
 
 uint8_t module_check_dependencies(kernel_mod_hdr_t* kmod){
-	//kinfo("HERE\n");
 	for(uint8_t m = 0;m<kmod->dep_cnt;m++){
-		//kinfo("%s\n",deps_block(kmod->dependencies,m));
 		if(!module_is_loaded(deps_block(kmod->dependencies,m))){
 			return 0;
 		}
 	}
 	return 1;
 }
-
+//TODO optimize
 uint8_t module_try_dependencies_reload(){
 	uint8_t flag = 0;
 	for(uint8_t m = 0;m<last_loaded;m++){
-		//kinfo("%a\n",loaded_modules[m]);
 		if(loaded_modules[m]->state == 2){
 			
 			if(module_check_dependencies(loaded_modules[m]->hdr)){
-
-				if(loaded_modules[m]->hdr->load()){
+				kinfo("Loading module '%s'\n",loaded_modules[m]->name);
+				if(!loaded_modules[m]->hdr->load()){
 					loaded_modules[m]->state = 1;
 					flag = 1;
+					kinfo("Success!\n");
+				}else{
+					loaded_modules[m]->state = 0;
+					kerr("Failed!\n");
 				}
 			}
 		}
