@@ -28,8 +28,12 @@
 #define ATA_DRIVE_MASTER   0xA0
 #define ATA_DRIVE_SLAVE    0xB0
 
-#define ATA_CMD_IDENTIFY     0xEC
-#define ATA_CMD_CACHE_FLUSH  0xE7
+#define ATA_CMD_IDENTIFY      0xEC
+#define ATA_CMD_CACHE_FLUSH   0xE7
+#define ATA_CMD_PIO_READ      0x20
+#define ATA_CMD_PIO_WRITE     0x30
+#define ATA_CMD_PIO_READ_EXT  0x24
+#define ATA_CMD_PIO_WRITE_EXT 0x34
 
 #define ATA_ERR_AMNF  0 //Address not found
 #define ATA_ERR_TKZNF 1 //Track zero not found
@@ -66,21 +70,49 @@
 #define ATA_DRIVADDR_RES 7 //Reserved
 
 typedef struct{
+	uint16_t __pad[59];
+	uint32_t lba28_sectors;//60 - 61
+	uint16_t __pad1[21];
+	uint16_t lba48_support; // 83
+	uint16_t __pad2[4];
+	uint16_t udma_modes; // 88
+	uint16_t __pad3[3];
+	uint16_t cond_table; // 92
+	uint16_t __pad4[7];
+	uint64_t lba48_sectors; // 100-103
+	uint16_t __pad5[157];
+}ata_device_info_t __attribute__((packed));
+
+typedef struct{
 	uint8_t bus;
 	uint8_t drive;
-	uint8_t lba48;
-	uint32_t lba28_blocks;
-	uint64_t lba48_blocks;
-	uint32_t seccount48;
-	uint16_t seccount28;
+	ata_device_info_t* info;
 }ata_device_t;
 
 static ata_device_t* devices[4];
 static uint8_t device_idx = 0;
+static uint8_t selected_drive = 0;
+
+uint8_t ata_index(uint8_t bus,uint8_t drive){
+	if(bus){
+		if(drive){
+			return 0;
+		}else{
+			return 1;
+		}
+	}else{
+		if(drive){
+			return 2;
+		}else{
+			return 3;
+		}
+	}
+}
 
 void ata_seldrive(uint8_t bus,uint8_t drive){
 	uint16_t base = bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
 	outb(base+ATA_IOBASE_RW_DRIVE,drive?ATA_DRIVE_MASTER:ATA_DRIVE_SLAVE);
+	selected_drive = ata_index(bus,drive);
 }
 
 void ata_reset(uint8_t bus){
@@ -131,52 +163,146 @@ uint16_t* ata_ident(uint8_t bus,uint8_t drive){
 	}
 }
 
-static uint32_t concat2(uint16_t a,uint16_t b){
-	uint16_t pow = 10;
-	uint32_t xe = a;
-    while(b >= pow)
-        pow *= 10;
-    return (uint32_t)(xe * pow + b); 
-}
-
-static uint64_t concat2e(uint32_t a,uint32_t b){
-	uint16_t pow = 10;
-	uint64_t xe = a;
-    while(b >= pow)
-        pow *= 10;
-    return (uint32_t)(xe * pow + b); 
-}
-
 ata_device_t* ata_create_device(uint8_t bus,uint8_t drive,uint16_t* buffer){
+	ata_device_info_t* device_info = kmalloc(sizeof(ata_device_info_t));
+	device_info = (ata_device_info_t*)buffer;
 	ata_device_t* device = kmalloc(sizeof(ata_device_t));
-	uint16_t base = bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
-	ata_seldrive(bus,drive);
-	device->lba48 = GET_BIT(buffer[83],10);
-	device->lba28_blocks = concat2(buffer[61],buffer[60]);
-	uint32_t a = concat2(buffer[101],buffer[100]);
-	uint32_t b = concat2(buffer[103],buffer[102]);
-	device->lba48_blocks = concat2e(b,a);
 	device->bus = bus;
 	device->drive = drive;
-	device->seccount28 = inb(base+ATA_IOBASE_RW_SECCOUNT);
-	device->seccount48 = inw(base+ATA_IOBASE_RW_SECCOUNT);
+	device->info = device_info;
 	return device;
 }
 
-uint32_t ata_read_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
-	if(dev->lba48){
-		
-	}else{
-		
+void ata_delay(ata_device_t* device){
+	uint16_t base = device->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
+	if(selected_drive != ata_index(device->bus,device->drive)){
+		ata_seldrive(device->bus,device->drive);
+	}
+	for(int i = 0;i < 4; i++)
+		inb(base + ATA_IOBASE_R_STATUS);
+}
+
+uint8_t ata_poll(ata_device_t* device){
+	uint16_t base = device->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
+	if(selected_drive != ata_index(device->bus,device->drive)){
+		ata_seldrive(device->bus,device->drive);
+	}
+	while(1){
+		uint8_t status = inb(base + ATA_IOBASE_R_STATUS);
+		uint8_t bsy = GET_BIT(status,ATA_STATUS_BSY);
+		uint8_t drq = GET_BIT(status,ATA_STATUS_DRQ);
+		uint8_t err = GET_BIT(status,ATA_STATUS_ERR);
+		uint8_t df  = GET_BIT(status,ATA_STATUS_DF);
+		//kinfo("%d %d %d %d\n",bsy,drq,err,df);
+		if(err || df){
+			return 0;
+		}
+		if(!bsy && drq){
+			return 1;
+		}
 	}
 }
 
-uint32_t ata_write_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
-	if(dev->lba48){
-		
-	}else{
-		
+uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
+	uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
+	if(selected_drive != ata_index(dev->bus,dev->drive)){
+		ata_seldrive(dev->bus,dev->drive);
 	}
+	if(dev->info->lba48_support){
+		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
+		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
+		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba>>24);
+		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(lba>>32));
+		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(lba>>40));
+		outb(base + ATA_IOBASE_RW_SECCOUNT, 1);
+		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba);
+		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(lba>>8));
+		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(lba>>16));
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_READ_EXT);
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+	}else{
+		uint32_t slba = (uint32_t)lba;
+
+		outb(base + ATA_IOBASE_RW_DRIVE,0xE0 | (!dev->drive << 4) | (slba >> 24) & 0x0F);
+		outb(base + ATA_IOBASE_RW_SECCOUNT, 1);
+		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)slba);
+		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(slba>>8));
+		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(slba>>16));
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_READ);
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+	}
+	ata_delay(dev);
+	if(ata_poll(dev)){	
+		for(uint16_t i=0;i<256;i++){		
+			buffer[i] = inw(base + ATA_IOBASE_RW_DATA);
+		}
+		return 512;
+	}else{
+		return 0;
+	}
+}
+
+uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
+		uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
+	if(selected_drive != ata_index(dev->bus,dev->drive)){
+		ata_seldrive(dev->bus,dev->drive);
+	}
+	if(dev->info->lba48_support){
+		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
+		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
+		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba>>24);
+		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(lba>>32));
+		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(lba>>40));
+		outb(base + ATA_IOBASE_RW_SECCOUNT, 1);
+		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba);
+		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(lba>>8));
+		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(lba>>16));
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_WRITE_EXT);
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+	}else{
+		uint32_t slba = (uint32_t)lba;
+
+		outb(base + ATA_IOBASE_RW_DRIVE,0xE0 | (!dev->drive << 4) | (slba >> 24) & 0x0F);
+		outb(base + ATA_IOBASE_RW_SECCOUNT, 1);
+		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)slba);
+		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(slba>>8));
+		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(slba>>16));
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_WRITE);
+		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+	}
+	ata_delay(dev);
+	if(ata_poll(dev)){
+		for(uint16_t i=0;i<256;i++){
+			outb(base + ATA_IOBASE_RW_DATA,buffer[i]);
+		}
+		return 512;
+	}else{
+		return 0;
+	}
+}
+
+uint32_t ata_read_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
+	uint32_t readen = size;
+	for(uint32_t i = 0;i<size;i++){
+		if(!ata_read_sector(dev,lba + i*512,(uint16_t*)((uint32_t)buffer+i*512))){
+			kwarn("Failed to read sector!");
+			readen -= 512;
+		}
+	}
+	
+	return readen;
+}
+
+uint32_t ata_write_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
+	uint32_t writen = size;
+	for(uint32_t i = 0;i<size;i++){
+		if(!ata_write_sector(dev,lba + i*512,(uint16_t*)((uint32_t)buffer+i*512))){
+			kwarn("Failed to write sector!");
+			writen -= 512;
+		}
+	}
+	
+	return writen;
 }
 
 fs_node_t* ata_mount(fs_node_t* node){
@@ -204,10 +330,10 @@ void load(){
 			if(buffer){
 				kinfo("Found ATA device: %s, %s\n",i?"Primary bus":"Secondary bus",j?"Master":"Slave");
 				ata_device_t* device = ata_create_device(i,j,buffer);
-				if(device->lba48){
-					kinfo("%d sectors(0=32MB)\n",device->seccount48);
+				if(device->info->lba48_support){
+					kinfo("%d sectors(0=32MB)\n",device->info->lba48_sectors);
 				}else{
-					kinfo("%d sectors(0=128kb)\n",device->seccount28);
+					kinfo("%d sectors(0=128kb)\n",device->info->lba28_sectors);
 				}
 				devices[device_idx] = device;
 				char path[10] = "/dev/sd";
@@ -220,7 +346,11 @@ void load(){
 			}
 		}
 	}
-
+	uint8_t buffer[512];
+	//kinfo("HERE\n");
+	ata_read_device(devices[0],0,1,buffer);
+	
+	kinfo("First 3 bytes: %a %a %a\n",buffer[0],buffer[1],buffer[2]);
 }
 
 
