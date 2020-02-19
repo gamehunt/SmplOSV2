@@ -98,14 +98,14 @@ typedef struct{
 	uint8_t bus;
 	uint8_t drive;
 	ata_device_info_t* info;
-	ata_patrition_t** patritions;
-	uint32_t patrition_count;
+	ata_patrition_t* patrition_info;
 }ata_device_t;
 
 
 
-static ata_device_t* devices[4];
-static uint8_t device_idx = 0;
+static ata_device_t* devices[256];
+static uint16_t device_idx = 0;
+static uint8_t letter_idx = 0;
 static uint8_t selected_drive = 0;
 
 uint8_t ata_index(uint8_t bus,uint8_t drive){
@@ -184,8 +184,7 @@ ata_device_t* ata_create_device(uint8_t bus,uint8_t drive,uint16_t* buffer){
 	device->bus = bus;
 	device->drive = drive;
 	device->info = device_info;
-	device->patrition_count = 0;
-	device->patritions = kmalloc(sizeof(void*));
+	device->patrition_info = 0;
 	return device;
 }
 
@@ -220,10 +219,14 @@ uint8_t ata_poll(ata_device_t* device){
 }
 
 uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
+	if(dev->patrition_info){
+		lba += dev->patrition_info->start;
+	}
 	uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
 	if(selected_drive != ata_index(dev->bus,dev->drive)){
 		ata_seldrive(dev->bus,dev->drive);
 	}
+	//kinfo("%d\n",lba);
 	if(dev->info->lba48_support){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
@@ -259,10 +262,14 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 }
 
 uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
-		uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
+	if(dev->patrition_info){
+		lba += dev->patrition_info->start;
+	}
+	uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
 	if(selected_drive != ata_index(dev->bus,dev->drive)){
 		ata_seldrive(dev->bus,dev->drive);
 	}
+	
 	if(dev->info->lba48_support){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
@@ -362,28 +369,31 @@ uint8_t load(){
 					kinfo("%d sectors(0=128kb)\n",device->info->lba28_sectors);
 				}
 				devices[device_idx] = device;
-				char path[9] = "/dev/sd";
-				char sec = 'a'+device_idx;
+				char path[11] = "/dev/sd";
+				char sec = 'a'+letter_idx;
 				path[7] = sec;
 				path[8] = '\0';
 				kmount(path,id);
+				letter_idx++;
 				device_idx++;
-				uint8_t buffer[512];
-				ata_read_device(device,1,1,buffer);
-				if(ata_check_gpt(buffer)){
+				uint8_t buffer1[512];
+				ata_read_device(device,1,1,buffer1);
+				if(ata_check_gpt(buffer1)){
 					kinfo("GPT patrition table\n");
 				}else{
 					kinfo("MBR patrition table\n");
-					memset(buffer,0,512);
-					ata_read_device(device,0,1,buffer);
-					for(uint8_t i = 0;i<4;i++){
-						ata_patrition_t* patrition = kmalloc(sizeof(ata_patrition_t));
-						patrition = &buffer[0x1BE + i*16];
+					ata_read_device(device,0,1,buffer1);
+					for(uint8_t z = 0;z<4;z++){
+						ata_patrition_t* patrition = &buffer1[0x1BE + z*16];
 						if(patrition->size > 0){
-							kinfo("Patrition found: %a - %a\n",patrition->start,patrition->start+patrition->start);
-							device->patritions[device->patrition_count] = patrition;
-							device->patrition_count++;
-							device->patritions = krealloc(device->patritions,(device->patrition_count+1)*sizeof(void*));
+							kinfo("Patrition found: %a - %a\n",patrition->start,patrition->start+patrition->size);
+							ata_device_t* device_patr = ata_create_device(i,j,buffer);
+							device_patr->patrition_info = patrition;
+							devices[device_idx] = device_patr;
+							path[8] = '1' + z;
+							path[9] = '\0';
+							kmount(path,id);
+							device_idx++;
 						}
 					}
 				}

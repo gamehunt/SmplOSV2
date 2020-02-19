@@ -58,7 +58,9 @@ void init_symtable(){
 	symbol_export("allocate_fs_node",&allocate_fs_node);
 	symbol_export("kmount",&kmount);
 	symbol_export("kread",&kread);
+	symbol_export("knread",&knread);
 	symbol_export("kwrite",&kwrite);
+	symbol_export("knwrite",&knread);
 	symbol_export("kumount",&kumount);
 	symbol_export("kseek",&kseek);
 	symbol_export("kcreate",&kcreate);
