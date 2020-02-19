@@ -86,10 +86,23 @@ typedef struct{
 }ata_device_info_t __attribute__((packed));
 
 typedef struct{
+	uint8_t  bootable;
+	uint8_t __pad[3];
+	uint8_t type;
+	uint8_t __pad1[3];
+	uint32_t start;
+	uint32_t size;
+}ata_patrition_t __attribute__((packed));
+
+typedef struct{
 	uint8_t bus;
 	uint8_t drive;
 	ata_device_info_t* info;
+	ata_patrition_t** patritions;
+	uint32_t patrition_count;
 }ata_device_t;
+
+
 
 static ata_device_t* devices[4];
 static uint8_t device_idx = 0;
@@ -171,6 +184,8 @@ ata_device_t* ata_create_device(uint8_t bus,uint8_t drive,uint16_t* buffer){
 	device->bus = bus;
 	device->drive = drive;
 	device->info = device_info;
+	device->patrition_count = 0;
+	device->patritions = kmalloc(sizeof(void*));
 	return device;
 }
 
@@ -347,7 +362,7 @@ uint8_t load(){
 					kinfo("%d sectors(0=128kb)\n",device->info->lba28_sectors);
 				}
 				devices[device_idx] = device;
-				char path[10] = "/dev/sd";
+				char path[9] = "/dev/sd";
 				char sec = 'a'+device_idx;
 				path[7] = sec;
 				path[8] = '\0';
@@ -359,6 +374,18 @@ uint8_t load(){
 					kinfo("GPT patrition table\n");
 				}else{
 					kinfo("MBR patrition table\n");
+					memset(buffer,0,512);
+					ata_read_device(device,0,1,buffer);
+					for(uint8_t i = 0;i<4;i++){
+						ata_patrition_t* patrition = kmalloc(sizeof(ata_patrition_t));
+						patrition = &buffer[0x1BE + i*16];
+						if(patrition->size > 0){
+							kinfo("Patrition found: %a - %a\n",patrition->start,patrition->start+patrition->start);
+							device->patritions[device->patrition_count] = patrition;
+							device->patrition_count++;
+							device->patritions = krealloc(device->patritions,(device->patrition_count+1)*sizeof(void*));
+						}
+					}
 				}
 			}
 		}

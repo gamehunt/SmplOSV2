@@ -67,6 +67,11 @@ void init_symtable(){
 	symbol_export("unregister_fs",&unregister_fs);
 	
 	symbol_export("strcat",&strcat);
-	symbol_export("strlen",&strcat);
-	symbol_export("strcmp",&strcat);
+	symbol_export("strlen",&strlen);
+	symbol_export("strcmp",&strcmp);
+	
+	symbol_export("memset",&memset);
+	symbol_export("memmove",&memmove);
+	symbol_export("memcmp",&memcmp);
+	symbol_export("memcpy",&memcpy);
 }
