@@ -150,7 +150,6 @@ uint16_t* ata_ident(uint8_t bus,uint8_t drive){
 			//	kinfo("%b %b %b %b\n",status,GET_BIT(status,ATA_STATUS_BSY),GET_BIT(status,ATA_STATUS_ERR),GET_BIT(status,ATA_STATUS_RDY));
 		}
 		if(!GET_BIT(status,ATA_STATUS_ERR) && !GET_BIT(status,ATA_STATUS_DF)){
-			//kinfo("Fetching data...\n");
 			for(uint16_t i=0;i<256;i++){
 				buffer[i] = inw(base+ATA_IOBASE_RW_DATA);
 			}
@@ -286,7 +285,7 @@ uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 uint32_t ata_read_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
 	uint32_t readen = size;
 	for(uint32_t i = 0;i<size;i++){
-		if(!ata_read_sector(dev,lba + i*512,(uint16_t*)((uint32_t)buffer+i*512))){
+		if(!ata_read_sector(dev,lba + i,(uint16_t*)((uint32_t)buffer+i*512))){
 			kwarn("Failed to read sector!");
 			readen -= 1;
 		}
@@ -298,7 +297,7 @@ uint32_t ata_read_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* b
 uint32_t ata_write_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
 	uint32_t writen = size;
 	for(uint32_t i = 0;i<size;i++){
-		if(!ata_write_sector(dev,lba + i*512,(uint16_t*)((uint32_t)buffer+i*512))){
+		if(!ata_write_sector(dev,lba + i,(uint16_t*)((uint32_t)buffer+i*512))){
 			kwarn("Failed to write sector!");
 			writen -= 1;
 		}
@@ -317,6 +316,16 @@ uint32_t ata_read(fs_node_t* node, uint64_t offs, uint32_t size, uint8_t* buffer
 }
 uint32_t ata_write(fs_node_t* node, uint64_t offs, uint32_t size, uint8_t* buffer){
 	return ata_write_device((ata_device_t*)node->inode,offs,size,buffer);
+}
+
+uint8_t ata_check_gpt(uint8_t buffer[512]){
+	char check[] = "EFI PART";
+	for(int i=0;i<8;i++){
+		if(check[i] != buffer[i]){
+			return 0;
+		}
+	}
+	return 1;
 }
 
 uint8_t load(){
@@ -344,6 +353,13 @@ uint8_t load(){
 				path[8] = '\0';
 				kmount(path,id);
 				device_idx++;
+				uint8_t buffer[512];
+				ata_read_device(device,1,1,buffer);
+				if(ata_check_gpt(buffer)){
+					kinfo("GPT patrition table\n");
+				}else{
+					kinfo("MBR patrition table\n");
+				}
 			}
 		}
 	}
