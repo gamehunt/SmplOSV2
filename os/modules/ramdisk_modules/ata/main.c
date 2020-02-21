@@ -83,7 +83,7 @@ typedef struct{
 	uint16_t __pad4[7];
 	uint64_t lba48_sectors; // 100-103
 	uint16_t __pad5[157];
-}ata_device_info_t __attribute__((packed));
+}__attribute__((packed)) ata_device_info_t;
 
 typedef struct{
 	uint8_t  bootable;
@@ -92,7 +92,7 @@ typedef struct{
 	uint8_t __pad1[3];
 	uint32_t start;
 	uint32_t size;
-}ata_patrition_t __attribute__((packed));
+}__attribute__((packed)) ata_patrition_t;
 
 typedef struct{
 	uint8_t bus;
@@ -384,7 +384,8 @@ uint8_t load(){
 					kinfo("MBR patrition table\n");
 					ata_read_device(device,0,1,buffer1);
 					for(uint8_t z = 0;z<4;z++){
-						ata_patrition_t* patrition = &buffer1[0x1BE + z*16];
+						ata_patrition_t* patrition = kmalloc(sizeof(ata_patrition_t));
+						memcpy(patrition,&buffer1[0x1BE + z*16],sizeof(ata_patrition_t));
 						if(patrition->size > 0){
 							kinfo("Patrition found: %a - %a\n",patrition->start,patrition->start+patrition->size);
 							ata_device_t* device_patr = ata_create_device(i,j,buffer);
