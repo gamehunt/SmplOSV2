@@ -133,9 +133,9 @@ fat_cluster_entry_t* fat_parse_cluster(fat_bpb_t* bpb,uint32_t cluster,fat_clust
 				uint32_t ncluster = dirent->first_cluster_high<<8|dirent->first_cluster_low;
 			}
 			if(result == 3){
-				lfe = kmalloc(sizeof(fat_lfe_t));
+			/*	lfe = kmalloc(sizeof(fat_lfe_t));
 				memcpy(lfe,&entries[j],sizeof(fat_lfe_t));
-				/*kinfo("%d\n",lfe->order - 0x41);
+				kinfo("%d\n",lfe->order - 0x41);
 				for(int z=0;z<10;z++){
 					if(lfe->first_chars[z] != 0){
 						putchar(lfe->first_chars[z]);
@@ -171,7 +171,7 @@ fat_cluster_entry_t* fat_parse_cluster(fat_bpb_t* bpb,uint32_t cluster,fat_clust
 	if(next_cluster >=  0x0FFFFFF8 || next_cluster == 0x0FFFFFF7){
 		return;
 	}
-	fat_parse_cluster(bpb,next_cluster);
+	fat_parse_cluster(bpb,next_cluster,parsed_entries);
 }
 
 fs_node_t* fat_mount(fs_node_t* root){
@@ -194,7 +194,7 @@ uint8_t load(){
 	fs_t* fatfs = kmalloc(sizeof(fs_t));
 	fatfs->mount = fat_mount;
 	uint32_t idx = register_fs(fatfs);
-	fat_parse_cluster(bpb,((fat32_bpb_t*)&bpb->ebpb[0])->root_cluster);
+	fat_parse_cluster(bpb,((fat32_bpb_t*)&bpb->ebpb[0])->root_cluster,0);
 	return 0;
 }
 uint8_t unload(){

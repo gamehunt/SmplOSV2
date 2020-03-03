@@ -29,8 +29,8 @@ void vprintf(const char* restrict format,va_list argptr){
 			i++;
 			char tp = format[i];
 			if(tp == 'c'){
-				uint8_t arg = va_arg(argptr,uint8_t);
-				putchar((char)arg);
+				char arg = va_arg(argptr,char);
+				putchar(arg);
 			}
 			if(tp == 'd'){
 				uint32_t arg = va_arg(argptr,int);
