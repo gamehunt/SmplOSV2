@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <string.h>
  
 int memcmp(const void* aptr, const void* bptr, size_t size) {

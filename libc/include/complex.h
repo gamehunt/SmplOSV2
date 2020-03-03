@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #pragma once
 
 #define complex _Complex

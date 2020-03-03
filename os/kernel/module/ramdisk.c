@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/module/ramdisk.h>
 #include <kernel/fs/tar.h>
 

@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include<kernel/interrupts/idt.h>
 #include<kernel/interrupts/isr.h>
 #include<kernel/interrupts/irq.h>

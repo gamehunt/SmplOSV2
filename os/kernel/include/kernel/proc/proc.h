@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/fs/vfs.h>
 
 #include <kernel/global.h>

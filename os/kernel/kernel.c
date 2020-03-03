@@ -1,3 +1,13 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
+
+
 #include <kernel/multiboot.h>
 #include <kernel/global.h>
 #include <stdio.h>

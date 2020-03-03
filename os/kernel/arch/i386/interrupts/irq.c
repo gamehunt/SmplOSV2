@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include<kernel/interrupts/irq.h>
 #include<kernel/interrupts/pic.h>
 #include<kernel/io/io.h>

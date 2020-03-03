@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/misc/panic.h>
 #include <kernel/io/terminal.h>
 //#include <kernel/debug/debug.h>

@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/misc/log.h>
 #include <kernel/io/terminal.h>
 #include <kernel/dev/tty.h>

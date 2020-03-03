@@ -1,3 +1,12 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
+
 #include <kernel/memory/memory.h>
 #include <kernel/misc/stat.h>
 #include <kernel/global.h>

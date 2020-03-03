@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/memory/memory.h>
 #include <kernel/global.h>
 #include <kernel/misc/panic.h>

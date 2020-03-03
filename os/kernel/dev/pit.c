@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/dev/pit.h>
 
 #include <kernel/interrupts/irq.h>

@@ -1,3 +1,12 @@
+
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 //PDE
 //31[********]11[***]9[*********]0
 //  [pte_addr]  [unu] [GS0ADWURP]

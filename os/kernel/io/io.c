@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/io/io.h>
 
 void outb(uint16_t port, uint8_t value) {  // 8bit port output

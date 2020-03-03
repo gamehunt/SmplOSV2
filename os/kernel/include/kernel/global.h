@@ -1,3 +1,12 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
+
 #pragma once
 
 #define NULL 0

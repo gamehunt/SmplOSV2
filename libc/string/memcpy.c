@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <string.h>
  
 void* memcpy(void* restrict dstptr, const void* restrict srcptr, size_t size) {

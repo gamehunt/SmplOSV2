@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include<kernel/interrupts/isr.h>
 #include<kernel/io/io.h>
 #include <kernel/misc/panic.h>

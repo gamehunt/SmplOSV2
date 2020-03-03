@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <stdio.h>
 
 void vsprintf(char* buf,const char* restrict format,va_list argptr){

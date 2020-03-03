@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <string.h>
 
 uint32_t strcmp(const char *X, const char *Y)

@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include<kernel/dev/pci.h>
 
 uint16_t __pci_dev = 0;

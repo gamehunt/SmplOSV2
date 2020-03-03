@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <stdio.h>
 
 void sprintf(char* buf,const char* format,...){

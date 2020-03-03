@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/dev/tty.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/memory/memory.h>

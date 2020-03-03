@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #ifndef K_PCI_H
 #define K_PCI_H
 #include<stdint.h>

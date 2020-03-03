@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <time.h>
 #ifdef __smplos_libk
 #include <kernel/dev/rtc.h>

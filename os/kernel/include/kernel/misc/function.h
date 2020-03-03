@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #pragma once
 #define F_PTR_NOA(ret) ret(*)()
 #define F_PTR_A1(ret,a) ret(*)(a)

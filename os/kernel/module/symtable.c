@@ -1,3 +1,13 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
+
+
 #include <kernel/module/symtable.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/misc/log.h>

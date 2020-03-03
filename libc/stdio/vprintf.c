@@ -1,3 +1,12 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
+
 #include <stdio.h>
 
 char dtoc(int digit){

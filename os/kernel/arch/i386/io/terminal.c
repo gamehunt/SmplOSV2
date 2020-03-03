@@ -1,3 +1,11 @@
+/*	
+
+    Copyright (C) 2020
+     
+    Author: gamehunt 
+
+*/
+
 #include <kernel/io/terminal.h>
 //#include <kernel/debug/debug.h>
 #include <kernel/video/vga.h>
