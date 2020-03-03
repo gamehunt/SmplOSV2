@@ -4,6 +4,7 @@
 #include <kernel/memory/memory.h>
 #include <kernel/io/io.h>
 #include <string.h>
+#include <stdio.h>
 
 static sym_entry_t* symtable[1024];
 static uint32_t last_sym = 0;
@@ -42,6 +43,9 @@ void init_symtable(){
 	symbol_export("kinfo",&kinfo);
 	symbol_export("kwarn",&kwarn);
 	symbol_export("kerr",&kerr);
+	
+	symbol_export("printf",&printf);
+	symbol_export("putchar",&putchar);
 	
 	symbol_export("kmalloc",&kmalloc);
 	symbol_export("kfree",&kfree);
