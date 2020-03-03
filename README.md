@@ -1,5 +1,5 @@
 # SmplOSV2
-Reworked Smplos WIP
+SmplOS rework - W.I.P - In dev since 2018
 
 What is done:
 
