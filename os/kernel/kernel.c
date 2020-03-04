@@ -66,9 +66,15 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	kinfo("First 3 bytes of /dev/sda: %a %a %a\n",buffer[0],buffer[1],buffer[2]);
 	
 	kmount("/root","/dev/sda1",4);
+
+	fs_node_t* node = kseek("/root/test2.smod"); //Two modules loaded in this way crashes kernel. Idk why for now
+	if(node){
+		module_load(node);
+	}
+	mem_stat();
 	init_sched();
 	
-	mem_stat();
+	
 	
 	
 	
