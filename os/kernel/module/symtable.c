@@ -81,6 +81,9 @@ void init_symtable(){
 	symbol_export("kremove",&kremove);
 	symbol_export("register_fs",&register_fs);
 	symbol_export("unregister_fs",&unregister_fs);
+	symbol_export("vfs_set_flag",&vfs_set_flag);
+	symbol_export("vfs_check_flag",&vfs_check_flag);
+	symbol_export("vfs_clear_flag",&vfs_clear_flag);
 	
 	symbol_export("strcat",&strcat);
 	symbol_export("strlen",&strlen);

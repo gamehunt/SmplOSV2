@@ -13,6 +13,8 @@
 
 #include <kernel/multiboot.h>
 
+#include <kernel/misc/stat.h>
+
 #define PMM_STATE_FREE 0
 #define PMM_STATE_OCCUPIED 1
 
@@ -126,4 +128,6 @@ uint32_t* kvalloc(uint32_t size,uint32_t alignment);
 
 //reallocates memory, currently just do new allocation and copy contents of old pointer to it !!!
 uint32_t* krealloc(uint32_t* ptr,uint32_t newsize);
+
+void mem_stat();
 

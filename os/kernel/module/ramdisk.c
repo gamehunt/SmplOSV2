@@ -13,7 +13,7 @@ uint8_t ramdisk_load(){
 	kinfo("Loading ramdisk\n");
 	init_tar();
 	fs_node_t* ramdisk_root;
-	if(!(ramdisk_root = kmount("/ramdisk",2))){
+	if(!(ramdisk_root = kmount("/ramdisk","",2))){
 		kerr("Failed to create ramdisk device\n");
 		return 0;
 	}

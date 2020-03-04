@@ -18,6 +18,7 @@ io/io.o\
 misc/log.o\
 misc/panic.o\
 misc/stat.o\
+$(ARCHDIR)/mem/memstat.o\
 $(ARCHDIR)/mem/gdt.o\
 $(ARCHDIR)/mem/gdt_asm.o \
 $(ARCHDIR)/mem/pmm.o \

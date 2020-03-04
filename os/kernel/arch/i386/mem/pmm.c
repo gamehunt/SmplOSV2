@@ -20,7 +20,7 @@ static long k_temp_frame_stack_esp = 0;
 
 static uint32_t k_frame_stack_size;
 
-static uint16_t stat,stat1;
+static uint16_t stat,stat1,stat2;
 
 uint32_t k_frame_stack_pop(){
 	if(k_frame_stack_esp < 0){	
@@ -60,6 +60,7 @@ void init_pmm(multiboot_info_t *mbt){
 	kinfo("Kernel frame stack at %a\n",k_frame_stack);
 	stat = create_stat("pmm_stack_pushed",0);
 	stat1 = create_stat("pmm_stack_popped",0);
+	stat2 = create_stat("pmm_peak",0);
 	multiboot_memory_map_t* mmap = mbt->mmap_addr;
 	uint32_t k_frame_stack_size = 0;
 	while((uint32_t)mmap < mbt->mmap_addr+ mbt->mmap_length) {
@@ -101,6 +102,7 @@ void init_pmm(multiboot_info_t *mbt){
 uint32_t kfalloc(){
 
 	i_update_stat(stat1,1);
+	i_update_stat(stat2,1);
 	uint32_t frame =  k_frame_stack_pop();
 	return frame;
 }
@@ -108,6 +110,7 @@ uint32_t kfalloc(){
 //Frees frame
 void kffree(uint32_t addr){
 	i_update_stat(stat,1);
+	i_update_stat(stat2,-1);
 	k_frame_stack_push(addr);
 }
 

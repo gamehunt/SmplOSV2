@@ -58,19 +58,17 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_rtc();
 	init_vfs(); 
 	init_tty();
-	//kmalloc(8096);
 	modules_load();
-
 	kinfo("CHCK: %x\n",((uint32_t(*)())((sym_entry_t*)symbol_seek("__exported")->addr))());
-	//dump_vfs();
 	//Below this point is multiproc.
-	//kinfo("TA: %d KB(%d times) TF: %d KB (%d times) - %d merged - %d KB peak\n",get_stat("kheap_alloc_total")/1024,get_stat("kheap_alloc_times"),get_stat("kheap_freed_total")/1024,get_stat("kheap_free_times"),get_stat("kheap_merges"),get_stat("kheap_max_load")/1024);
-	
 	uint8_t buffer[512];
 	kread("/dev/sda",0,1,buffer);
 	kinfo("First 3 bytes of /dev/sda: %a %a %a\n",buffer[0],buffer[1],buffer[2]);
+	
+	kmount("/root","/dev/sda1",4);
 	init_sched();
-	kinfo("TA: %d KB(%d times) TF: %d KB (%d times) - %d merged - %d KB peak\n",get_stat("kheap_alloc_total")/1024,get_stat("kheap_alloc_times"),get_stat("kheap_freed_total")/1024,get_stat("kheap_free_times"),get_stat("kheap_merges"),get_stat("kheap_max_load")/1024);
+	
+	mem_stat();
 	
 	
 	

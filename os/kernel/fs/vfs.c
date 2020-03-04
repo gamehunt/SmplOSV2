@@ -66,6 +66,7 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 	new->type = type;
 	strcpy(new->name,name);
 	new->parent = par;
+	new->device = par->device;
 	par->ccount++;
 	if(par->ccount == 1){
 		par->childs = kmalloc(sizeof(fs_node_t*));
@@ -271,7 +272,7 @@ uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
 	}
 	return 0;
 }
-fs_node_t* kmount(char* path, uint16_t fsid){
+fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 	printf("Mounting %s\n",path);
 	fs_t* fs = 0;
 	if(fsidx <= fsid){
@@ -297,9 +298,13 @@ fs_node_t* kmount(char* path, uint16_t fsid){
 		kerr("Failed to mount %s: already mounted!\n",path);		
 		return 0;
 	}
+	fs_node_t* device = kseek(devicep);
+	if(!device && strcmp(devicep,"")){
+		kwarn("Device %s not exists!\n",devicep);
+	}
 	if(fs->mount){
 		//printf("Going into fs->mount()...\n");
-		return fs->mount(mountpoint);
+		return fs->mount(mountpoint,device);
 	}
 	return mountpoint;
 }

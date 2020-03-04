@@ -374,8 +374,9 @@ uint8_t load(){
 		for(uint8_t j = 0;j<=1;j++){
 			uint16_t* buffer = ata_ident(i,j);
 			if(buffer){
-				kinfo("Found ATA device: %s, %s\n",i?"Primary bus":"Secondary bus",j?"Master":"Slave");
 				ata_device_t* device = ata_create_device(i,j,buffer);
+				kinfo("Found ATA device: %s, %s\n",i?"Primary bus":"Secondary bus",j?"Master":"Slave");
+				
 				if(device->info->lba48_sectors > 0){
 					kinfo("%d sectors(0=32MB)\n",device->info->lba48_sectors);
 				}else{
@@ -386,7 +387,7 @@ uint8_t load(){
 				char sec = 'a'+letter_idx;
 				path[7] = sec;
 				path[8] = '\0';
-				kmount(path,id);
+				kmount(path,"",id);
 				letter_idx++;
 				device_idx++;
 				uint8_t buffer1[512];
@@ -406,7 +407,7 @@ uint8_t load(){
 							devices[device_idx] = device_patr;
 							path[8] = '1' + z;
 							path[9] = '\0';
-							kmount(path,id);
+							kmount(path,"",id);
 							device_idx++;
 						}
 					}
