@@ -79,17 +79,23 @@
 //TODO DMA
 
 typedef struct{
-	uint16_t __pad[59];
-	uint32_t lba28_sectors;//60 - 61
-	uint16_t __pad1[21];
-	uint16_t lba48_support; // 83
-	uint16_t __pad2[4];
-	uint16_t udma_modes; // 88
-	uint16_t __pad3[3];
-	uint16_t cond_table; // 92
-	uint16_t __pad4[7];
-	uint64_t lba48_sectors; // 100-103
-	uint16_t __pad5[157];
+	uint16_t flags;
+	uint16_t __pad[9];
+	char     serial[20];
+	uint16_t __pad1[3];
+	char     firmware[8];
+	char     model[40];
+	uint16_t sectors_per_int;
+	uint16_t __pad2;
+	uint16_t capabilities[2];
+	uint16_t __pad3[2];
+	uint16_t valid_ext_data;
+	uint16_t __pad4[5];
+	uint16_t size_of_rw_mult;
+	uint32_t lba28_sectors;
+	uint16_t __pad5[38];
+	uint64_t lba48_sectors;
+	uint16_t __pad6[152];
 }__attribute__((packed)) ata_device_info_t;
 
 typedef struct{
@@ -234,7 +240,7 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		ata_seldrive(dev->bus,dev->drive);
 	}
 	//kinfo("%d\n",lba);
-	if(dev->info->lba48_support){
+	if(dev->info->lba48_sectors > 0){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
 		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba>>24);
@@ -277,7 +283,7 @@ uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		ata_seldrive(dev->bus,dev->drive);
 	}
 	
-	if(dev->info->lba48_support){
+	if(dev->info->lba48_sectors > 0){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
 		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba>>24);
@@ -370,7 +376,7 @@ uint8_t load(){
 			if(buffer){
 				kinfo("Found ATA device: %s, %s\n",i?"Primary bus":"Secondary bus",j?"Master":"Slave");
 				ata_device_t* device = ata_create_device(i,j,buffer);
-				if(device->info->lba48_support){
+				if(device->info->lba48_sectors > 0){
 					kinfo("%d sectors(0=32MB)\n",device->info->lba48_sectors);
 				}else{
 					kinfo("%d sectors(0=128kb)\n",device->info->lba28_sectors);
