@@ -31,23 +31,23 @@ uint8_t   elf_check_supported(elf32_hdr_t *hdr){
 		return 0;
 	}
 	if(hdr->e_ident[EI_CLASS] != ELFCLASS32) {
-//kinfo("1\n");
+
 		return 0;
 	}
 	if(hdr->e_ident[EI_DATA] != ELFDATA2LSB) {
-//kinfo("2\n");
+
 		return 0;
 	}
 	if(hdr->e_machine != EM_386) {
-///kinfo("3\n");
+
 		return 0;
 	}
 	if(hdr->e_ident[EI_VERSION] != EV_CURRENT) {
-//kinfo("4n");
+
 		return 0;
 	}
 	if(hdr->e_type != ET_REL && hdr->e_type != ET_EXEC) {
-//kinfo("5\n");
+
 		return 0;
 	}
 	return 1;

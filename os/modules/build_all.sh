@@ -8,6 +8,6 @@ do
   make all
   cd $HOME/SmplOSV2/os/modules
 done < "$input"
-cp -a $HOME/SmplOSV2/os/modules/bin/. $HOME/SmplOSV2/bin/modules/
+cp -a $HOME/SmplOSV2/os/modules/bin/. $HOME/SmplOSV2/sysroot/bin/modules/
 cd ramdisk_modules
 ./build_all.sh

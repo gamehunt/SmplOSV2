@@ -173,6 +173,25 @@ void kpfree(uint32_t v_addr){
 	}
 	
 }
+
+void pagefault_handler(regs_t r){
+	crash_info_t crash;	
+	crash.regs = r;	
+	crash.description = "Page Fault";
+	char message[60];
+	memset(message,0,60);
+	uint32_t cr2;
+		__asm__ __volatile__ (
+        "mov %%cr2, %%eax\n\t"
+        "mov %%eax, %0\n\t" : "=m" (cr2)
+    : /* no input */
+    : "%eax"
+    );
+	sprintf(message,"Fault address: %a",cr2);
+	crash.extra_info = message;
+	kpanic(crash);
+}
+
 void init_paging(){
 	asm("cli");
 	kernel_page_directory = (uint32_t*)kfalloc();
@@ -184,6 +203,7 @@ void init_paging(){
 	}
 	set_page_directory((uint32_t)kernel_page_directory);
 	enable_paging();
+	isr_set_handler(14,pagefault_handler);
 	paging_flag = 1;
 	kinfo("Paging initialized\n");
 	asm("sti");

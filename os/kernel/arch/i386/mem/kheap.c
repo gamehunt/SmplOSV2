@@ -137,6 +137,7 @@ uint32_t* kmalloc(uint32_t size){
 	i_update_stat(stat_alloc,1);
 	mem_t* block = free_block(size);
 	if(block){
+		//kinfo("FREE\n");
 		i_update_stat(stat_alloc_total,size);
 		i_update_stat(stat_max_load,size);
 		return ptr(block);

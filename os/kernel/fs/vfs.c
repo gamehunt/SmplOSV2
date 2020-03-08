@@ -210,24 +210,29 @@ static char* path_block(char* path,uint32_t block){
 		}
 	}
 	if(a > 0 && b > 0){
-		//printf("BLOCK END\n");
+		//printf("BLOCK END %s %d %d\n",path,a,b);
 		return substr(path,a,b);
 	}
-	//printf("BLOCK END\n");
+	//printf("BLOCK END 2\n");
 	return path;
 }
 fs_node_t* kseek(char* path){
+	
 	if(!strcmp(path,"/")){
 		return root;
 	}
 	path = canonize_absolute(path);
 	fs_node_t* rnode = root;	
 	for(int i=0;i<path_size(path);i++){
+		//kinfo("HERE 1\n");
 		char* part = path_block(path,i);
+		//kinfo("HERE 2\n");
 		if(!rnode || !fss[rnode->fsid]->seek){
 			return 0;
 		}
+	//	kinfo("HERE SEEK\n");
 		rnode = fss[rnode->fsid]->seek(part,rnode);
+	//	kinfo("HERE SEEK END\n");
 	}
 	return rnode;
 }
