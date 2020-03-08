@@ -8,4 +8,7 @@ for DIR in $BUILDDIRS; do
 	(cd ../$DIR && make clean)
 done
 
-rm ../os/ramdisk.rmdsk 
+rm ../ramdisk.rmdsk 
+sudo rm -rf /mnt/smplos/bin
+sudo rm -rf /mnt/smplos/include
+sudo rm -rf /mnt/smplos/lib
