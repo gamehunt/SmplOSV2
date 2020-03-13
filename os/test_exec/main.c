@@ -1,6 +1,6 @@
 #include <stdint.h>
 int main(){
-	uint8_t* error = 0x0;
-	*error = 0xFF;
+	uint8_t fuck = 0;
+	fuck/=0;
 	return 0;
 }

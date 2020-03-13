@@ -2,9 +2,9 @@ global enable_paging
 global disable_paging
 ;extern k_pde
 
-global set_page_directory
+global __asm_set_page_directory
 
-set_page_directory:
+__asm_set_page_directory:
  push ebp
  mov  ebp, esp
 

@@ -243,6 +243,7 @@ void *elf_load_exec(elf32_hdr_t* hdr){
 			kinfo("Allocating memory for segment %a - %a\n",ph.p_vaddr,ph.p_vaddr + ph.p_memsz);
 			for(uint32_t i = ph.p_vaddr;i<ph.p_vaddr + ph.p_memsz;i+=4096){	
 				knpalloc(i); // Don't fucking work
+				kinfo("%a - %a - %d(%d)\n",i,virtual2physical(i),ph.p_memsz,ph.p_filesz);
 				//kinfo("%a\n",val);
 			}
 			memset((uint8_t*)ph.p_vaddr,0,ph.p_memsz);

@@ -30,7 +30,7 @@
 
 #define KHEAP_SIZE 4096*4096 //16 mib heap
 
-
+#define USER_STACK 0xC0000000
 
 struct gdt_entry {
   uint16_t limit;
@@ -85,7 +85,8 @@ typedef struct tss_entry_struct tss_entry_t;
 uint32_t* kernel_page_directory;
 uint32_t* current_page_directory;
 extern void enable_paging();
-extern void set_page_directory(uint32_t pdir);
+extern void __asm_set_page_directory(uint32_t pdir);
+void set_page_directory(uint32_t pdir);
 
 
 void add_gdt_entry(int num,uint32_t base,uint32_t limit,uint32_t access,uint32_t gran);

@@ -72,25 +72,25 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 		total_prcs++;
 		
 		kinfo("Process created: '%s' with pid %d (stack %a)\n",name,new_proc->pid,new_proc->state->ebp);
+		asm("sti");
 	}	
-	asm("sti");
+	
 	return new_proc;
 }
 
-proc_t* create_process(fs_node_t* node){
+proc_t* create_process(fs_node_t* node,uint8_t sched){
 	//kinfo("HERE\n");
 	asm("cli");
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!knread(node,0,node->size,buffer)){
-		kerr("Failed to read module file\n");
+		kerr("Failed to read exec file\n");
 		return 0;
 	}
 	proc_t* proc = create_process_from_routine(node->name,0,0);
-	asm("cli");
 	
 	set_page_directory(proc->state->cr3);
-	knpalloc(0xC0000000);
-	proc->state->esp = 0xC0000000 + 4096;
+	knpalloc(USER_STACK);
+	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	uint32_t entry = elf_load_file(buffer);
 	proc->state->eip = entry;
@@ -100,17 +100,20 @@ proc_t* create_process(fs_node_t* node){
 		kerr("Failed to load exec file!");
 		return 0;
 	}
-	processes[proc->pid] = proc;
+	if(sched){
+		processes[proc->pid] = proc;
 		
-	total_prcs++;
+		total_prcs++;
 		
-	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
-	asm("sti");
+		kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
+		asm("sti");
+	}
 	return proc;
 }
 
 
 void idle(){
+	//kinfo("IDLE\n");
 	while(1){
 		asm("hlt");
 	}
@@ -118,7 +121,8 @@ void idle(){
 
 void init_sched(){
 	asm("cli");
-	//create_process_from_routine("kidle",&idle,1); //spawn kernel idle process
+	create_process_from_routine("kidle",&idle,1); //spawn kernel idle process
+	//create_process(kseek("/root/test.smp"));
 	asm("sti");
 }
 

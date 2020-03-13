@@ -58,7 +58,7 @@ static inline void flush_tlb(unsigned long addr)
 }
 
 void map(uint32_t p_addr,uint32_t v_addr){
-	kinfo("Mapping %a to %a\n",v_addr,p_addr);
+	//kinfo("Mapping %a to %a\n",v_addr,p_addr);
 	uint32_t pde = v_addr_to_pde(v_addr);
 	if(pde == 1023){
 		crash_info_t crash;
@@ -67,7 +67,7 @@ void map(uint32_t p_addr,uint32_t v_addr){
 		kpanic(crash);
 	}
 	uint32_t pte = v_addr_to_pte(v_addr);
-	uint32_t i_pd_entry = kernel_page_directory[pde];
+	uint32_t i_pd_entry = current_page_directory[pde];
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		uint32_t pte = kfalloc();
 		//printf("New PT at %a\n",pte);
@@ -75,9 +75,10 @@ void map(uint32_t p_addr,uint32_t v_addr){
 		if(paging_flag){
 			flush_tlb(0xFFC00000 + pde*4096);
 		}
-		kernel_page_directory[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW );
+		current_page_directory[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW);
+		//current_page_directory[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW);
 	}
-	i_pd_entry = kernel_page_directory[pde];
+	i_pd_entry = current_page_directory[pde];
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
@@ -193,9 +194,15 @@ void pagefault_handler(regs_t r){
 	kpanic(crash);
 }
 
+void set_page_directory(uint32_t pdir){
+	current_page_directory = (uint32_t*)pdir;
+	__asm_set_page_directory(pdir);
+}
+
 void init_paging(){
 	asm("cli");
 	kernel_page_directory = (uint32_t*)kfalloc();
+	current_page_directory = kernel_page_directory;
 	kernel_page_directory[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
 	kmpalloc((uint32_t)kernel_page_directory,0);
 	extern uint32_t k_frame_stack_size;
