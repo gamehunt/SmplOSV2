@@ -57,12 +57,12 @@ static inline void flush_tlb(unsigned long addr)
    asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
 }
 
-void map(uint32_t p_addr,uint32_t v_addr){
+void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 	//kinfo("Mapping %a to %a\n",v_addr,p_addr);
 	uint32_t pde = v_addr_to_pde(v_addr);
 	if(pde == 1023){
 		crash_info_t crash;
-		crash.description = "kpalloc() tried to map address to kernel mappings page table";
+		crash.description = "Tried to map address to kernel mappings page table";
 		crash.extra_info = "We probably just out of memory or somebody tried to map very large address";
 		kpanic(crash);
 	}
@@ -71,12 +71,11 @@ void map(uint32_t p_addr,uint32_t v_addr){
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		uint32_t pte = kfalloc();
 		//printf("New PT at %a\n",pte);
-		table_mappings[pde] = pt_entry(pte,PAGE_PRESENT|PAGE_RW );
+		table_mappings[pde] = pt_entry(pte,_flags);
 		if(paging_flag){
 			flush_tlb(0xFFC00000 + pde*4096);
 		}
-		current_page_directory[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW);
-		//current_page_directory[pde] = pd_entry(pte,PAGE_PRESENT | PAGE_RW);
+		current_page_directory[pde] = pd_entry(pte,_flags);
 	}
 	i_pd_entry = current_page_directory[pde];
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
@@ -84,7 +83,7 @@ void map(uint32_t p_addr,uint32_t v_addr){
 	if(flags(i_pt_entry) & PAGE_PRESENT){
 		kwarn("Trying to remap %a...\n",v_addr);
 	}
-	k_pt[pte] = pt_entry(p_addr, PAGE_PRESENT | PAGE_RW );
+	k_pt[pte] = pt_entry(p_addr, _flags );
 	if(paging_flag){
 		flush_tlb(v_addr);
 	}
@@ -114,21 +113,21 @@ uint32_t* copy_page_directory(uint32_t* src){
 }
 
 //allocates page with given frame or address
-void kmpalloc(uint32_t addr, uint32_t frame){
-	map(frame?frame:addr,addr); 
+void kmpalloc(uint32_t addr, uint32_t frame,uint8_t flags){
+	map(frame?frame:addr,addr,flags?flags:(PAGE_PRESENT | PAGE_RW | PAGE_USER)); 
 }
 
 //Just allocates next page with frame given from kfalloc()
 
 uint32_t* kpalloc(){
 	uint32_t addr = kfalloc();
-	kmpalloc(addr,0);
+	kmpalloc(addr,0,0);
 	return (uint32_t*) addr;
 }
 
 //Allocates next page with addr vaddr
 uint32_t* knpalloc(uint32_t vaddr){
-	kmpalloc(vaddr,kfalloc());
+	kmpalloc(vaddr,kfalloc(),0);
 	return(uint32_t*)vaddr;
 }
 
@@ -204,10 +203,10 @@ void init_paging(){
 	kernel_page_directory = (uint32_t*)kfalloc();
 	current_page_directory = kernel_page_directory;
 	kernel_page_directory[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
-	kmpalloc((uint32_t)kernel_page_directory,0);
+	kmpalloc((uint32_t)kernel_page_directory,0,0);
 	extern uint32_t k_frame_stack_size;
 	for(int i=0;i<0x1000000;i+=4096){
-		kmpalloc(i,0);
+		kmpalloc(i,0,0);
 	}
 	set_page_directory((uint32_t)kernel_page_directory);
 	enable_paging();

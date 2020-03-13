@@ -39,6 +39,7 @@ dev/rtc.o\
 dev/tty.o\
 fs/vfs.o\
 fs/tar.o\
+$(ARCHDIR)/proc/proc_asm.o\
 $(ARCHDIR)/proc/proc.o\
 module/symtable.o\
 module/module.o\

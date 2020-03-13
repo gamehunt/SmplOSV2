@@ -43,3 +43,5 @@ proc_t* create_process(fs_node_t* file,uint8_t sched);
 void setup_ctx(context_t* ctx,regs_t r);
 
 void kill(uint32_t pid);
+
+extern void jump_usermode(uint32_t entry);

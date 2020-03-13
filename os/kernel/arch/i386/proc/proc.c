@@ -90,6 +90,7 @@ proc_t* create_process(fs_node_t* node,uint8_t sched){
 	
 	set_page_directory(proc->state->cr3);
 	knpalloc(USER_STACK);
+	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	uint32_t entry = elf_load_file(buffer);
@@ -106,7 +107,9 @@ proc_t* create_process(fs_node_t* node,uint8_t sched){
 		total_prcs++;
 		
 		kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
+		jump_usermode(entry);
 		asm("sti");
+		
 	}
 	return proc;
 }

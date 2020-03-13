@@ -85,7 +85,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	mem_stat();
 	init_sched();
 	
-	
+	create_process(kseek("/root/test.smp"),1);
 	
 	
 	

@@ -103,7 +103,7 @@ void init_paging();
 void init_kheap();
 
 //allocates page with given frame or address
-void kmpalloc(uint32_t addr, uint32_t frame);
+void kmpalloc(uint32_t addr, uint32_t frame,uint8_t flags);
 //Just allocates next page with frame given from kfalloc()
 uint32_t* kpalloc();
 //Allocates next page with addr vaddr
