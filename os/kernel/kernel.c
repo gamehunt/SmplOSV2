@@ -68,9 +68,19 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	kmount("/root","/dev/sda1",4);
 	fs_node_t* node = kseek("/root/CHECK"); 
 	if(node){
-		char buffer[62];
-		knread(node,0,62,buffer);
+		char buffer[65];
+		knread(node,0,65,buffer);
 		kinfo("%s\n",buffer);
+	}
+	
+	fs_dirent_t* modd = kreaddir("/root/bin/modules");
+	
+	kinfo("Disk module count: %d\n",modd->chld_cnt);
+	if(modd){
+		for(uint32_t i = 2;i < modd->chld_cnt; i++){
+			kinfo("Trying to load from disk: %s\n",modd->chlds[i]->name);
+			module_load(modd->chlds[i]);
+		}
 	}
 	mem_stat();
 	init_sched();

@@ -109,6 +109,7 @@ mem_t* free_block(uint32_t size){
 		}	
 		freeb = freeb->next;
 	}
+	return 0;
 }
 
 void merge()
@@ -140,6 +141,8 @@ uint32_t* kmalloc(uint32_t size){
 		//kinfo("FREE\n");
 		i_update_stat(stat_alloc_total,size);
 		i_update_stat(stat_max_load,size);
+		block->next = 0;
+		block->prev = 0;
 		return ptr(block);
 	}else{
 		if((uint32_t)heap_start + sizeof(mem_t)+size > heap_start_static+KHEAP_SIZE*8){
@@ -164,6 +167,7 @@ void kfree(uint32_t* addr){
 	//kinfo("FREE %a\n",addr);
 	i_update_stat(stat_free,1);
 	mem_t* block = header(addr);
+	//kinfo("FREE BLOCK INFO : %d %a %a\n",block->size,block->next,block->prev);
 	i_update_stat(stat_freed_total,block->size);
 	i_update_stat(stat_max_load,-block->size);
 	free_insert(block);

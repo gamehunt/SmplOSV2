@@ -14,9 +14,6 @@
 static multiboot_module_t* ramdisk_modules[MODULE_ARRAY_SIZE/2];
 static uint32_t last_rmdsk = 0;
 
-static fs_node_t* common_modules[MODULE_ARRAY_SIZE/2];
-static uint32_t last_common = 0;
-
 static kernel_module_t* loaded_modules[MODULE_ARRAY_SIZE];
 static uint32_t last_loaded = 0;
 
@@ -89,9 +86,6 @@ uint32_t module_ramdisk_count(){
 	return last_rmdsk;
 }
 
-uint32_t module_common_count(){
-	return last_common;
-}
 
 uint8_t module_load(fs_node_t* node){
 	//kinfo("HERE\n");
@@ -144,11 +138,8 @@ uint8_t module_load(fs_node_t* node){
 }
 
 void modules_load(){
-	kinfo("Loading modules...\n");
+	kinfo("Loading modules from ramdisk...\n");
 	ramdisk_load();
-	for(uint32_t i=0;i<module_common_count();i++){
-		module_load(common_modules[i]);
-	}
 	kinfo("Modules loaded\n");
 }
 

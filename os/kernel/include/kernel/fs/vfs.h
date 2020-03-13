@@ -30,6 +30,13 @@ struct fs_node{
 
 typedef struct fs_node fs_node_t;
 
+struct fs_dirent{
+	uint32_t chld_cnt;
+	fs_node_t** chlds;
+};
+
+typedef struct fs_dirent fs_dirent_t;
+
 typedef struct{
 	fs_node_t* (*mount)(fs_node_t* root,fs_node_t* device);
 	uint8_t (*umount)(fs_node_t*);
@@ -37,6 +44,7 @@ typedef struct{
 	uint32_t (*write)(fs_node_t*, uint64_t, uint32_t, uint8_t*);
 	fs_node_t* (*seek)(char*,fs_node_t*);
 	fs_node_t* (*create)(char*,fs_node_t*,uint8_t);
+	fs_dirent_t* (*readdir)(fs_node_t*);
 	uint8_t (*remove)(fs_node_t*);
 }fs_t;
 
@@ -63,3 +71,5 @@ fs_node_t* kmount(char* path, char* device, uint16_t type);
 uint8_t kumount();
 uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
 uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
+fs_dirent_t* knreaddir(fs_node_t* node);
+fs_dirent_t* kreaddir(char* path);

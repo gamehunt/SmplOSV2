@@ -346,3 +346,30 @@ fs_node_t* create_vfs_mapping(char* path){
 	//kinfo("Mapping %s\n",path);
 	return kcreate(path,0);
 }
+
+fs_dirent_t* knreaddir(fs_node_t* node){
+	fs_dirent_t* dir = kmalloc(sizeof(fs_dirent_t));
+	dir->chlds = kmalloc(sizeof(fs_node_t*));
+	if(node->ccount){
+		dir->chld_cnt += node->ccount;
+		dir->chlds = krealloc(dir->chlds,dir->chld_cnt*sizeof(fs_node_t*));
+		memcpy(dir->chlds,node->childs,node->ccount);
+	}
+	if(fss[node->fsid]->readdir){				
+		fs_dirent_t* new = fss[node->fsid]->readdir(node);
+		if(new){
+			dir->chld_cnt += new->chld_cnt;
+			dir->chlds = krealloc(dir->chlds,dir->chld_cnt*sizeof(fs_node_t*));
+			memcpy(&dir->chlds[dir->chld_cnt-new->chld_cnt],new->chlds,new->chld_cnt*sizeof(fs_node_t*));
+		}
+	}
+	return dir;
+}
+
+fs_dirent_t* kreaddir(char* path){
+	fs_node_t* node = kseek(path);
+	if(!node){
+		return 0;
+	}
+	return knreaddir(node);
+}
