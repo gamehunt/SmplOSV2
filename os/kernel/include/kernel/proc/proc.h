@@ -38,7 +38,8 @@ uint32_t total_prcs = 0;
 
 void schedule(regs_t reg);
 
-proc_t* create_process(const char* name,void* routine);
+proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched);
+proc_t* create_process(fs_node_t* file);
 void setup_ctx(context_t* ctx,regs_t r);
 
 void kill(uint32_t pid);

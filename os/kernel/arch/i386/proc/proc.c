@@ -44,18 +44,21 @@ int32_t free_pid(){
 	return -1;
 }
 
-proc_t* create_process(const char* name,void* routine){
+proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched){
+	asm("cli");
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	new_proc->state = kmalloc(sizeof(context_t));
-	new_proc->state->eip = (uint32_t)routine;
-	void* stack = kmalloc(4096);
-	memset(stack,4096,0);
-	new_proc->state->esp = routine?(uint32_t)stack+4096:0;
-	new_proc->state->ebp = routine?new_proc->state->esp:0;
+	
 	if(routine){
+		new_proc->state->eip = (uint32_t)routine;
+		void* stack = kmalloc(4096);
+		memset(stack,0,4096);
+		new_proc->state->esp = (uint32_t)stack+4096;
+		new_proc->state->ebp = new_proc->state->esp;
 		new_proc->state->esp -= sizeof(uintptr_t);
 		*((uintptr_t *)new_proc->state->esp) = 0xDEADBEEF;
 	}
+	
 	
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
 	new_proc->status = routine?PROC_RUN:PROC_CREATED;
@@ -63,13 +66,47 @@ proc_t* create_process(const char* name,void* routine){
 	new_proc->pid = free_pid();
 	memcpy(new_proc->name,name,strlen(name));
 	
-	processes[new_proc->pid] = new_proc;
-	
-	total_prcs++;
-	
-	kinfo("Process created: '%s' with pid %d (stack %a)\n",name,new_proc->pid,new_proc->state->ebp);
-	
+	if(sched){
+		processes[new_proc->pid] = new_proc;
+		
+		total_prcs++;
+		
+		kinfo("Process created: '%s' with pid %d (stack %a)\n",name,new_proc->pid,new_proc->state->ebp);
+	}	
+	asm("sti");
 	return new_proc;
+}
+
+proc_t* create_process(fs_node_t* node){
+	//kinfo("HERE\n");
+	asm("cli");
+	uint8_t* buffer = kmalloc(node->size); //TODO load only header
+	if(!knread(node,0,node->size,buffer)){
+		kerr("Failed to read module file\n");
+		return 0;
+	}
+	proc_t* proc = create_process_from_routine(node->name,0,0);
+	asm("cli");
+	
+	set_page_directory(proc->state->cr3);
+	knpalloc(0xC0000000);
+	proc->state->esp = 0xC0000000 + 4096;
+	proc->state->ebp = proc->state->esp;
+	uint32_t entry = elf_load_file(buffer);
+	proc->state->eip = entry;
+	kinfo("ENTRY: %a\n",entry);
+	kfree(buffer);
+	if(!entry || entry == 1){
+		kerr("Failed to load exec file!");
+		return 0;
+	}
+	processes[proc->pid] = proc;
+		
+	total_prcs++;
+		
+	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
+	asm("sti");
+	return proc;
 }
 
 
@@ -79,10 +116,9 @@ void idle(){
 	}
 }
 
-
 void init_sched(){
 	asm("cli");
-	create_process("kidle",&idle); //spawn kernel idle process
+	//create_process_from_routine("kidle",&idle,1); //spawn kernel idle process
 	asm("sti");
 }
 
@@ -100,7 +136,6 @@ void schedule(regs_t reg){
 				current_piid = 0;
 			}
 		}while(!processes[current_piid]);
-		//kinfo("SCHED TO %d\n",current_piid);
 		setup_ctx(processes[current_piid]->state,reg);
 	}
 }

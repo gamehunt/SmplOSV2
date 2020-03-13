@@ -77,6 +77,20 @@ enum sht_attrib {
 	SHF_ALLOC	= 0x02  // Exists in memory
 };
 
+enum ph_types{
+	PH_NULL = 0,
+	PH_LOAD = 1,
+	PH_DYN  = 2,
+	PH_INT  = 3,
+	PH_NOTE = 4
+};
+
+enum ph_flags{
+	PH_EXEC      = 1,
+	PH_WRITEABLE = 2,
+	PH_READABLE  = 4
+};
+
 typedef struct {
 	uint8_t		e_ident[ELF_NIDENT];
 	elf32_half	e_type;

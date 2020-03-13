@@ -228,12 +228,30 @@ void *elf_load_reloc(elf32_hdr_t *hdr){
 		kerr("Unable to load ELF file.\n");
 		return 0;
 	}
-	// TODO : Parse the program header (if present)
-	if((void *)hdr->e_entry){
-		//TODO
-	}
 	return 1;
 }
+
+void *elf_load_exec(elf32_hdr_t* hdr){
+	//kinfo("Loading exec\n");
+	elf32_prog_hdr_t* prog_hdrs = (elf32_prog_hdr_t*)((uint32_t)hdr + hdr->e_phoff);
+	//kinfo("Array at %a\n",prog_hdrs);
+	for(uint16_t i = 0;i<hdr->e_phnum;i++){
+	//	kinfo("HERE\n");
+		elf32_prog_hdr_t ph = prog_hdrs[i];
+		//kinfo("HERE %d\n",ph.p_type);
+		if(ph.p_type == PH_LOAD){
+			kinfo("Allocating memory for segment %a - %a\n",ph.p_vaddr,ph.p_vaddr + ph.p_memsz);
+			for(uint32_t i = ph.p_vaddr;i<ph.p_vaddr + ph.p_memsz;i+=4096){	
+				knpalloc(i); // Don't fucking work
+				//kinfo("%a\n",val);
+			}
+			memset((uint8_t*)ph.p_vaddr,0,ph.p_memsz);
+			memcpy((uint8_t*)ph.p_vaddr,(uint8_t*)((uint32_t)hdr + ph.p_offset),ph.p_filesz);
+		}
+	}
+	return hdr->e_entry;
+}
+
 void *elf_load_file(uint8_t *file){
 	elf32_hdr_t *hdr = (elf32_hdr_t *)file;
 	if(!elf_check_supported(hdr)) {
@@ -242,8 +260,7 @@ void *elf_load_file(uint8_t *file){
 	}
 	switch(hdr->e_type) {
 		case ET_EXEC:
-			// TODO : Implement
-			return 0;
+			return elf_load_exec(hdr);
 		case ET_REL:
 			return elf_load_reloc(hdr);
 	}

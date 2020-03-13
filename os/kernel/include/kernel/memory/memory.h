@@ -47,15 +47,6 @@ struct gdt_ptr {
   uint32_t base;
 }__attribute__((packed));
 
-struct memory_node{
-  uint32_t size;
-  uint32_t addr;
-  uint8_t state;
-  uint32_t prev,next;
-};
-
-typedef struct memory_node memory_node_t;
-
 struct tss_entry_struct
 {
    //...................................................................

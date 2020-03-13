@@ -58,6 +58,7 @@ static inline void flush_tlb(unsigned long addr)
 }
 
 void map(uint32_t p_addr,uint32_t v_addr){
+	kinfo("Mapping %a to %a\n",v_addr,p_addr);
 	uint32_t pde = v_addr_to_pde(v_addr);
 	if(pde == 1023){
 		crash_info_t crash;
