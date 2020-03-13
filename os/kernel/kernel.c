@@ -48,7 +48,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	gdt_install();
 	remap_PIC(0x20,0x28);
 	idt_install();	
-	
+	init_syscalls();
 	init_pmm(mbt);
 	init_paging();
 	init_kheap();
@@ -85,7 +85,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	mem_stat();
 	init_sched();
 	
-	create_process(kseek("/root/test.smp"),1);
+	create_process(kseek("/root/usr/bin/init.smp"),1);
 	
 	
 	

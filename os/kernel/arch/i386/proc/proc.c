@@ -13,8 +13,9 @@ void setup_ctx(context_t* ctx,regs_t r){
 	
 	current_page_directory = ctx->cr3;
 	
-	tss_set_kernel_stack(ctx->esp);
+	
 	set_page_directory(ctx->cr3);
+	tss_set_kernel_stack(ctx->esp);
 	
 	r->useresp = ctx->esp;
 	r->ebp = ctx->ebp;
@@ -78,7 +79,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	return new_proc;
 }
 
-proc_t* create_process(fs_node_t* node,uint8_t sched){
+proc_t* create_process(fs_node_t* node){
 	//kinfo("HERE\n");
 	asm("cli");
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
@@ -90,6 +91,7 @@ proc_t* create_process(fs_node_t* node,uint8_t sched){
 	
 	set_page_directory(proc->state->cr3);
 	knpalloc(USER_STACK);
+	tss_set_kernel_stack(USER_STACK + 4096);
 	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
@@ -101,16 +103,12 @@ proc_t* create_process(fs_node_t* node,uint8_t sched){
 		kerr("Failed to load exec file!");
 		return 0;
 	}
-	if(sched){
-		processes[proc->pid] = proc;
+	processes[proc->pid] = proc;
 		
-		total_prcs++;
+	total_prcs++;
 		
-		kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
-		jump_usermode(entry);
-		asm("sti");
-		
-	}
+	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
+	jump_usermode(entry);
 	return proc;
 }
 

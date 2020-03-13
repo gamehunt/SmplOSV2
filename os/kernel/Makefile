@@ -32,6 +32,7 @@ $(ARCHDIR)/interrupts/isr_asm.o\
 $(ARCHDIR)/interrupts/isr.o\
 $(ARCHDIR)/interrupts/irq_asm.o\
 $(ARCHDIR)/interrupts/pic.o\
+$(ARCHDIR)/interrupts/syscall.o\
 dev/pci.o\
 dev/pit.o\
 dev/cmos.o\

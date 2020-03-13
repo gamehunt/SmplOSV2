@@ -23,7 +23,7 @@ cschange:
 global tss_flush
 
 tss_flush:
-    mov ax, 0x28  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths entry in your GDT describes your TSS)
+    mov ax, 0x2B  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths entry in your GDT describes your TSS)
     ltr ax        ;The actual load
     ret
 
