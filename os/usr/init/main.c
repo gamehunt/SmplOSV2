@@ -6,14 +6,17 @@
 
 */
 
+#include <stdint.h>
+
 void _start(){
-	//asm("push 0");
-	static int a = 0;
-	a++;
-	asm("mov %0, %%eax" :: "r"(a) : "%eax");
-	asm("int $0x7F");
-	a++;
-	asm("int $0x7F");
-	//int a = 0/0;
+	const char* str  = "SYSCALL 0";
+	const char* str1 = "SYSCALL 1";
+	
+	asm volatile("mov $0x0, %eax");
+	asm volatile("mov %0, %%ebx" :: "r"(0x804A000) : "%ebx", "%eax");
+	asm volatile("int $0x7F");
+	asm volatile("mov $0x0, %eax");
+	asm volatile("mov %0, %%ebx" :: "r"(0x804A00A) : "%ebx", "%eax");
+	asm volatile("int $0x7F");
 	while(1);
 }

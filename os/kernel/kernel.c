@@ -86,7 +86,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	//asm("int $0x7F");
 	create_process(kseek("/root/usr/bin/init.smp"));
-	
+
 	
 	for(;;) {
 		asm("hlt");

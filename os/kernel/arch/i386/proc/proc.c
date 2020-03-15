@@ -21,9 +21,11 @@ void setup_ctx(context_t* ctx,regs_t r){
 	r->ebp = ctx->ebp;
 	r->eip = ctx->eip;
 	
-	if(ctx->eip != 0x8049029){
-		kinfo("ENTER EIP: %a\n",ctx->eip);
-	}
+	r->eax = ctx->eax;
+	r->ebx = ctx->ebx;
+	r->ecx = ctx->ecx;
+	r->edx = ctx->edx;
+
 }
 
 void save_ctx(context_t* ctx,regs_t r){
@@ -33,9 +35,12 @@ void save_ctx(context_t* ctx,regs_t r){
 	ctx->esp = r->useresp;
 	ctx->ebp = r->ebp;
 	ctx->eip = r->eip;
-	if(ctx->eip != 0x8049029){
-		kinfo("EXIT EIP: %a\n",ctx->eip);
-	}
+	
+	ctx->eax = r->eax;
+	ctx->ebx = r->ebx;
+	ctx->ecx = r->ecx;
+	ctx->edx = r->edx;
+
 }
 
 int32_t free_pid(){
