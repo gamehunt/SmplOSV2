@@ -33,7 +33,7 @@ proc_t* current_proc;
 
 proc_t* processes[MAX_PROCESSES];
 
-int32_t current_piid =-1;
+int32_t current_piid =0;
 uint32_t total_prcs = 0;
 
 void schedule(regs_t reg);

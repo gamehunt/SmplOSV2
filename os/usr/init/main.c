@@ -12,6 +12,8 @@ void _start(){
 	a++;
 	asm("mov %0, %%eax" :: "r"(a) : "%eax");
 	asm("int $0x7F");
+	a++;
+	asm("int $0x7F");
 	//int a = 0/0;
 	while(1);
 }

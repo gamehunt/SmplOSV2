@@ -21,7 +21,9 @@ void setup_ctx(context_t* ctx,regs_t r){
 	r->ebp = ctx->ebp;
 	r->eip = ctx->eip;
 	
-	//kinfo("ENTER EIP: %a\n",ctx->eip);
+	if(ctx->eip != 0x8049029){
+		kinfo("ENTER EIP: %a\n",ctx->eip);
+	}
 }
 
 void save_ctx(context_t* ctx,regs_t r){
@@ -31,9 +33,9 @@ void save_ctx(context_t* ctx,regs_t r){
 	ctx->esp = r->useresp;
 	ctx->ebp = r->ebp;
 	ctx->eip = r->eip;
-	
-	//kinfo("EXIT EIP: %a\n",ctx->eip);
-
+	if(ctx->eip != 0x8049029){
+		kinfo("EXIT EIP: %a\n",ctx->eip);
+	}
 }
 
 int32_t free_pid(){
@@ -110,6 +112,10 @@ proc_t* create_process(fs_node_t* node){
 	processes[proc->pid] = proc;
 		
 	total_prcs++;
+	
+	if(current_piid < 0){
+		current_piid = 0;
+	}	
 		
 	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
 	//*((uint8_t*)0x8049000) = 0xcd; //Zero division code
@@ -134,6 +140,8 @@ void schedule(regs_t reg){
 			}
 		}while(!processes[current_piid]);
 		setup_ctx(processes[current_piid]->state,reg);
+	}else{
+		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
 	asm("sti");
 }
