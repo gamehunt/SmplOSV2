@@ -58,7 +58,6 @@ static inline void flush_tlb(unsigned long addr)
 }
 
 void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
-	//kinfo("Mapping %a to %a\n",v_addr,p_addr);
 	uint32_t pde = v_addr_to_pde(v_addr);
 	if(pde == 1023){
 		crash_info_t crash;
@@ -93,8 +92,9 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 uint32_t virtual2physical(uint32_t v_addr){
 	uint32_t pde = v_addr_to_pde(v_addr);
 	uint32_t pte = v_addr_to_pte(v_addr);
-	uint32_t i_pd_entry = kernel_page_directory[pde];
+	uint32_t i_pd_entry = current_page_directory[pde];
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
+		//kinfo("PD NOT PRESENT\n");
 		return 0;
 	}
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
@@ -102,6 +102,7 @@ uint32_t virtual2physical(uint32_t v_addr){
 	if(flags(i_pt_entry) & PAGE_PRESENT){
 		return address(i_pt_entry);
 	}
+	
 	return 0;
 }
 
@@ -146,7 +147,7 @@ uint32_t* kcpalloc(uint32_t n){
 void kpfree(uint32_t v_addr){
 	uint32_t pde = v_addr_to_pde(v_addr);
 	uint32_t pte = v_addr_to_pte(v_addr);
-	uint32_t i_pd_entry = kernel_page_directory[pde];
+	uint32_t i_pd_entry = current_page_directory[pde];
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		return;
 	}
@@ -163,7 +164,7 @@ void kpfree(uint32_t v_addr){
 				}
 			}
 			if(flag){
-				kernel_page_directory[pde] = 0x0;
+				current_page_directory[pde] = 0x0;
 				kpfree(0xFFC00000 + pde*4096);
 			}
 		}
@@ -188,12 +189,13 @@ void pagefault_handler(regs_t r){
     : /* no input */
     : "%eax"
     );
-	sprintf(message,"Fault address: %a",cr2);
+	sprintf(message,"Fault address: %a, error code = %a",cr2,r->err_code);
 	crash.extra_info = message;
 	kpanic(crash);
 }
 
 void set_page_directory(uint32_t pdir){
+	//kinfo("Setting page directory to %a(p=%a)\n",pdir,current_page_directory);
 	current_page_directory = (uint32_t*)pdir;
 	__asm_set_page_directory(pdir);
 }

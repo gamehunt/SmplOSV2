@@ -302,11 +302,11 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 						memset(seekent,0,sizeof(fat_cluster_entry_t));
 						memcpy(seekent,&entries[i],sizeof(fat_cluster_entry_t));
 						node->inode = (uint32_t)seekent;
-						node->size = entries[i].dirent->file_size;
+						node->size = seekent->dirent->file_size;
 						node->fsid = fsid;
 						node->ccount = 0;
 						
-						//kinfo("%d\n",node->size);
+						//kinfo("%s %d\n",path,node->size);
 			
 						return node;
 			    }
@@ -318,13 +318,15 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 
 
 uint32_t fat_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
+	
 	fat_cluster_entry_t* node_entry = (fat_cluster_entry_t*)node->inode;
 	fat_bpb_t* fat_bpb = node_entry->bpb;
+//	kinfo("Trying to read: %s - %a %d - %d %d\n",node->name,node_entry->dirent->attribs,offset+size <= node_entry->dirent->file_size,offset,size);
 	if(node_entry->dirent->attribs != 0x10 && offset+size <= node_entry->dirent->file_size){
 		
 		uint32_t cluster = ((uint32_t)node_entry->dirent->first_cluster_high<<16) + node_entry->dirent->first_cluster_low;
 		//kinfo("%d %d %d\n",node_entry->dirent->first_cluster_high,node_entry->dirent->first_cluster_low,cluster);
-		while(offset > fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector && cluster){
+		while(offset >= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector && cluster){
 			cluster = fat_read_cluster(node->device,fat_bpb,cluster,0);
 			offset -= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector;
 		}
@@ -332,21 +334,32 @@ uint32_t fat_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffe
 			return 0;
 		}
 		//kinfo("%d %d\n",cluster,size);
-		if(offset + size < fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector){
+		if(offset + size <= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector){
 			uint8_t* bigbuff = kmalloc(fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector);
 			memset(bigbuff,0,fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector);
 			fat_read_cluster(node->device,fat_bpb,cluster,bigbuff);
 			memcpy(buffer,&bigbuff[offset],size);
 			kfree(bigbuff);
 		}else{
-			uint32_t delta = offset + size - fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector;
-			uint8_t* bigbuff = kmalloc(fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector);
-			fat_read_cluster(node->device,fat_bpb,cluster,bigbuff);
-			memcpy(buffer,&bigbuff[offset],delta);
-			cluster = fat_read_cluster(node->device,fat_bpb,cluster,0);
-			fat_read_cluster(node->device,fat_bpb,cluster,bigbuff);
-			memcpy(&buffer[delta],bigbuff,size-delta);
-			kfree(bigbuff);
+			//kinfo("BUG\n");
+			uint32_t psize =  fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector - offset;
+			size -= psize;
+			
+			//kinfo("%d %d %d %d\n",fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,psize,size,offset);
+			//while(1);
+			
+			knread(node,offset,psize,buffer);
+			//while(1);
+			uint32_t i = 0;
+			while(size >= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector){
+				knread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
+				size -= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector;
+				i++;
+				//kinfo("%d %d\n",size,i);
+			}
+			if(size){
+				knread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,size,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
+			}
 		}
 		return size;
 	}else{

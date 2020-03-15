@@ -80,8 +80,8 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 }
 
 proc_t* create_process(fs_node_t* node){
-	//kinfo("HERE\n");
 	asm("cli");
+	//kinfo("HERE\n");
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!knread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
@@ -91,10 +91,13 @@ proc_t* create_process(fs_node_t* node){
 	
 	set_page_directory(proc->state->cr3);
 	knpalloc(USER_STACK);
-	tss_set_kernel_stack(USER_STACK + 4096);
+	
 	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
+	
+	tss_set_kernel_stack(proc->state->esp);
+	
 	uint32_t entry = elf_load_file(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
@@ -108,6 +111,8 @@ proc_t* create_process(fs_node_t* node){
 	total_prcs++;
 		
 	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
+	//*((uint8_t*)0x8049000) = 0xcd; //Zero division code
+	//*((uint8_t*)0x8049001) = 0x7f;
 	jump_usermode(entry);
 	return proc;
 }
@@ -122,8 +127,7 @@ void idle(){
 
 void init_sched(){
 	asm("cli");
-	create_process_from_routine("kidle",&idle,1); //spawn kernel idle process
-	//create_process(kseek("/root/test.smp"));
+	create_process_from_routine("kidle",&idle,1);
 	asm("sti");
 }
 

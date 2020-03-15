@@ -68,9 +68,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	kmount("/root","/dev/sda1",4);
 	fs_node_t* node = kseek("/root/CHECK"); 
 	if(node){
-		char buffer[65];
-		knread(node,0,65,buffer);
-		kinfo("%s\n",buffer);
+		char buffer[62];
+		knread(node,0,62,buffer);
+		kinfo("CHECK TEXT: %s\n",buffer);
 	}
 	
 	fs_dirent_t* modd = kreaddir("/root/bin/modules");
@@ -85,8 +85,8 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	mem_stat();
 	init_sched();
 	
-	create_process(kseek("/root/usr/bin/init.smp"),1);
 	
+	create_process(kseek("/root/usr/bin/init.smp"));
 	
 	
 	for(;;) {
