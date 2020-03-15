@@ -99,9 +99,10 @@ proc_t* create_process(fs_node_t* node){
 	tss_set_kernel_stack(proc->state->esp);
 	
 	uint32_t entry = elf_load_file(buffer);
+	kfree(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
-	kfree(buffer);
+	//kfree(buffer);
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
 		return 0;
@@ -118,21 +119,8 @@ proc_t* create_process(fs_node_t* node){
 }
 
 
-void idle(){
-	//kinfo("IDLE\n");
-	while(1){
-		asm("hlt");
-	}
-}
-
-void init_sched(){
-	asm("cli");
-	create_process_from_routine("kidle",&idle,1);
-	asm("sti");
-}
-
 void schedule(regs_t reg){
-	
+	asm("cli");
 	if(total_prcs){
 		if(current_piid >= 0){
 			proc_t* current = processes[current_piid];
@@ -147,6 +135,7 @@ void schedule(regs_t reg){
 		}while(!processes[current_piid]);
 		setup_ctx(processes[current_piid]->state,reg);
 	}
+	asm("sti");
 }
 
 void kill(uint32_t pid){

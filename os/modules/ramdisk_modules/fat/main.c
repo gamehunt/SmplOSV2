@@ -232,7 +232,7 @@ uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat
 		
 	}
 
-//	kfree(entries); Corrupts data TODO fix
+	//kfree(entries); //Corrupts data TODO fix
 
 	uint8_t FAT_table[bpb->bytes_per_sector];
 	uint32_t fat_offset = cluster * 4;

@@ -10,9 +10,7 @@
 #include <kernel/interrupts/isr.h>
 
 void syscall_handler(regs_t r){
-	kinfo("SYSCALL RECEICED\n");
-	asm("cli");
-	asm("hlt");
+	kinfo("SYSCALL: %a\n",r->eax);
 }
 
 void init_syscalls(){
