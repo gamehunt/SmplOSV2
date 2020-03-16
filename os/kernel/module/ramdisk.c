@@ -18,6 +18,8 @@ uint8_t ramdisk_load(){
 		kerr("Failed to create ramdisk device\n");
 		return 0;
 	}
+	//kinfo("%d\n",ramdisk_root->flags & VFS_LINK);
+	//while(1);
 	for(uint32_t i=0;i<ramdisk_root->size;i++){
 		uint32_t hdr_addr = 0;
 		//kinfo("%a %d %d %a\n",ramdisk_root,i,0,&hdr_addr);

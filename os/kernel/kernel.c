@@ -59,7 +59,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_rtc();
 	init_vfs(); 
 	init_tty();
-
+	
 	modules_load();
 	//while(1);
 	kinfo("CHCK: %x\n",((uint32_t(*)())((sym_entry_t*)symbol_seek("__exported")->addr))());

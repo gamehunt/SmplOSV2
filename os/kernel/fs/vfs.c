@@ -265,15 +265,15 @@ uint8_t kremove(char* path){
 }
 uint32_t kread(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
 	fs_node_t* node = kseek(path);
-	if(node && fss[node->fsid]->read){
-		return  fss[node->fsid]->read(node,offset,size,buffer);
+	if(node){
+		return knread(node,offset,size,buffer);
 	}
 	return 0;
 }
 uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
 	fs_node_t* node = kseek(path);
-	if(node && fss[node->fsid]->write){
-		return  fss[node->fsid]->write(node,offset,size,buffer);
+	if(node){
+		return knwrite(node,offset,size,buffer);
 	}
 	return 0;
 }
@@ -302,7 +302,7 @@ fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 	}else if(vfs_check_flag(mountpoint->flags,VFS_MOUNTED)){
 		kerr("Failed to mount %s: already mounted!\n",path);		
 		return 0;
-	}else if(mountpoint->flags & VFS_LINK){
+	}else if(vfs_check_flag(mountpoint->flags,VFS_LINK)){
 		kerr("Failed to mount %s: can't mount link!\n",path);
 		return 0;
 	}
@@ -333,7 +333,7 @@ uint8_t kumount(char* path){
 uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	//kinfo("KNR: %a %d %a\n",node,size,buffer);
 	fs_node_t* real_node = node;
-	if(node->flags & VFS_LINK){
+	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
 	}
 	if(real_node && fss[real_node->fsid]->read){
@@ -344,7 +344,7 @@ uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer)
 }
 uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	fs_node_t* real_node = node;
-	if(node->flags & VFS_LINK){
+	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
 	}
 	if(real_node && fss[real_node->fsid]->write){
@@ -359,7 +359,7 @@ fs_node_t* create_vfs_mapping(char* path){
 }
 
 fs_dirent_t* knreaddir(fs_node_t* node){
-	if(node->flags & VFS_LINK){
+	if(vfs_check_flag(node->flags,VFS_LINK)){
 		node = (fs_node_t*)node->inode;
 	}
 	fs_dirent_t* dir = kmalloc(sizeof(fs_dirent_t));
@@ -390,6 +390,8 @@ fs_dirent_t* kreaddir(char* path){
 
 uint8_t klink(char* path, char* link){
 	
+	//return 0;
+	
 	fs_node_t* node = kseek(path);
 	if(!node){
 		return 0;
@@ -402,7 +404,7 @@ uint8_t klink(char* path, char* link){
 		return 0;
 	}
 	
-	nlink->flags |= VFS_LINK;
+	nlink->flags = vfs_set_flag(nlink->flags,VFS_LINK);
 	
 	nlink->inode = (uint32_t)node;
 	
