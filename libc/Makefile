@@ -1,4 +1,5 @@
 ALL_OBJS=\
+syscall.o \
 string/strlen.o \
 string/memcpy.o \
 string/memset.o \

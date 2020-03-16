@@ -15,7 +15,7 @@ void setup_ctx(context_t* ctx,regs_t r){
 	
 	
 	set_page_directory(ctx->cr3);
-	tss_set_kernel_stack(ctx->esp);
+	tss_set_kernel_stack(ctx->esp+4096);
 	
 	r->useresp = ctx->esp;
 	r->ebp = ctx->ebp;
@@ -98,12 +98,13 @@ proc_t* create_process(fs_node_t* node){
 	
 	set_page_directory(proc->state->cr3);
 	knpalloc(USER_STACK);
+	knpalloc(USER_STACK+4096);
 	
 	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	
-	tss_set_kernel_stack(proc->state->esp);
+	tss_set_kernel_stack(USER_STACK+2*4096);
 	
 	uint32_t entry = elf_load_file(buffer);
 	kfree(buffer);
@@ -132,7 +133,9 @@ proc_t* create_process(fs_node_t* node){
 
 void schedule(regs_t reg){
 	asm("cli");
+	
 	if(total_prcs){
+		//kinfo("S1\n");
 		if(current_piid >= 0){
 			proc_t* current = processes[current_piid];
 			save_ctx(current->state,reg);
@@ -145,9 +148,11 @@ void schedule(regs_t reg){
 			}
 		}while(!processes[current_piid]);
 		setup_ctx(processes[current_piid]->state,reg);
+		//kinfo("S2\n");
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
+	
 	asm("sti");
 }
 

@@ -11,6 +11,7 @@ echo Compiling with:
 export CC=${TARGET}-gcc
 export AR=${TARGET}-ar
 export AS=${TARGET}-as
+export LD=${TARGET}-ld
 echo $CC
 echo $AR
 echo $AS

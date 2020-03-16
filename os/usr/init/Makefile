@@ -4,7 +4,7 @@ LIBS:
 all: init.smp install
 init.smp:
 	$(CC) -c main.c $(CFLAGS) $(CPPFLAGS) 
-	$(LD) $(USER_LINKS) -m elf_i386 main.o -o init.smp
+	$(LD) -m elf_i386 main.o -o init.smp --sysroot=/home/user/SmplOSV2/sysroot -lc
 install:
 	cp init.smp $(HOME)/SmplOSV2/os/usr/bin/init.smp
 clean:

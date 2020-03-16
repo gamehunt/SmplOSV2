@@ -11,7 +11,7 @@
 
 #define MAX_SYSCALL 128
 
-typedef uint32_t(* syscall_t)(uint32_t a,uint32_t b,uint32_t c,uint32_t e,uint32_t f);
+typedef uint32_t(* syscall_t)(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e);
 
 static syscall_t syscalls[MAX_SYSCALL];
 
