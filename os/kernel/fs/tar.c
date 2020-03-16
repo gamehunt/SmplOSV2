@@ -164,7 +164,7 @@ fs_node_t* tar_seek(char* s,fs_node_t* root){
 	}
 	return 0;
 }
-void init_tar(){
+uint32_t init_tar(){
 	fs_t* fs = kmalloc(sizeof(fs_t));
 	fs->mount = &tar_mount;
 	fs->read = &tar_read;
@@ -172,4 +172,5 @@ void init_tar(){
 	fs->seek = &tar_seek;
 	uint32_t id = register_fs(fs);
 	kinfo("TarFS initialized: fsid %d\n",id);
+	return id;
 }

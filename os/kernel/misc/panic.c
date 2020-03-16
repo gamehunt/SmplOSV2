@@ -10,10 +10,15 @@
 #include <kernel/io/terminal.h>
 //#include <kernel/debug/debug.h>
 #include <kernel/misc/log.h>
+#include <kernel/dev/tty.h>
 
 void kpanic(crash_info_t crash){
 	asm("cli");
+//	while(1);
+	tty_set_state(TTY_DISABLE);
+	//while(1);
 	kerr("------------------KERNEL PANIC------------------------\n");
+	
 	kerr("Kernel built for arch %s\n",ARCH);
 	kerr("Unhandled exception occured\n");
 	kerr("Description: %s\n",crash.description?crash.description:"No desc.");

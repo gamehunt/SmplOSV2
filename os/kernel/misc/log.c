@@ -11,13 +11,12 @@
 #include <kernel/dev/tty.h>
 
 #include <stdarg.h>
+#define __smplos_libk
 #include <stdio.h>
 
 
 void kinfo(const char* format,...){
-	if(tty_is_enabled() && tty_get_output_stream() != TTY_OUTPUT_STREAM_STDOUT){
-		tty_set_output_stream(TTY_OUTPUT_STREAM_STDOUT);
-	}
+	set_output_stream(STDOUT);
 	terminal_color(VGA_COLOR_WHITE);
 	va_list l;
 	va_start(l,format);	
@@ -26,9 +25,7 @@ void kinfo(const char* format,...){
 }
 
 void kwarn(const char* format,...){
-	if(tty_is_enabled() && tty_get_output_stream() != TTY_OUTPUT_STREAM_STDOUT){
-		tty_set_output_stream(TTY_OUTPUT_STREAM_STDOUT);
-	}
+	set_output_stream(STDOUT);
 	terminal_color(VGA_COLOR_YELLOW);
 	va_list l;
 	va_start(l,format);	
@@ -38,11 +35,7 @@ void kwarn(const char* format,...){
 }
 
 void kerr(const char* format,...){
-	if(tty_is_enabled() && tty_get_output_stream() != TTY_OUTPUT_STREAM_STDERR){
-		//kinfo("KERR UNSET\n");
-		tty_set_output_stream(TTY_OUTPUT_STREAM_STDERR);
-		
-	}
+	set_output_stream(STDERR);
 	terminal_color(VGA_COLOR_RED);
 	va_list l;
 	va_start(l,format);	

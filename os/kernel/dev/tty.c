@@ -10,17 +10,13 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/memory/memory.h>
 
-uint16_t tty_fsid;
+static uint16_t tty_fsid;
 
-fs_node_t* tty_root = 0;
-fs_node_t* out_root;
-fs_node_t* err_root;
-uint32_t tty_stream = 0;
-uint8_t enabled = 0;
+static fs_node_t* tty_root = 0;
 
+static uint8_t state = 0;
 
 fs_node_t* tty_mount(fs_node_t* root,fs_node_t* device){
-	//printf("HERE %s\n",root->name);
 	return root;
 }
 
@@ -30,27 +26,11 @@ uint32_t tty_write(fs_node_t* node, uint64_t offset, uint32_t size, uint8_t* buf
 	}
 	return size;
 }
-
-uint8_t tty_is_enabled(){
-	//return tty_root?1:0;
-	return tty_root?1:0;;
+void tty_set_state(uint8_t s){
+	state = s;
 }
-
-fs_node_t* tty_get_root(){
-	return tty_root;
-}
-
-void tty_set_output_stream(uint32_t stream){
-	tty_stream = stream;
-	if(stream == TTY_OUTPUT_STREAM_STDOUT){
-		tty_root = out_root;	
-	}else{
-		tty_root = err_root;
-	}
-}
-
-uint32_t tty_get_output_stream(){
-	return tty_stream;
+uint8_t tty_get_state(){
+	return state;
 }
 
 
@@ -61,14 +41,21 @@ void init_tty(){
 	tty_fs->write = &tty_write;
 		
 	tty_fsid = register_fs(tty_fs);
-	if(out_root = kmount("/dev/stdout/","",tty_fsid)){
-		if(!(err_root=kmount("/dev/stderr/","",tty_fsid))){
-			kerr("Failed to create stderr output handler\n");
-		}
-		tty_set_output_stream(TTY_OUTPUT_STREAM_STDOUT);
-		enabled = 1;
-		kinfo("TTY initialized: fsid %d\n",tty_fsid);
-	}else{
-		kerr("Failed to initialize tty\n");
+	tty_root = kmount("/dev/tty","",tty_fsid);
+
+	if(!tty_root){
+		kerr("Failed to create TTY device!\n");
+		return;
 	}
+	
+	if(!klink("/dev/tty","/dev/stdout")){
+		kerr("Failed to link /dev/stdout\n");
+	}
+	if(!klink("/dev/tty","/dev/stderr")){
+		kerr("Failed to link /dev/stderr\n");
+	}
+	
+	tty_set_state(TTY_ENABLE);
+	
+	kinfo("TTY initialized!\n");
 }

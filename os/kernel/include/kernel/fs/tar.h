@@ -30,4 +30,4 @@ fs_node_t* tar_seek(char* s,fs_node_t* root);
 fs_node_t* tar_header2node(tar_hdr_t* hdr);
 uint32_t tar_header_size(tar_hdr_t* hdr);
 
-void init_tar();
+uint32_t init_tar();

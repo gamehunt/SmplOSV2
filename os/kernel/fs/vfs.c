@@ -302,6 +302,9 @@ fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 	}else if(vfs_check_flag(mountpoint->flags,VFS_MOUNTED)){
 		kerr("Failed to mount %s: already mounted!\n",path);		
 		return 0;
+	}else if(mountpoint->flags & VFS_LINK){
+		kerr("Failed to mount %s: can't mount link!\n",path);
+		return 0;
 	}
 	fs_node_t* device = kseek(devicep);
 	if(!device && strcmp(devicep,"")){
@@ -329,15 +332,23 @@ uint8_t kumount(char* path){
 
 uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	//kinfo("KNR: %a %d %a\n",node,size,buffer);
-	if(node && fss[node->fsid]->read){
+	fs_node_t* real_node = node;
+	if(node->flags & VFS_LINK){
+		real_node = (fs_node_t*)node->inode;
+	}
+	if(real_node && fss[real_node->fsid]->read){
 	//	kinfo("f: %d\n",node->fsid);
-		return  fss[node->fsid]->read(node,offset,size,buffer);
+		return  fss[real_node->fsid]->read(real_node,offset,size,buffer);
 	}
 	return 0;
 }
 uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
-	if(node && fss[node->fsid]->write){
-		return  fss[node->fsid]->write(node,offset,size,buffer);
+	fs_node_t* real_node = node;
+	if(node->flags & VFS_LINK){
+		real_node = (fs_node_t*)node->inode;
+	}
+	if(real_node && fss[real_node->fsid]->write){
+		return  fss[real_node->fsid]->write(real_node,offset,size,buffer);
 	}
 	return 0;
 }
@@ -348,6 +359,9 @@ fs_node_t* create_vfs_mapping(char* path){
 }
 
 fs_dirent_t* knreaddir(fs_node_t* node){
+	if(node->flags & VFS_LINK){
+		node = (fs_node_t*)node->inode;
+	}
 	fs_dirent_t* dir = kmalloc(sizeof(fs_dirent_t));
 	dir->chlds = kmalloc(sizeof(fs_node_t*));
 	if(node->ccount){
@@ -372,4 +386,27 @@ fs_dirent_t* kreaddir(char* path){
 		return 0;
 	}
 	return knreaddir(node);
+}
+
+uint8_t klink(char* path, char* link){
+	
+	fs_node_t* node = kseek(path);
+	if(!node){
+		return 0;
+	}
+	fs_node_t* nlink = kseek(link);
+	if(!nlink){
+		nlink = kcreate(link,0);
+	}
+	if(!nlink){
+		return 0;
+	}
+	
+	nlink->flags |= VFS_LINK;
+	
+	nlink->inode = (uint32_t)node;
+	
+	kinfo("Link created: %s to %s\n",link,path);
+	
+	return 1;
 }

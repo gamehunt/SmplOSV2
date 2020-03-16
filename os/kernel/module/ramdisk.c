@@ -11,9 +11,10 @@
 
 uint8_t ramdisk_load(){
 	kinfo("Loading ramdisk\n");
-	init_tar();
-	fs_node_t* ramdisk_root;
-	if(!(ramdisk_root = kmount("/ramdisk","",2))){
+	uint32_t id = init_tar();
+	fs_node_t* ramdisk_root = 0;
+	
+	if(!(ramdisk_root = kmount("/ramdisk","",id))){
 		kerr("Failed to create ramdisk device\n");
 		return 0;
 	}
@@ -22,6 +23,9 @@ uint8_t ramdisk_load(){
 		//kinfo("%a %d %d %a\n",ramdisk_root,i,0,&hdr_addr);
 		knread(ramdisk_root,(uint64_t)i,(uint32_t)1228,(uint8_t*)&hdr_addr);
 		tar_hdr_t* hdr= (tar_hdr_t*)hdr_addr;
+		
+		//kinfo("%a\n",hdr);
+		//while(1);
 		fs_node_t* fsnode = tar_header2node(hdr);
 		module_load(fsnode);
 	}

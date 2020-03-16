@@ -11,9 +11,10 @@
 
 #define MAX_FS 65535
 
-#define VFS_PRESENT 0x1
-#define VFS_MOUNTED 0x2
-#define VFS_MOUNTPOINT 0x2
+#define VFS_PRESENT    0x1
+#define VFS_MOUNTED    0x2 //Idk why...
+#define VFS_MOUNTPOINT 0x2 //
+#define VFS_LINK       0x4
 
 struct fs_node{
 	char name[128];	
@@ -73,3 +74,4 @@ uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer)
 uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
 fs_dirent_t* knreaddir(fs_node_t* node);
 fs_dirent_t* kreaddir(char* path);
+uint8_t klink(char* src,char* link);
