@@ -13,8 +13,9 @@
 
 void puts(const char* str){
 	#ifdef __smplos_libk
-	if(tty_is_enabled()){
-		knwrite(tty_get_root(),0,strlen(str),str);
+	fs_node_t* stream = get_output_stream();
+	if(tty_get_state() && stream){
+		knwrite(stream,0,strlen(str),str);
 	}else{
 		for(int i=0;i<strlen(str);i++){
 			putchar(str[i]);
