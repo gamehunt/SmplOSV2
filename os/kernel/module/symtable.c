@@ -13,6 +13,7 @@
 #include <kernel/misc/log.h>
 #include <kernel/memory/memory.h>
 #include <kernel/io/io.h>
+#include <kernel/dev/pci.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -57,6 +58,13 @@ void init_symtable(){
 	symbol_export("printf",&printf);
 	symbol_export("putchar",&putchar);
 	
+	symbol_export("kfalloc",&kfalloc);
+	symbol_export("kmpalloc",&kmpalloc);
+	symbol_export("knpalloc",&knpalloc);
+	symbol_export("kcpalloc",&kcpalloc);
+	symbol_export("kffree",&kffree);
+	
+	
 	symbol_export("kmalloc",&kmalloc);
 	symbol_export("kfree",&kfree);
 	symbol_export("krealloc",&krealloc);
@@ -93,4 +101,13 @@ void init_symtable(){
 	symbol_export("memmove",&memmove);
 	symbol_export("memcmp",&memcmp);
 	symbol_export("memcpy",&memcpy);
+	
+	symbol_export("pci_seek_device",&pci_seek_device);
+	symbol_export("pci_get_deviceptr",&pci_get_deviceptr);
+	symbol_export("pci_get_device",&pci_get_device);
+	symbol_export("pci_get_class",&pci_get_class);
+	symbol_export("pci_get_subclass",&pci_get_subclass);
+	symbol_export("pci_get_vendor",&pci_get_vendor);
+	symbol_export("pci_read_value",&pci_read_value);
+	symbol_export("pci_write_value",&pci_write_value);
 }

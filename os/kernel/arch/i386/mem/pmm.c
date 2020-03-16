@@ -81,7 +81,7 @@ void init_pmm(multiboot_info_t *mbt){
 	while((uint32_t)mmap < mbt->mmap_addr + mbt->mmap_length) {
 		if(mmap->type == 1){
 			for(int i = 0; i< mmap->len; i+= 4096){
-				if(mmap->addr+i > 0x1000000){
+				if(mmap->addr+i > 0x1000000 && mmap->addr+i < 0xFD000000){
 					k_temp_frame_stack_push(mmap->addr+i);
 					useful_mem++;
 				}

@@ -90,6 +90,16 @@ void pci_probe(){
     kinfo("Total devices: %d\n",__pci_dev);
 }
 
+pci_device_t* pci_seek_device(uint16_t vendor,uint16_t device){
+	for(uint16_t i=0;i<__pci_dev;i++){
+		pci_device_t* dev = pci_get_deviceptr(i);
+		if(pci_get_device(dev) == device && pci_get_vendor(dev) == vendor){
+			return dev;
+		}
+	}
+	return 0;
+}
+
 void init_pci(){
 	//while(1);
 	pci_probe();	

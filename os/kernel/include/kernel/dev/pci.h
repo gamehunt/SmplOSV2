@@ -57,4 +57,5 @@ uint16_t pci_get_subclass(pci_device_t* dev);
 
 uint16_t pci_last_device(); 
 pci_device_t* pci_get_deviceptr(uint16_t i); 
+pci_device_t* pci_seek_device(uint16_t vendor,uint16_t device);
 #endif
