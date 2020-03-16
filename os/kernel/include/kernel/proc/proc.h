@@ -20,6 +20,8 @@
 typedef struct{
 	uint32_t cr3,esp,ebp,eip;
 	uint32_t eax,ebx,ecx,edx;
+
+	uint32_t k_esp;
 }context_t;
 
 typedef struct{

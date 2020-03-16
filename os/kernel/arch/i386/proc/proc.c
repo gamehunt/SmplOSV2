@@ -10,12 +10,8 @@
 #include <kernel/memory/memory.h>
 
 void setup_ctx(context_t* ctx,regs_t r){
-	
-	current_page_directory = ctx->cr3;
-	
-	
 	set_page_directory(ctx->cr3);
-	tss_set_kernel_stack(ctx->esp+4096);
+	tss_set_kernel_stack(ctx->k_esp);
 	
 	r->useresp = ctx->esp;
 	r->ebp = ctx->ebp;
@@ -98,13 +94,14 @@ proc_t* create_process(fs_node_t* node){
 	
 	set_page_directory(proc->state->cr3);
 	knpalloc(USER_STACK);
-	knpalloc(USER_STACK+4096);
-	
+	knpalloc(KERNEL_STACK);
 	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	
-	tss_set_kernel_stack(USER_STACK+2*4096);
+	proc->state->k_esp = KERNEL_STACK + 4096;
+	
+	tss_set_kernel_stack(KERNEL_STACK + 4096);
 	
 	uint32_t entry = elf_load_file(buffer);
 	kfree(buffer);

@@ -31,6 +31,7 @@
 #define KHEAP_SIZE 4096*4096 //16 mib heap
 
 #define USER_STACK 0xC0000000
+#define KERNEL_STACK 0xCF000000
 
 struct gdt_entry {
   uint16_t limit;
