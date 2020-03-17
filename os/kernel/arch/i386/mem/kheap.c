@@ -135,6 +135,17 @@ void merge()
 }
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
+	if(size >= KHEAP_SIZE){
+		crash_info_t crash;
+		crash.description = "KHEAP: Invalid allocation";
+		char message[128]; 
+		sprintf(message,"Tried to allocate block of size %d\n",size);
+		crash.extra_info = message;
+		crash.regs = 0;
+		kpanic(crash);
+		//return 0;
+		return 0;
+	}
 	i_update_stat(stat_alloc,1);
 	mem_t* block = free_block(size);
 	if(block){
@@ -145,8 +156,14 @@ uint32_t* kmalloc(uint32_t size){
 		block->prev = 0;
 		return ptr(block);
 	}else{
-		if((uint32_t)heap_start + sizeof(mem_t)+size > heap_start_static+KHEAP_SIZE*8){
-			kerr("Out of memory\n");
+		if((uint32_t)heap_start + sizeof(mem_t)+size >= (uint32_t)heap_start_static+KHEAP_SIZE){
+			crash_info_t crash;
+			crash.description = "KHEAP: Out of memory";
+			char message[128]; 
+			sprintf(message,"Tried to allocate block of size %d when %d already allocated\n",size,(uint32_t)heap_start-(uint32_t)heap_start_static);
+			crash.extra_info = message;
+			crash.regs = 0;
+			kpanic(crash);
 			return 0;
 		}
 		i_update_stat(stat_alloc_total,size);
@@ -164,6 +181,7 @@ uint32_t* kmalloc(uint32_t size){
 
 //frees memory. 
 void kfree(uint32_t* addr){
+	//return;
 	//kinfo("FREE %a\n",addr);
 	i_update_stat(stat_free,1);
 	mem_t* block = header(addr);
@@ -171,7 +189,7 @@ void kfree(uint32_t* addr){
 	i_update_stat(stat_freed_total,block->size);
 	i_update_stat(stat_max_load,-block->size);
 	free_insert(block);
-	merge();
+	//merge();
 }
 
 //allocates aligned memory !! Wastes lot's of memory if alignment is large

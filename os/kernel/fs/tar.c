@@ -9,6 +9,8 @@
 #include <kernel/fs/tar.h>
 #include <kernel/memory/memory.h>
 
+static uint32_t tarfs_id = 0;
+
 static unsigned int getsize(const char *in)
 {
  
@@ -30,7 +32,7 @@ fs_node_t* tar_header2node(tar_hdr_t* hdr){
 	node->size = tar_header_size(hdr);
 	memcpy(node->name,hdr->filename,strlen(hdr->filename));
 	node->inode = hdr;
-	node->fsid = 2;
+	node->fsid = tarfs_id;
 	node->flags = 0;
 	return node;
 }
@@ -170,7 +172,7 @@ uint32_t init_tar(){
 	fs->read = &tar_read;
 	fs->umount = &tar_umount;
 	fs->seek = &tar_seek;
-	uint32_t id = register_fs(fs);
-	kinfo("TarFS initialized: fsid %d\n",id);
-	return id;
+	tarfs_id = register_fs(fs);
+	kinfo("TarFS initialized: fsid %d\n",tarfs_id);
+	return tarfs_id;
 }

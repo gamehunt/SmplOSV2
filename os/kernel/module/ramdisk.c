@@ -29,6 +29,7 @@ uint8_t ramdisk_load(){
 		//kinfo("%a\n",hdr);
 		//while(1);
 		fs_node_t* fsnode = tar_header2node(hdr);
+		//kinfo("HERE\n");
 		module_load(fsnode);
 	}
 	kinfo("Ramdisk loaded\n");

@@ -90,12 +90,13 @@ uint32_t module_ramdisk_count(){
 uint8_t module_load(fs_node_t* node){
 	//kinfo("HERE\n");
 	uint8_t* buffer = kmalloc(node->size);
+	//kinfo("ALLOCD\n");
 	if(!knread(node,0,node->size,buffer)){
 		kerr("Failed to read module file\n");
 	}
-	
+	//kinfo("HERE\n");
 	if(elf_load_file(buffer)){
-		//kinfo("ELF LOADED\n");
+	//	kinfo("ELF LOADED\n");
 		elf32_hdr_t *ehdr = (elf32_hdr_t *)buffer;
 		elf32_sym_t* module_header = (elf32_sym_t*)elf_get_symbol(ehdr,"__module_header");
 		if(!module_header){

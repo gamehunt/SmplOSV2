@@ -8,6 +8,7 @@
 
 #include <kernel/interrupts/syscalls.h>
 #include <kernel/interrupts/isr.h>
+#include <kernel/fs/vfs.h>
 
 #define MAX_SYSCALL 128
 
@@ -27,6 +28,7 @@ void syscall_handler(regs_t r){
 	}else{
 		kerr("Syscall %a has null handler\n",r->eax);
 	}
+	//kinfo("Syscall exit\n");
 }
 
 void register_syscall(uint16_t id,syscall_t handler){
@@ -38,9 +40,33 @@ uint32_t sys_echo(uint32_t str,uint32_t _,uint32_t __,uint32_t ___,uint32_t ____
 	return 0;
 }
 
+uint32_t sys_read(uint32_t path,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
+	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
+	return kread((char*)path,offs,size,(uint8_t*)buffer);
+}
+
+uint32_t sys_write(uint32_t path,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
+	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
+	//kinfo("[SYS_WRITE] %s %e %d %a\n",path,offs,size,buffer);
+	return kwrite((char*)path,offs,size,(uint8_t*)buffer);
+}
+
+uint32_t sys_seek(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+	//kinfo("[SYS_SEEK] %s\n",(char*)path);
+	return (uint32_t)kseek((char*)path);
+}
+
+uint32_t sys_readdir(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+	return (uint32_t)kreaddir((char*)path);
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
 	
 	register_syscall(0,&sys_echo);
+	register_syscall(1,&sys_read);
+	register_syscall(2,&sys_write);
+	register_syscall(3,&sys_seek);
+	register_syscall(4,&sys_readdir);
 }

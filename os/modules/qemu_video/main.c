@@ -25,7 +25,7 @@
 #define VBE_DISPI_INDEX_Y_OFFSET (9)
 
 #define VBE_DISPI_DISABLED (0x00)
-#define VBE_DISPI_ENABLED (0x00)
+#define VBE_DISPI_ENABLED (0x01)
 
 #define VBE_DISPI_BPP_4 (0x04)
 #define VBE_DISPI_BPP_8 (0x08)
@@ -36,6 +36,10 @@
 
 #define VBE_DISPI_LFB_ENABLED (0x40)
 #define VBE_DISPI_NOCLEARMEM (0x80)
+
+#define DEFAULT_XRES 1024
+#define DEFAULT_YRES 768
+#define DEFAULT_BPP VBE_DISPI_BPP_32
 
 void qvid_write_register(uint16_t idx,uint16_t data){
 	outw(VBE_DISPI_IOPORT_INDEX,idx);
@@ -69,16 +73,18 @@ uint8_t load(){
 	uint16_t ver = qvid_read_register(VBE_DISPI_INDEX_ID);
 	kinfo("Version : %a\n",ver);
 	uint32_t* lfb = (uint32_t*)(pci_read_value(qvid,PCI_BAR0,4) & 0xFFFFFFF0);
-	for(uint16_t i = 0;i<1024*768*32/4096;i++){
+	for(uint16_t i = 0;i<DEFAULT_XRES*DEFAULT_YRES*4/4096;i++){
 		kmpalloc((uint32_t*)((uint32_t)lfb+i*4096),(uint32_t*)((uint32_t)lfb+i*4096),0);
 	}
 	kinfo("LFB at %a\n",lfb);
-	qvid_set_resolution(1024,768,VBE_DISPI_BPP_32,1,1);
+	qvid_set_resolution(DEFAULT_XRES,DEFAULT_YRES,DEFAULT_BPP,1,1);
 	uint16_t xres = qvid_read_register(VBE_DISPI_INDEX_XRES);
 	uint16_t yres = qvid_read_register(VBE_DISPI_INDEX_YRES);
 	uint16_t set_bpp = qvid_read_register(VBE_DISPI_INDEX_BPP);
 	kinfo("New BGA Mode: %d %d %a\n",xres,yres,set_bpp);
-	memset(lfb,0,1024*768*32);
+	memset(lfb,0x01,DEFAULT_XRES*DEFAULT_YRES*4);
+	fs_node_t* node = kcreate("/dev/fb0",0);
+	node->inode = (uint32_t)lfb;
 	return 0;
 }
 uint8_t unload(){

@@ -4,6 +4,9 @@
      
     Author: gamehunt 
 
+
+
+    Something corrupting heap blocks now, so i removed all kfree() from this file TODO fix
 */
 
 
@@ -95,9 +98,9 @@ typedef struct{
 }__attribute__((packed)) fat_lfe_t; 
 
 typedef struct{
-	fat_bpb_t* bpb;
-	fat_lfe_t* lfe;
 	fat_dirent_t* dirent;
+	fat_lfe_t* lfe;
+	fat_bpb_t* bpb;
 }__attribute__((packed)) fat_cluster_entry_t;
 
 uint8_t fat_entry_type(uint8_t* entry){
@@ -184,7 +187,6 @@ uint32_t fat_read_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,uint
 }
 
 uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat_cluster_entry_t* parsed_entries){
-	//memset(parsed_entries,sizeof(fat_cluster_entry_t)*16*bpb->sectors_per_cluster,0);
 	uint32_t fat_size = ((fat32_bpb_t*)&bpb->ebpb[0])->sectors_per_fat;
 	uint32_t root_dir_sectors = ((bpb->dirent_count * 32) + (bpb->bytes_per_sector - 1)) / bpb->bytes_per_sector;
 	uint32_t first_data_sector = bpb->reserved_sectors + (bpb->fat_count * fat_size) + root_dir_sectors;
@@ -192,15 +194,15 @@ uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat
 	uint32_t cluster_sector = ((cluster - 2) * bpb->sectors_per_cluster) + first_data_sector;
 	
 	uint8_t* entries = kmalloc(bpb->bytes_per_sector);
+	uint8_t flag = 0;
+	fat_dirent_t* dirent = 0;
+	fat_lfe_t* lfe = 0;
 	for(uint32_t i= 0;i<bpb->sectors_per_cluster;i++){
 		memset(entries,0,bpb->bytes_per_sector);
 		knread(device,cluster_sector + i,1,entries);
-		uint8_t flag = 0;
-		fat_dirent_t* dirent = 0;
-		fat_lfe_t* lfe = 0;
+
 		for(uint32_t j = 0; j< 512; j+=32){
 			uint8_t result = fat_entry_type(&entries[j]);
-			//kinfo("RES:%a\n",result);
 			if(!result){
 				flag = 1;
 				break;
@@ -214,15 +216,18 @@ uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat
 				lfe = kmalloc(sizeof(fat_lfe_t));
 				memcpy(lfe,&entries[j],sizeof(fat_lfe_t));
 			}
+			
 			if(dirent){
 				parsed_entries[i*16 + j/32].lfe = lfe;
 				parsed_entries[i*16 + j/32].dirent = dirent;
 				parsed_entries[i*16 + j/32].bpb = bpb;
+				
 				lfe = 0;
 				dirent = 0;
+				
 			}else{
-				parsed_entries[i*16 + j/32].lfe = 0; 
-				parsed_entries[i*16 + j/32].dirent = 0;
+				parsed_entries[i*16 + j/32].lfe = 0x00; 
+				parsed_entries[i*16 + j/32].dirent = 0x00;
 				parsed_entries[i*16 + j/32].bpb = bpb;
 			}
 		}
@@ -269,9 +274,6 @@ fs_node_t* fat_mount(fs_node_t* root,fs_node_t* device){
 }
 
 fs_node_t* fat_seek(char* path,fs_node_t* root){
-	
-	//kinfo("%s\n",path);
-	
 	fat_cluster_entry_t* ent = (fat_cluster_entry_t*)root->inode;
 	uint32_t cluster = vfs_check_flag(root->flags, VFS_MOUNTPOINT)?((fat32_bpb_t*)&ent->bpb->ebpb[0])->root_cluster:(((uint32_t)ent->dirent->first_cluster_high<<16) + ent->dirent->first_cluster_low);
 
@@ -279,9 +281,7 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 		
 		fat_cluster_entry_t* entries = kmalloc(sizeof(fat_cluster_entry_t)*16*ent->bpb->sectors_per_cluster);
 		memset(entries,0,sizeof(fat_cluster_entry_t)*16*ent->bpb->sectors_per_cluster);
-		
 		do{
-			
 			cluster = fat_parse_cluster(root->device,ent->bpb,cluster,entries);
 			for(uint32_t i = 0;i<16*ent->bpb->sectors_per_cluster;i++){
 				if(!entries[i].dirent){
@@ -290,9 +290,6 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 				
 				uint8_t r1 = fat_cmp_dirent(path,entries[i].dirent->name);
 				uint8_t r2 = (entries[i].lfe && fat_cmp_lfe(entries[i].lfe,path));
-				
-				//kinfo("%s %d %d %a\n",entries[i].dirent->name,r1, r2,entries[i].lfe);
-				
 				if(r1 || r2){
 						fs_node_t* node = kmalloc(sizeof(fs_node_t));
 						memcpy(node->name,entries[i].dirent->name,11);
@@ -305,9 +302,6 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 						node->size = seekent->dirent->file_size;
 						node->fsid = fsid;
 						node->ccount = 0;
-						
-						//kinfo("%s %d\n",path,node->size);
-			
 						return node;
 			    }
 			}
@@ -321,11 +315,9 @@ uint32_t fat_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffe
 	
 	fat_cluster_entry_t* node_entry = (fat_cluster_entry_t*)node->inode;
 	fat_bpb_t* fat_bpb = node_entry->bpb;
-//	kinfo("Trying to read: %s - %a %d - %d %d\n",node->name,node_entry->dirent->attribs,offset+size <= node_entry->dirent->file_size,offset,size);
 	if(node_entry->dirent->attribs != 0x10 && offset+size <= node_entry->dirent->file_size){
 		
 		uint32_t cluster = ((uint32_t)node_entry->dirent->first_cluster_high<<16) + node_entry->dirent->first_cluster_low;
-		//kinfo("%d %d %d\n",node_entry->dirent->first_cluster_high,node_entry->dirent->first_cluster_low,cluster);
 		while(offset >= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector && cluster){
 			cluster = fat_read_cluster(node->device,fat_bpb,cluster,0);
 			offset -= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector;
@@ -333,29 +325,20 @@ uint32_t fat_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffe
 		if(!cluster){
 			return 0;
 		}
-		//kinfo("%d %d\n",cluster,size);
 		if(offset + size <= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector){
 			uint8_t* bigbuff = kmalloc(fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector);
 			memset(bigbuff,0,fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector);
 			fat_read_cluster(node->device,fat_bpb,cluster,bigbuff);
 			memcpy(buffer,&bigbuff[offset],size);
-			kfree(bigbuff);
 		}else{
-			//kinfo("BUG\n");
 			uint32_t psize =  fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector - offset;
 			size -= psize;
-			
-			//kinfo("%d %d %d %d\n",fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,psize,size,offset);
-			//while(1);
-			
 			knread(node,offset,psize,buffer);
-			//while(1);
 			uint32_t i = 0;
 			while(size >= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector){
 				knread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
 				size -= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector;
 				i++;
-				//kinfo("%d %d\n",size,i);
 			}
 			if(size){
 				knread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,size,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
@@ -385,9 +368,6 @@ fs_dirent_t* fat_readdir(fs_node_t* node){
 						if(!entries[i].dirent){
 							continue;
 						}
-						
-						//kinfo("%a %s\n",entries[i].dirent,entries[i].dirent->name);
-						
 						fs_node_t* dnode = kmalloc(sizeof(fs_node_t));
 						memcpy(dnode->name,entries[i].dirent->name,11);
 						dnode->device = node->device;
@@ -404,8 +384,6 @@ fs_dirent_t* fat_readdir(fs_node_t* node){
 						dir->chld_cnt++;
 						dir->chlds = krealloc(dir->chlds,dir->chld_cnt * sizeof(fs_node_t*));
 						dir->chlds[dir->chld_cnt-1] = dnode;
-					
-						//kinfo("%s %d\n",dnode->name,dnode->size);
 						
 			}
 		}while(cluster);

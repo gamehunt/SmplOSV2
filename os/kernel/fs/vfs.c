@@ -4,6 +4,8 @@
      
     Author: gamehunt 
 
+
+   There are lots of memory leaks. TODO: Fix them
 */
 
 #include <kernel/fs/vfs.h>
@@ -61,7 +63,6 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 	return 0;
 }
  fs_node_t* vfs_create(char* name,fs_node_t* par,uint8_t type){
-	//printf("VFS_CR\n");
 	fs_node_t* new = allocate_fs_node();
 	new->type = type;
 	strcpy(new->name,name);
@@ -71,12 +72,9 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 	if(par->ccount == 1){
 		par->childs = kmalloc(sizeof(fs_node_t*));
 	}else{
-		//kinfo("HERE\n");
 		par->childs = krealloc(par->childs,par->ccount*sizeof(fs_node_t*));
-		//kinfo("NOT HERE\n");
 	}
 	par->childs[par->ccount-1] = new; 
-	//printf("Created: %s in %s (0x%x)\n",par->childs[par->ccount-1]->name,par->name,(uint32_t)par->childs[par->ccount-1]);
 	return par->childs[par->ccount-1]; 
 }
 
@@ -160,8 +158,6 @@ void init_vfs(){
 }
 
 static char* canonize_absolute(char* path){
-	//printf("CANONIZE\n");
-	char* npath = kmalloc(sizeof(char)*256);
 	uint32_t size = strlen(path);	
 	if(path[0]!='/'){
 		size++;
@@ -169,7 +165,7 @@ static char* canonize_absolute(char* path){
 	if(path[strlen(path)-1] != '/'){
 		size++;
 	}
-	npath = kmalloc(size+2);
+	char* npath = kmalloc(size+2);
 	memset(npath,0,size+2);
 	if(path[0]!='/'){
 		npath[0]='/';
@@ -178,8 +174,7 @@ static char* canonize_absolute(char* path){
 	if(path[strlen(path)-1] != '/'){
 		strcat(npath,"/");
 	}
-	//printf("CANONIZE END\n");
-	return npath; //npath
+	return npath;
 }
 
 static uint32_t path_size(char* path){
@@ -193,7 +188,6 @@ static uint32_t path_size(char* path){
 }
 
 static char* path_block(char* path,uint32_t block){
-	//printf("BLOCK\n");
 	uint32_t blocks = 0 ;
 	int a=-1;
 	int b=-1;
@@ -210,30 +204,31 @@ static char* path_block(char* path,uint32_t block){
 		}
 	}
 	if(a > 0 && b > 0){
-		//printf("BLOCK END %s %d %d\n",path,a,b);
 		return substr(path,a,b);
 	}
-	//printf("BLOCK END 2\n");
 	return path;
 }
 fs_node_t* kseek(char* path){
-	
 	if(!strcmp(path,"/")){
 		return root;
 	}
-	path = canonize_absolute(path);
+	char* npath = canonize_absolute(path);
 	fs_node_t* rnode = root;	
-	for(int i=0;i<path_size(path);i++){
-		//kinfo("HERE 1\n");
-		char* part = path_block(path,i);
-		//kinfo("HERE 2\n");
+	for(int i=0;i<path_size(npath);i++){
+		char* part = path_block(npath,i);
 		if(!rnode || !fss[rnode->fsid]->seek){
+			if(!strcmp(npath,part)){
+				kfree(part);
+			}
+			kfree(npath);
 			return 0;
 		}
-	//	kinfo("HERE SEEK\n");
 		rnode = fss[rnode->fsid]->seek(part,rnode);
-	//	kinfo("HERE SEEK END\n");
+		if(!strcmp(npath,part)){
+				kfree(part);
+		}
 	}
+	kfree(npath);
 	return rnode;
 }
 fs_node_t* kcreate(char* path, uint8_t type){
@@ -249,7 +244,6 @@ fs_node_t* kcreate(char* path, uint8_t type){
 	if(!par){
 		kerr("Failed to create parent node!\n");
 	}
-	//kinfo("HERE %d,%a\n",par->fsid,fss[par->fsid]->create);
 	node = fss[par->fsid]->create(name,par,type);
 	return node;
 }
@@ -278,7 +272,7 @@ uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
 	return 0;
 }
 fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
-	printf("Mounting %s\n",path);
+	kinfo("Mounting %s\n",path);
 	fs_t* fs = 0;
 	if(fsidx <= fsid){
 		kerr("%d is not valid fs!\n",fsid);
@@ -311,7 +305,6 @@ fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 		kwarn("Device %s not exists!\n",devicep);
 	}
 	if(fs->mount){
-		//printf("Going into fs->mount()...\n");
 		return fs->mount(mountpoint,device);
 	}
 	return mountpoint;
@@ -331,13 +324,11 @@ uint8_t kumount(char* path){
 }
 
 uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
-	//kinfo("KNR: %a %d %a\n",node,size,buffer);
 	fs_node_t* real_node = node;
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
 	}
 	if(real_node && fss[real_node->fsid]->read){
-	//	kinfo("f: %d\n",node->fsid);
 		return  fss[real_node->fsid]->read(real_node,offset,size,buffer);
 	}
 	return 0;
@@ -354,7 +345,6 @@ uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer
 }
 
 fs_node_t* create_vfs_mapping(char* path){
-	//kinfo("Mapping %s\n",path);
 	return kcreate(path,0);
 }
 
@@ -364,6 +354,7 @@ fs_dirent_t* knreaddir(fs_node_t* node){
 	}
 	fs_dirent_t* dir = kmalloc(sizeof(fs_dirent_t));
 	dir->chlds = kmalloc(sizeof(fs_node_t*));
+	dir->chld_cnt = 0;
 	if(node->ccount){
 		dir->chld_cnt += node->ccount;
 		dir->chlds = krealloc(dir->chlds,dir->chld_cnt*sizeof(fs_node_t*));
@@ -389,9 +380,6 @@ fs_dirent_t* kreaddir(char* path){
 }
 
 uint8_t klink(char* path, char* link){
-	
-	//return 0;
-	
 	fs_node_t* node = kseek(path);
 	if(!node){
 		return 0;

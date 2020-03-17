@@ -23,7 +23,7 @@
 extern uint32_t* k_frame_stack;  
 
 void kernel_main(multiboot_info_t *mbt,uint32_t magic){
-	terminal_init();	
+	eld_init();	
 	if(magic != 0x2BADB002){
 		char message[60];
 		sprintf(message,"%a passed when %a expected",magic,0x2BADB002);
@@ -44,7 +44,6 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 			  }
 		  }
 	}
-	
 	gdt_install();
 	remap_PIC(0x20,0x28);
 	idt_install();	
@@ -58,9 +57,10 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_pit();
 	init_rtc();
 	init_vfs(); 
-	init_tty();
 	
 	modules_load();
+	
+	
 	//while(1);
 	kinfo("CHCK: %x\n",((uint32_t(*)())((sym_entry_t*)symbol_seek("__exported")->addr))());
 	
@@ -69,8 +69,11 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	kread("/dev/sda",0,1,buffer);
 	kinfo("First 3 bytes of /dev/sda: %a %a %a\n",buffer[0],buffer[1],buffer[2]);
 	
-	kmount("/root","/dev/sda1",4);
-	fs_node_t* node = kseek("/root/CHECK"); 
+	kmount("/root","/dev/sda1",3);
+	fs_node_t* node = kseek("/root/CHECK");
+	
+	
+	 
 	if(node){
 		char buffer[62];
 		knread(node,0,62,buffer);
@@ -86,9 +89,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 			module_load(modd->chlds[i]);
 		}
 	}
-	mem_stat();
 	
-	//asm("int $0x7F");
+	mem_stat();
+
 	create_process(kseek("/root/usr/bin/init.smp"));
 
 	

@@ -16,8 +16,7 @@
 
 
 void kinfo(const char* format,...){
-	set_output_stream(STDOUT);
-	terminal_color(VGA_COLOR_WHITE);
+	printf("[I] ");
 	va_list l;
 	va_start(l,format);	
 	vprintf(format,l);
@@ -25,21 +24,17 @@ void kinfo(const char* format,...){
 }
 
 void kwarn(const char* format,...){
-	set_output_stream(STDOUT);
-	terminal_color(VGA_COLOR_YELLOW);
+	printf("[W] ");
 	va_list l;
 	va_start(l,format);	
 	vprintf(format,l);
 	va_end(l);
-	terminal_color(VGA_COLOR_WHITE);
 }
 
 void kerr(const char* format,...){
-	set_output_stream(STDERR);
-	terminal_color(VGA_COLOR_RED);
+	printf("[E] ");
 	va_list l;
 	va_start(l,format);	
 	vprintf(format,l);
 	va_end(l);
-	terminal_color(VGA_COLOR_WHITE);
 }

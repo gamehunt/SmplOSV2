@@ -8,13 +8,10 @@
 
 #include <stdint.h>
 #include <sys/syscall.h>
+#include <kernel/fs/vfs.h>
 
 void _start(){
-	const char* str  = "SYSCALL 0";
-	const char* str1  = "SYSCALL 1";
-	
-	sys_call(0,(uint32_t)str,0,0,0,0);
-	sys_call(1,(uint32_t)str1,0,0,0,0);
-	sys_call(0,(uint32_t)str,0,0,0,0);
+	char* path = "/usr/startup.d";
+	fs_dirent_t* node = sys_call(4,path,0,0,0,0);
 	while(1);
 }

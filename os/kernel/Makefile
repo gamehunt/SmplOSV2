@@ -13,8 +13,9 @@ $(ARCHDIR)/crtn.o \
 KERNEL_OBJS=\
 $(ARCHDIR)/boot.o\
 kernel.o\
-$(ARCHDIR)/io/terminal.o\
 io/io.o\
+dev/serial.o\
+dev/eld.o \
 misc/log.o\
 misc/panic.o\
 misc/stat.o\
@@ -37,7 +38,6 @@ dev/pci.o\
 dev/pit.o\
 dev/cmos.o\
 dev/rtc.o\
-dev/tty.o\
 fs/vfs.o\
 fs/tar.o\
 $(ARCHDIR)/proc/proc_asm.o\
