@@ -73,7 +73,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	return new_proc;
 }
 
-//Currently it works wrong TODO: rewrite scheduler
+//Currently it works wrong for scheduling new processes TODO: rewrite scheduler
 proc_t* create_process(fs_node_t* node){
 	asm("cli");
 	//kinfo("HERE\n");
