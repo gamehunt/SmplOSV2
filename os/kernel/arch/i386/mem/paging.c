@@ -207,7 +207,7 @@ void init_paging(){
 	kernel_page_directory[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
 	kmpalloc((uint32_t)kernel_page_directory,0,0);
 	extern uint32_t k_frame_stack_size;
-	for(int i=0;i<0x1000000;i+=4096){
+	for(int i=0;i<0x300000;i+=4096){
 		kmpalloc(i,0,0);
 	}
 	set_page_directory((uint32_t)kernel_page_directory);

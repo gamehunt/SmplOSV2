@@ -10,6 +10,7 @@
 #include <kernel/memory/memory.h>
 
 void setup_ctx(context_t* ctx,regs_t r){
+	
 	set_page_directory(ctx->cr3);
 	tss_set_kernel_stack(ctx->k_esp);
 	
@@ -53,16 +54,6 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	new_proc->state = kmalloc(sizeof(context_t));
 	
-	if(routine){
-		new_proc->state->eip = (uint32_t)routine;
-		void* stack = kmalloc(4096);
-		memset(stack,0,4096);
-		new_proc->state->esp = (uint32_t)stack+4096;
-		new_proc->state->ebp = new_proc->state->esp;
-		new_proc->state->esp -= sizeof(uintptr_t);
-		*((uintptr_t *)new_proc->state->esp) = 0xDEADBEEF;
-	}
-	
 	new_proc->state->k_esp = (uint32_t)kmalloc(4096) + 4096;
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
 	new_proc->status = routine?PROC_RUN:PROC_CREATED;
@@ -82,6 +73,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	return new_proc;
 }
 
+//Currently it works wrong TODO: rewrite scheduler
 proc_t* create_process(fs_node_t* node){
 	asm("cli");
 	//kinfo("HERE\n");
@@ -118,7 +110,7 @@ proc_t* create_process(fs_node_t* node){
 		current_piid = 0;
 	}	
 		
-	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
+	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->k_esp);
 	jump_usermode(entry);
 	return proc;
 }
@@ -128,11 +120,9 @@ void schedule(regs_t reg){
 	asm("cli");
 	
 	if(total_prcs){
-		//kinfo("S1\n");
 		if(current_piid >= 0){
 			proc_t* current = processes[current_piid];
 			save_ctx(current->state,reg);
-			
 		}
 		do{
 			current_piid++;
@@ -141,7 +131,6 @@ void schedule(regs_t reg){
 			}
 		}while(!processes[current_piid]);
 		setup_ctx(processes[current_piid]->state,reg);
-		//kinfo("S2\n");
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
