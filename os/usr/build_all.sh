@@ -6,6 +6,6 @@ do
   cd $var
   make clean
   make all
-  cd $HOME/SmplOSV2/os/modules
+  cd $HOME/SmplOSV2/os/usr
 done < "$input"
 cp -a $HOME/SmplOSV2/os/usr/bin/. $HOME/SmplOSV2/sysroot/usr/bin/

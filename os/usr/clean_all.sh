@@ -4,7 +4,7 @@ do
   echo "Cleaning $var..."
   cd $var
   make clean
-  cd $HOME/SmplOSV2/os/modules
+  cd $HOME/SmplOSV2/os/usr
 done < "$input"
 rm -rf bin
 rm -rf ../../sysroot/usr/bin

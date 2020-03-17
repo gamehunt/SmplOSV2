@@ -63,7 +63,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 		*((uintptr_t *)new_proc->state->esp) = 0xDEADBEEF;
 	}
 	
-	
+	new_proc->state->k_esp = (uint32_t)kmalloc(4096) + 4096;
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
 	new_proc->status = routine?PROC_RUN:PROC_CREATED;
 	
@@ -91,17 +91,15 @@ proc_t* create_process(fs_node_t* node){
 		return 0;
 	}
 	proc_t* proc = create_process_from_routine(node->name,0,0);
-	
+
 	set_page_directory(proc->state->cr3);
+	tss_set_kernel_stack(proc->state->k_esp);
 	knpalloc(USER_STACK);
-	knpalloc(KERNEL_STACK);
+	
 	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	
-	proc->state->k_esp = KERNEL_STACK + 4096;
-	
-	tss_set_kernel_stack(KERNEL_STACK + 4096);
 	
 	uint32_t entry = elf_load_file(buffer);
 	kfree(buffer);
@@ -121,8 +119,6 @@ proc_t* create_process(fs_node_t* node){
 	}	
 		
 	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->ebp);
-	//*((uint8_t*)0x8049000) = 0xcd; //Zero division code
-	//*((uint8_t*)0x8049001) = 0x7f;
 	jump_usermode(entry);
 	return proc;
 }

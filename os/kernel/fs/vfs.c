@@ -248,7 +248,6 @@ fs_node_t* kcreate(char* path, uint8_t type){
 	return node;
 }
 uint8_t kremove(char* path){
-	path = canonize_absolute(path);
 	fs_node_t* node = kseek(path);
 	if(node){	
 		if(vfs_check_flag(node->flags,VFS_MOUNTED)){

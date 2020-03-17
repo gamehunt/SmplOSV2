@@ -60,6 +60,10 @@ uint32_t sys_readdir(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t 
 	return (uint32_t)kreaddir((char*)path);
 }
 
+uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t ___,uint32_t _____){
+	return create_process(kseek((char*)path));
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -69,4 +73,5 @@ void init_syscalls(){
 	register_syscall(2,&sys_write);
 	register_syscall(3,&sys_seek);
 	register_syscall(4,&sys_readdir);
+	register_syscall(5,&sys_exec);
 }

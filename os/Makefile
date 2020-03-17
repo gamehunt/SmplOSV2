@@ -1,6 +1,6 @@
 .PHONY: kernel modules test_exec usr clean
 
-all: kernel modules test_exec
+all: kernel modules test_exec usr
 
 kernel:
 	$(MAKE) -C kernel all
