@@ -30,7 +30,8 @@ void setup_ctx(context_t* ctx,regs_t r){
 	r->ebx = ctx->ebx;
 	r->ecx = ctx->ecx;
 	r->edx = ctx->edx;
-
+	
+	//kinfo("%a\n",ctx->eip);
 }
 
 void save_ctx(context_t* ctx,regs_t r){
@@ -45,7 +46,7 @@ void save_ctx(context_t* ctx,regs_t r){
 	ctx->ebx = r->ebx;
 	ctx->ecx = r->ecx;
 	ctx->edx = r->edx;
-
+	
 }
 
 int32_t free_pid(){
@@ -86,7 +87,7 @@ proc_t* create_process(fs_node_t* node){
 	asm("cli");
 	//kinfo("HERE\n");
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
-	if(!knread(node,0,node->size,buffer)){
+	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
 		return 0;
 	}
@@ -137,22 +138,20 @@ void clean_process(proc_t* proc){
 	processes[pid] = 0;
 }
 
+//Currently in crashed on second switch TODO: fix
 void schedule(regs_t reg){
 	asm("cli");
-	//kinfo("SCHED\n");
 	if(total_prcs){
+		int32_t ppid = current_piid;
 		if(current_piid >= 0 && processes[current_piid]->status != PROC_STOP){
-		//	kinfo("SAV\n");
 			proc_t* current = processes[current_piid];
 			save_ctx(current->state,reg);
-		//	kinfo("SAV END\n");
 		}else if(current_piid >= 0){
             clean_process(processes[current_piid]);
 		}
 		do{
 			
 			current_piid++;
-			//kinfo("CHCK PID %d - %a\n",current_piid,processes[current_piid]);
 			if(current_piid >= MAX_PROCESSES){
 				current_piid = 0;
 			}
@@ -160,11 +159,11 @@ void schedule(regs_t reg){
 				clean_process(processes[current_piid]);
 			}
 		}while(!processes[current_piid] || processes[current_piid]->status == PROC_STOP);
+		kinfo("Switching from %d to %d\n",ppid,current_piid);
 		setup_ctx(processes[current_piid]->state,reg);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
-	//kinfo("SCHED END\n");
 	asm("sti");
 }
 

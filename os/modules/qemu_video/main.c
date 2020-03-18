@@ -58,6 +58,7 @@ uint16_t qvid_read_register(uint16_t idx){
 }
 
 void qvid_set_resolution(uint16_t x,uint16_t y,uint16_t bpp,uint8_t use_lfb,uint8_t clear_video){
+	kinfo("Trying to set resolution: %d %d %a\n",x,y,bpp);
 	qvid_write_register(VBE_DISPI_INDEX_ENABLE,VBE_DISPI_DISABLED);
 	qvid_write_register(VBE_DISPI_INDEX_XRES, x);
 	qvid_write_register(VBE_DISPI_INDEX_YRES, y);
@@ -91,12 +92,6 @@ uint8_t load(){
 		kmpalloc((uint32_t*)((uint32_t)lfb+i*4096),(uint32_t*)((uint32_t)lfb+i*4096),0);
 	}
 	kinfo("LFB at %a\n",lfb);
-	qvid_set_resolution(DEFAULT_XRES,DEFAULT_YRES,DEFAULT_BPP,1,1);
-	uint16_t xres = qvid_read_register(VBE_DISPI_INDEX_XRES);
-	uint16_t yres = qvid_read_register(VBE_DISPI_INDEX_YRES);
-	uint16_t set_bpp = qvid_read_register(VBE_DISPI_INDEX_BPP);
-	kinfo("New BGA Mode: %d %d %a\n",xres,yres,set_bpp);
-	memset(lfb,0x01,DEFAULT_XRES*DEFAULT_YRES*4);
 	fs_node_t* node = kcreate("/dev/fb0",0);
 	node->inode = (uint32_t)lfb;
 	node->ioctl = fb_ioctl;

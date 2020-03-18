@@ -23,7 +23,7 @@ uint8_t ramdisk_load(){
 	for(uint32_t i=0;i<ramdisk_root->size;i++){
 		uint32_t hdr_addr = 0;
 		//kinfo("%a %d %d %a\n",ramdisk_root,i,0,&hdr_addr);
-		knread(ramdisk_root,(uint64_t)i,(uint32_t)1228,(uint8_t*)&hdr_addr);
+		kread(ramdisk_root,(uint64_t)i,(uint32_t)1228,(uint8_t*)&hdr_addr);
 		tar_hdr_t* hdr= (tar_hdr_t*)hdr_addr;
 		
 		//kinfo("%a\n",hdr);

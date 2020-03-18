@@ -25,6 +25,7 @@ void syscall_handler(regs_t r){
 	}
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
+		kinfo("Syscall %d -> %a %a %a %a %a\n",r->eax,r->ebx,r->ecx,r->edx,r->esi,r->edi);
 		uint32_t ret = sysc(r->ebx,r->ecx,r->edx,r->esi,r->edi);
 		r->eax = ret;
 	}else{
@@ -44,22 +45,22 @@ uint32_t sys_echo(uint32_t str,uint32_t _,uint32_t __,uint32_t ___,uint32_t ____
 
 uint32_t sys_read(uint32_t node,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
-	return knread((fs_node_t*)node,offs,size,(uint8_t*)buffer);
+	return kread((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
 uint32_t sys_write(uint32_t node,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
 	//kinfo("[SYS_WRITE] %s %e %d %a\n",path,offs,size,buffer);
-	return knwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
+	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
-uint32_t sys_seek(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 	//kinfo("[SYS_SEEK] %s\n",(char*)path);
-	return (uint32_t)kseek((char*)path);
+	return (uint32_t)kopen((char*)path);
 }
 
 uint32_t sys_readdir(uint32_t node,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-	return (uint32_t)knreaddir((fs_node_t*)node);
+	return (uint32_t)kreaddir((fs_node_t*)node);
 }
 
 uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t ___,uint32_t _____){
@@ -82,7 +83,7 @@ void init_syscalls(){
 	register_syscall(0,&sys_echo);
 	register_syscall(1,&sys_read);
 	register_syscall(2,&sys_write);
-	register_syscall(3,&sys_seek);
+	register_syscall(3,&sys_open);
 	register_syscall(4,&sys_readdir);
 	register_syscall(5,&sys_exec);
 	register_syscall(6,&sys_ioctl);

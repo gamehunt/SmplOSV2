@@ -5,9 +5,11 @@
     Author: gamehunt 
 
 */
-
+#include <kernel/memory/memory.h>
 #include <kernel/misc/panic.h>
 #include <kernel/misc/log.h>
+
+extern tss_entry_t tss_entry;
 
 void kpanic(crash_info_t crash){
 	asm("cli");
@@ -22,6 +24,7 @@ void kpanic(crash_info_t crash){
 		kerr("EDI=%a | ESI=%a | EBP=%a\n EBX=%a | EDX=%a | ECX=%a | EAX=%a\n",regs->edi,regs->esi,regs->ebp,regs->ebx,regs->edx,regs->ecx,regs->eax);
 		kerr("GS=%a |  FS=%a |  ES=%a | DS=%a\n",regs->gs,regs->fs,regs->es,regs->ds);		
 		kerr("EIP=%a | ESP=%a\n",regs->eip,regs->esp);	
+		kerr("TSS[SS:ESP0]: %a %a\n",tss_entry.ss0,tss_entry.esp0);
 	}else{
 		kerr("Unavailable\n");
 	}

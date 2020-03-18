@@ -80,13 +80,13 @@ void init_symtable(){
 	symbol_export("allocate_fs_node",&allocate_fs_node);
 	symbol_export("kmount",&kmount);
 	symbol_export("kread",&kread);
-	symbol_export("knread",&knread);
 	symbol_export("kwrite",&kwrite);
-	symbol_export("knwrite",&knread);
 	symbol_export("kumount",&kumount);
 	symbol_export("kseek",&kseek);
 	symbol_export("kcreate",&kcreate);
 	symbol_export("kremove",&kremove);
+	symbol_export("kopen",&kopen);
+	symbol_export("kclose",&kclose);
 	symbol_export("register_fs",&register_fs);
 	symbol_export("unregister_fs",&unregister_fs);
 	symbol_export("vfs_set_flag",&vfs_set_flag);

@@ -61,27 +61,28 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	modules_load();
 	
-	
-	//while(1);
 	kinfo("CHCK: %x\n",((uint32_t(*)())((sym_entry_t*)symbol_seek("__exported")->addr))());
 	
-	//Below this point is multiproc.
-	uint8_t buffer[512];
-	kread("/dev/sda",0,1,buffer);
-	kinfo("First 3 bytes of /dev/sda: %a %a %a\n",buffer[0],buffer[1],buffer[2]);
+	
 	
 	kmount("/root","/dev/sda1",3);
-	fs_node_t* node = kseek("/root/CHECK");
+	fs_node_t* node = kopen("/root/CHECK");
 	
 	
 	 
 	if(node){
 		char buffer[62];
-		knread(node,0,62,buffer);
+		kread(node,0,62,buffer);
 		kinfo("CHECK TEXT: %s\n",buffer);
 	}
 	
-	fs_dirent_t* modd = kreaddir("/root/bin/modules");
+	kclose(node);
+	
+	fs_node_t* dir = kopen("/root/bin/modules");
+	
+	fs_dirent_t* modd = kreaddir(dir);
+	
+	kclose(dir);
 	
 	kinfo("Disk module count: %d\n",modd->chld_cnt);
 	if(modd){
@@ -92,8 +93,8 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	}
 	
 	mem_stat();
-
-	create_process(kseek("/root/usr/bin/init.smp"));
+	fs_node_t* init = kopen("/root/usr/bin/init.smp");
+	create_process(init);
 
 	
 	for(;;) {

@@ -171,14 +171,14 @@ uint32_t fat_read_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,uint
 	uint32_t cluster_sector = ((cluster - 2) * bpb->sectors_per_cluster) + first_data_sector;
 	if(buffer){
 		for(uint32_t i= 0;i<bpb->sectors_per_cluster;i++){
-			knread(device,cluster_sector + i,1,&buffer[i*bpb->bytes_per_sector]);
+			kread(device,cluster_sector + i,1,&buffer[i*bpb->bytes_per_sector]);
 		}
 	}
 	uint8_t FAT_table[bpb->bytes_per_sector];
 	uint32_t fat_offset = cluster * 4;
 	uint32_t  fat_sector = bpb->reserved_sectors + (fat_offset / bpb->bytes_per_sector);
 	uint32_t  ent_offset = fat_offset % bpb->bytes_per_sector;
-	knread(device,fat_sector,1,&FAT_table[0]);
+	kread(device,fat_sector,1,&FAT_table[0]);
 	uint32_t  next_cluster = *(unsigned int*)&FAT_table[ent_offset] & 0x0FFFFFFF;
 	if(next_cluster >=  0x0FFFFFF8 || next_cluster == 0x0FFFFFF7){
 		return 0;
@@ -199,7 +199,7 @@ uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat
 	fat_lfe_t* lfe = 0;
 	for(uint32_t i= 0;i<bpb->sectors_per_cluster;i++){
 		memset(entries,0,bpb->bytes_per_sector);
-		knread(device,cluster_sector + i,1,entries);
+		kread(device,cluster_sector + i,1,entries);
 
 		for(uint32_t j = 0; j< 512; j+=32){
 			uint8_t result = fat_entry_type(&entries[j]);
@@ -243,7 +243,7 @@ uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat
 	uint32_t fat_offset = cluster * 4;
 	uint32_t  fat_sector = bpb->reserved_sectors + (fat_offset / bpb->bytes_per_sector);
 	uint32_t  ent_offset = fat_offset % bpb->bytes_per_sector;
-	knread(device,fat_sector,1,&FAT_table[0]);
+	kread(device,fat_sector,1,&FAT_table[0]);
 	uint32_t  next_cluster = *(unsigned int*)&FAT_table[ent_offset] & 0x0FFFFFFF;
 	if(next_cluster >=  0x0FFFFFF8 || next_cluster == 0x0FFFFFF7){
 		return 0;
@@ -257,7 +257,7 @@ fs_node_t* fat_mount(fs_node_t* root,fs_node_t* device){
 		return root; 
 	}
 	fat_bpb_t* bpb = kmalloc(512);
-	knread(device,0,1,bpb);
+	kread(device,0,1,bpb);
 	if(((fat32_bpb_t*)&bpb->ebpb[0])->signature != 0x28 && ((fat32_bpb_t*)&bpb->ebpb[0])->signature != 0x29 && ((fat16_bpb_t*)&bpb->ebpb[0])->signature != 0x28 && ((fat16_bpb_t*)&bpb->ebpb[0])->signature != 0x29){
 		kerr("Can't verify FAT signature!\n");
 		kfree(bpb);
@@ -333,15 +333,15 @@ uint32_t fat_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffe
 		}else{
 			uint32_t psize =  fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector - offset;
 			size -= psize;
-			knread(node,offset,psize,buffer);
+			kread(node,offset,psize,buffer);
 			uint32_t i = 0;
 			while(size >= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector){
-				knread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
+				kread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
 				size -= fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector;
 				i++;
 			}
 			if(size){
-				knread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,size,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
+				kread(node,offset+psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector,size,&buffer[psize+i*fat_bpb->sectors_per_cluster*fat_bpb->bytes_per_sector]);
 			}
 		}
 		return size;

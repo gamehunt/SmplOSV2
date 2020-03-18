@@ -254,20 +254,6 @@ uint8_t kremove(char* path){
 		vfs_remove(node);
 	}
 }
-uint32_t kread(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
-	fs_node_t* node = kseek(path);
-	if(node){
-		return knread(node,offset,size,buffer);
-	}
-	return 0;
-}
-uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer){
-	fs_node_t* node = kseek(path);
-	if(node){
-		return knwrite(node,offset,size,buffer);
-	}
-	return 0;
-}
 fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 	kinfo("Mounting %s\n",path);
 	fs_t* fs = 0;
@@ -320,7 +306,7 @@ uint8_t kumount(char* path){
 	return 0;
 }
 
-uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
+uint32_t kread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	fs_node_t* real_node = node;
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
@@ -330,7 +316,7 @@ uint32_t knread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer)
 	}
 	return 0;
 }
-uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
+uint32_t kwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	fs_node_t* real_node = node;
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
@@ -345,7 +331,8 @@ fs_node_t* create_vfs_mapping(char* path){
 	return kcreate(path,0);
 }
 
-fs_dirent_t* knreaddir(fs_node_t* node){
+fs_dirent_t* kreaddir(fs_node_t* node){
+	//kinfo("NODE %s: %d vfs childs\n",node->name,node->ccount);
 	if(vfs_check_flag(node->flags,VFS_LINK)){
 		node = (fs_node_t*)node->inode;
 	}
@@ -355,7 +342,7 @@ fs_dirent_t* knreaddir(fs_node_t* node){
 	if(node->ccount){
 		dir->chld_cnt += node->ccount;
 		dir->chlds = krealloc(dir->chlds,dir->chld_cnt*sizeof(fs_node_t*));
-		memcpy(dir->chlds,node->childs,node->ccount);
+		memcpy(dir->chlds,node->childs,node->ccount*sizeof(fs_node_t*));
 	}
 	if(fss[node->fsid]->readdir){				
 		fs_dirent_t* new = fss[node->fsid]->readdir(node);
@@ -366,14 +353,6 @@ fs_dirent_t* knreaddir(fs_node_t* node){
 		}
 	}
 	return dir;
-}
-
-fs_dirent_t* kreaddir(char* path){
-	fs_node_t* node = kseek(path);
-	if(!node){
-		return 0;
-	}
-	return knreaddir(node);
 }
 
 uint8_t klink(char* path, char* link){
@@ -409,4 +388,18 @@ uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp){
 		return fss[node->fsid]->ioctl(node,req,argp);
 	}
 	return 0;
+}
+
+fs_node_t* kopen(char* path){
+	fs_node_t* orig = kseek(path);
+	if(orig){
+		fs_node_t* opened = allocate_fs_node();
+		memcpy(opened,orig,sizeof(fs_node_t));
+		return opened;
+	}
+	return 0;
+}
+
+void kclose(fs_node_t* node){
+	kfree(node);
 }

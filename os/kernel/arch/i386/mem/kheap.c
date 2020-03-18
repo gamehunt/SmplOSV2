@@ -181,15 +181,13 @@ uint32_t* kmalloc(uint32_t size){
 
 //frees memory. 
 void kfree(uint32_t* addr){
-	//return;
-	//kinfo("FREE %a\n",addr);
+	return; //TODO fix fucking kfree
 	i_update_stat(stat_free,1);
 	mem_t* block = header(addr);
-	//kinfo("FREE BLOCK INFO : %d %a %a\n",block->size,block->next,block->prev);
 	i_update_stat(stat_freed_total,block->size);
 	i_update_stat(stat_max_load,-block->size);
 	free_insert(block);
-	//merge();
+	merge();
 }
 
 //allocates aligned memory, should be freed as ((void**) ptr)[-1]

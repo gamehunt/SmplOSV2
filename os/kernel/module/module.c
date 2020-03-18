@@ -91,7 +91,7 @@ uint8_t module_load(fs_node_t* node){
 	//kinfo("HERE\n");
 	uint8_t* buffer = kmalloc(node->size);
 	//kinfo("ALLOCD\n");
-	if(!knread(node,0,node->size,buffer)){
+	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read module file\n");
 	}
 	//kinfo("HERE\n");
