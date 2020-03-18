@@ -41,6 +41,11 @@
 #define DEFAULT_YRES 768
 #define DEFAULT_BPP VBE_DISPI_BPP_32
 
+#define VBE_IOCTL_CHANGE_RES 0x10
+
+
+
+
 void qvid_write_register(uint16_t idx,uint16_t data){
 	outw(VBE_DISPI_IOPORT_INDEX,idx);
 	outw(VBE_DISPI_IOPORT_DATA,data);
@@ -62,7 +67,16 @@ void qvid_set_resolution(uint16_t x,uint16_t y,uint16_t bpp,uint8_t use_lfb,uint
 							(use_lfb ? VBE_DISPI_LFB_ENABLED : 0) |
 							(clear_video ? 0 : VBE_DISPI_NOCLEARMEM));
 }
-
+uint32_t fb_ioctl(fs_node_t* node,uint32_t req,void* argp){
+	uint16_t* args = (uint16_t*)argp;
+	switch(req){
+		case VBE_IOCTL_CHANGE_RES:
+			qvid_set_resolution(args[0],args[1],args[2],1,1);
+		break;
+	}
+	//kinfo("IOCTL END\n");
+	return 0;
+}
 uint8_t load(){
 	pci_device_t* qvid = pci_seek_device(0x1234,0x1111);
 	if(!qvid){
@@ -85,6 +99,7 @@ uint8_t load(){
 	memset(lfb,0x01,DEFAULT_XRES*DEFAULT_YRES*4);
 	fs_node_t* node = kcreate("/dev/fb0",0);
 	node->inode = (uint32_t)lfb;
+	node->ioctl = fb_ioctl;
 	return 0;
 }
 uint8_t unload(){

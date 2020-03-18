@@ -54,7 +54,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	new_proc->state = kmalloc(sizeof(context_t));
 	
-	new_proc->state->k_esp = (uint32_t)kmalloc(4096) + 4096;
+	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
 	new_proc->status = routine?PROC_RUN:PROC_CREATED;
 	
@@ -87,7 +87,7 @@ proc_t* create_process(fs_node_t* node){
 	set_page_directory(proc->state->cr3);
 	tss_set_kernel_stack(proc->state->k_esp);
 	knpalloc(USER_STACK);
-	
+
 	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
@@ -98,6 +98,10 @@ proc_t* create_process(fs_node_t* node){
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
 	//kfree(buffer);
+	if(proc->pid != 0){ //This is hack, TODO rewrite 
+		set_page_directory(processes[current_piid]->state->cr3);
+		tss_set_kernel_stack(processes[current_piid]->state->k_esp);
+	}
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
 		return 0;
@@ -111,14 +115,15 @@ proc_t* create_process(fs_node_t* node){
 	}	
 		
 	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->k_esp);
-	jump_usermode(entry);
+	if(proc->pid == 0){ //This is hack, TODO rewrite 
+		jump_usermode(entry);
+	}
 	return proc;
 }
 
 
 void schedule(regs_t reg){
 	asm("cli");
-	
 	if(total_prcs){
 		if(current_piid >= 0){
 			proc_t* current = processes[current_piid];
@@ -134,7 +139,6 @@ void schedule(regs_t reg){
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
-	
 	asm("sti");
 }
 

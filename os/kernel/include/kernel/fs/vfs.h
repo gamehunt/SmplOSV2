@@ -27,6 +27,7 @@ struct fs_node{
 	struct fs_node** childs;
 	uint32_t ccount;
 	uint16_t fsid;
+	uint32_t(*ioctl)(struct fs_node*,uint32_t req,void* argp);
 };
 
 typedef struct fs_node fs_node_t;
@@ -47,6 +48,7 @@ typedef struct{
 	fs_node_t* (*create)(char*,fs_node_t*,uint8_t);
 	fs_dirent_t* (*readdir)(fs_node_t*);
 	uint8_t (*remove)(fs_node_t*);
+	uint32_t (*ioctl)(fs_node_t*,uint32_t req, void* argp);
 }fs_t;
 
 
@@ -63,10 +65,10 @@ uint8_t vfs_set_flag(uint8_t flags,uint8_t flag);
 uint8_t vfs_clear_flag(uint8_t flags,uint8_t flag);
 uint8_t vfs_check_flag(uint8_t flags,uint8_t flag);
 
-fs_node_t* kseek(char* path);
+fs_node_t* kseek(char* path); //There should be kopen() 
 fs_node_t* kcreate(char* path, uint8_t type);
 uint8_t kremove(char* path);
-uint32_t kread(char* path,uint64_t offset, uint32_t size, uint8_t* buffer);
+uint32_t kread(char* path,uint64_t offset, uint32_t size, uint8_t* buffer); // I should remove functions which takes path as argument and replace them with their 'n' analogues
 uint32_t kwrite(char* path,uint64_t offset, uint32_t size, uint8_t* buffer);
 fs_node_t* kmount(char* path, char* device, uint16_t type);
 uint8_t kumount();
@@ -75,3 +77,4 @@ uint32_t knwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer
 fs_dirent_t* knreaddir(fs_node_t* node);
 fs_dirent_t* kreaddir(char* path);
 uint8_t klink(char* src,char* link);
+uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp);

@@ -192,9 +192,19 @@ void kfree(uint32_t* addr){
 	//merge();
 }
 
-//allocates aligned memory !! Wastes lot's of memory if alignment is large
+//allocates aligned memory, should be freed as ((void**) ptr)[-1]
 uint32_t* kvalloc(uint32_t size,uint32_t alignment){
-	return kmalloc(size);
+	size_t request_size = size + alignment;
+    char* buf =  kmalloc(request_size);
+
+    size_t remainder = ((size_t)buf) % alignment;
+    size_t offset = alignment - remainder;
+    char* ret = buf + (unsigned char)offset;
+
+    // store how many extra bytes we allocated in the byte just before the
+    // pointer we return
+    *(unsigned char*)(ret - 1) = offset;
+	return (uint32_t*)ret;
 }
 
 //reallocates memory, currently just do new allocation and copy contents of old pointer to it !!!

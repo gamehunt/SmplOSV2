@@ -4,8 +4,6 @@
      
     Author: gamehunt 
 
-
-   There are lots of memory leaks. TODO: Fix them
 */
 
 #include <kernel/fs/vfs.h>
@@ -398,4 +396,17 @@ uint8_t klink(char* path, char* link){
 	kinfo("Link created: %s to %s\n",link,path);
 	
 	return 1;
+}
+
+uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp){
+	if(!node){
+		return 0;
+	}
+	if(node->ioctl){
+		return node->ioctl(node,req,argp); 
+	}
+	if(fss[node->fsid]->ioctl){
+		return fss[node->fsid]->ioctl(node,req,argp);
+	}
+	return 0;
 }
