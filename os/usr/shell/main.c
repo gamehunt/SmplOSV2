@@ -13,5 +13,6 @@
 void _start(){
 	char* out = "Launched shell";
 	sys_call(0,out,0,0,0,0);
+	sys_call(7,0,0,0,0,0);
 	while(1);
 }

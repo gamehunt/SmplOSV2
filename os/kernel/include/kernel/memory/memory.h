@@ -115,6 +115,8 @@ uint32_t* kcpalloc(uint32_t n);
 uint32_t* kmalloc(uint32_t size);
 //frees memory. 
 void kfree(uint32_t* addr);
+//frees aligned memory.
+void kvfree(uint32_t* addr);
 
 //allocates aligned memory !! Wastes lot's of memory if alignment is large
 uint32_t* kvalloc(uint32_t size,uint32_t alignment);

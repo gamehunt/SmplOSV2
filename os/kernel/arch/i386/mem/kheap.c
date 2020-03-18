@@ -207,6 +207,12 @@ uint32_t* kvalloc(uint32_t size,uint32_t alignment){
 	return (uint32_t*)ret;
 }
 
+//frees aligned ptr
+void kvfree(uint32_t* aligned_ptr) {
+    int offset = *(((char*)aligned_ptr) - 1);
+    kfree(((char*)aligned_ptr) - offset);
+}
+
 //reallocates memory, currently just do new allocation and copy contents of old pointer to it !!!
 uint32_t* krealloc(uint32_t* ptr,uint32_t newsize){
 	uint32_t* new_alloc = kmalloc(newsize);

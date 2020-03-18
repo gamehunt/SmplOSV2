@@ -9,6 +9,7 @@
 #include <kernel/interrupts/syscalls.h>
 #include <kernel/interrupts/isr.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/proc/proc.h>
 
 #define MAX_SYSCALL 128
 
@@ -17,6 +18,7 @@ typedef uint32_t(* syscall_t)(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32
 static syscall_t syscalls[MAX_SYSCALL];
 
 void syscall_handler(regs_t r){
+	//kinfo("Syscall eneter\n");
 	if(r->eax > MAX_SYSCALL){
 		kerr("Invalid syscall: %a\n",r->eax);
 		return;
@@ -68,6 +70,11 @@ uint32_t sys_ioctl(uint32_t node,uint32_t req,uint32_t argp,uint32_t ___,uint32_
 	return kioctl(node,req,argp);
 }
 
+uint32_t sys_exit(uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+	exit(get_current_pid());
+	return 0;
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -79,4 +86,5 @@ void init_syscalls(){
 	register_syscall(4,&sys_readdir);
 	register_syscall(5,&sys_exec);
 	register_syscall(6,&sys_ioctl);
+	register_syscall(7,&sys_exit);
 }

@@ -9,6 +9,14 @@
 #include <kernel/proc/proc.h>
 #include <kernel/memory/memory.h>
 
+
+static proc_t* current_proc;
+
+static proc_t* processes[MAX_PROCESSES];
+
+static int32_t current_piid =0;
+static uint32_t total_prcs = 0;
+
 void setup_ctx(context_t* ctx,regs_t r){
 	
 	set_page_directory(ctx->cr3);
@@ -121,34 +129,55 @@ proc_t* create_process(fs_node_t* node){
 	return proc;
 }
 
+void clean_process(proc_t* proc){
+	kinfo("Cleaning process: %s(%d)\n",proc->name,proc->pid);
+	total_prcs--;
+	uint32_t pid = proc->pid;
+	kfree(processes[proc->pid]);
+	processes[pid] = 0;
+}
 
 void schedule(regs_t reg){
 	asm("cli");
+	//kinfo("SCHED\n");
 	if(total_prcs){
-		if(current_piid >= 0){
+		if(current_piid >= 0 && processes[current_piid]->status != PROC_STOP){
+		//	kinfo("SAV\n");
 			proc_t* current = processes[current_piid];
 			save_ctx(current->state,reg);
+		//	kinfo("SAV END\n");
+		}else if(current_piid >= 0){
+            clean_process(processes[current_piid]);
 		}
 		do{
+			
 			current_piid++;
+			//kinfo("CHCK PID %d - %a\n",current_piid,processes[current_piid]);
 			if(current_piid >= MAX_PROCESSES){
 				current_piid = 0;
 			}
-		}while(!processes[current_piid]);
+			if(processes[current_piid] && processes[current_piid]->status == PROC_STOP){
+				clean_process(processes[current_piid]);
+			}
+		}while(!processes[current_piid] || processes[current_piid]->status == PROC_STOP);
 		setup_ctx(processes[current_piid]->state,reg);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
+	//kinfo("SCHED END\n");
 	asm("sti");
 }
 
-void kill(uint32_t pid){
-	asm("cli");
-	kinfo("Killing %d\n",pid);
-	if(pid < MAX_PROCESSES && processes[pid]){
-		processes[pid] = 0;
-		total_prcs--;
-		current_piid = -1;
+void exit(uint32_t pid){
+	if(pid == 0){
+		return;
 	}
-	asm("sti");
+	kinfo("Process %s(%d) marked for stop\n",processes[pid]->name,pid);
+	if(pid < MAX_PROCESSES && processes[pid]){
+		processes[pid]->status = PROC_STOP;
+	}
+}
+
+uint32_t get_current_pid(){
+	return current_piid;
 }

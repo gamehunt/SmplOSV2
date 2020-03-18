@@ -32,12 +32,6 @@ typedef struct{
 	uint32_t status;
 }proc_t;
 
-proc_t* current_proc;
-
-proc_t* processes[MAX_PROCESSES];
-
-int32_t current_piid =0;
-uint32_t total_prcs = 0;
 
 void schedule(regs_t reg);
 
@@ -45,6 +39,9 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 proc_t* create_process(fs_node_t* file);
 void setup_ctx(context_t* ctx,regs_t r);
 
-void kill(uint32_t pid);
+void exit(uint32_t pid);
 
 extern void jump_usermode(uint32_t entry);
+
+uint32_t get_current_pid();
+void clean_process(proc_t* proc);
