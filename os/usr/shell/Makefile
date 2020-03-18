@@ -4,7 +4,7 @@ LIBS:
 all: shell.smp install
 shell.smp:
 	$(CC) -c main.c $(CFLAGS) $(CPPFLAGS) 
-	$(LD) -m elf_i386 main.o -o shell.smp --sysroot=/home/user/SmplOSV2/sysroot -lc
+	$(LD) -m elf_i386 main.o -o shell.smp --sysroot=$(HOME)/SmplOSV2/sysroot -lc
 install:
 	cp shell.smp $(HOME)/SmplOSV2/os/usr/bin/shell.smp
 clean:

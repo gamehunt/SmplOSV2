@@ -15,6 +15,7 @@ export LD=${TARGET}-ld
 echo $CC
 echo $AR
 echo $AS
+echo $LD
 export D_ASM=${DEFAULT_ASM}
 echo Default assembler: $D_ASM 
 export SYSROOT="$HOME/SmplOSV2/sysroot"
