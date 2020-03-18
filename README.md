@@ -18,3 +18,5 @@ What is done:
   --> Basic scheduling
   
   --> InitRD and module loading
+  
+  --> Some syscalls and userspace
