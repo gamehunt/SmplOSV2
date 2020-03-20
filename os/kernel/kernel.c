@@ -63,7 +63,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 
 //	dump_vfs();
 
-	kmount("/root","/dev/sda1",3);
+	kmount("/root","/dev/sda1",ktypeid("fat"));
 	fs_node_t* node = kopen("/root/CHECK");
 	
 	
@@ -85,7 +85,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	}
 	
 	if(modd){
-		kinfo("Disk module count: %d\n",modd->chld_cnt);
+		kinfo("Disk module count: %d\n",modd->chld_cnt - 2);
 		for(uint32_t i = 2;i < modd->chld_cnt; i++){
 			kinfo("Trying to load from disk: %s\n",modd->chlds[i]->name);
 			module_load(modd->chlds[i]);

@@ -25,7 +25,7 @@ void syscall_handler(regs_t r){
 	}
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
-		kinfo("Syscall %d -> %a %a %a %a %a\n",r->eax,r->ebx,r->ecx,r->edx,r->esi,r->edi);
+		//kinfo("Syscall %d -> %a %a %a %a %a\n",r->eax,r->ebx,r->ecx,r->edx,r->esi,r->edi);
 		uint32_t ret = sysc(r->ebx,r->ecx,r->edx,r->esi,r->edi);
 		r->eax = ret;
 	}else{
@@ -38,8 +38,8 @@ void register_syscall(uint16_t id,syscall_t handler){
 	syscalls[id] = handler;
 }
 
-uint32_t sys_echo(uint32_t str,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-	kinfo("[SYS_ECHO] %a: %s\n",str,(char*)str);
+uint32_t sys_echo(uint32_t str,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	kinfo("[SYS_ECHO] %s %d %d %d %d\n",str,a,b,c,d);
 	return 0;
 }
 

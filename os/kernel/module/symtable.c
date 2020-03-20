@@ -14,6 +14,7 @@
 #include <kernel/memory/memory.h>
 #include <kernel/io/io.h>
 #include <kernel/dev/pci.h>
+#include <kernel/interrupts/irq.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -90,6 +91,7 @@ void init_symtable(){
 	symbol_export("kremove",&kremove);
 	symbol_export("kopen",&kopen);
 	symbol_export("kclose",&kclose);
+	symbol_export("ktypeid",&ktypeid);
 	symbol_export("register_fs",&register_fs);
 	symbol_export("unregister_fs",&unregister_fs);
 	symbol_export("vfs_set_flag",&vfs_set_flag);
@@ -113,4 +115,7 @@ void init_symtable(){
 	symbol_export("pci_get_vendor",&pci_get_vendor);
 	symbol_export("pci_read_value",&pci_read_value);
 	symbol_export("pci_write_value",&pci_write_value);
+	
+	symbol_export("irq_set_handler",&irq_set_handler);
+	symbol_export("irq_end",&irq_end);
 }

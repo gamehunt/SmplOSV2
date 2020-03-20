@@ -410,6 +410,7 @@ uint8_t load(){
 	fatfs->read = fat_read;
 	fatfs->seek = fat_seek;
 	fatfs->readdir = fat_readdir;
+	fatfs->name = "fat";
 	fsid = register_fs(fatfs);
 	kinfo("FatFS idx: %d\n",fsid);
 	return 0;

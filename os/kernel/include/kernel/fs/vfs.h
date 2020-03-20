@@ -40,6 +40,7 @@ struct fs_dirent{
 typedef struct fs_dirent fs_dirent_t;
 
 typedef struct{
+	const char* name;
 	fs_node_t* (*mount)(fs_node_t* root,fs_node_t* device);
 	uint8_t (*umount)(fs_node_t*);
 	uint32_t (*read)(fs_node_t*, uint64_t, uint32_t, uint8_t*);
@@ -70,6 +71,7 @@ fs_node_t* kopen(char* path); //returns node's copy
 void       kclose(fs_node_t* node);
 fs_node_t* kcreate(char* path, uint8_t type);
 fs_node_t* kmount(char* path, char* device, uint16_t type);
+uint16_t ktypeid(char* type);
 uint8_t kremove(char* path);
 uint8_t kumount();
 uint32_t kread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);

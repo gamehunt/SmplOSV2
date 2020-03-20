@@ -108,6 +108,7 @@ uint8_t module_load(fs_node_t* node){
 			
 			kernel_mod_hdr_t* str = (kernel_mod_hdr_t*)abs;
 			kernel_module_t* mod_desc = kmalloc(sizeof(kernel_module_t));
+			memset(mod_desc,0,sizeof(kernel_module_t));
 			mod_desc->hdr = str;
 			memcpy(mod_desc->name,mod_desc->hdr->name,strlen(mod_desc->hdr->name));
 			loaded_modules[last_loaded] = mod_desc;
@@ -117,7 +118,7 @@ uint8_t module_load(fs_node_t* node){
 			}
 			if(!module_check_dependencies(str)){
 				mod_desc->state = 2;
-				//kinfo("Delaying module '%s' due to dependencies\n",str->name);
+			//	kinfo("Delaying module '%s' due to dependencies\n",str->name);
 				return 0;
 			}
 			kinfo("Loading module '%s'\n",str->name);
@@ -146,7 +147,9 @@ void modules_load(){
 
 uint8_t module_is_loaded(char name[32]){
 	for(uint32_t m = 0;m<last_loaded;m++){
+	//	kinfo("%s %d\n",loaded_modules[m]->name,loaded_modules[m]->state);
 		if(!strcmp(name,loaded_modules[m]->name) && loaded_modules[m]->state == 1){
+			
 			return 1;
 		}
 	}
@@ -156,6 +159,7 @@ uint8_t module_is_loaded(char name[32]){
 uint8_t module_check_dependencies(kernel_mod_hdr_t* kmod){
 	for(uint8_t m = 0;m<kmod->dep_cnt;m++){
 		if(!module_is_loaded(deps_block(kmod->dependencies,m))){
+			
 			return 0;
 		}
 	}

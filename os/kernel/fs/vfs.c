@@ -144,6 +144,7 @@ void dump_vfs(){
 void init_vfs(){
 	fs_t* vfs = kmalloc(sizeof(fs_t));
 	memset(vfs,0,sizeof(fs_t));
+	vfs->name = "vfs";
 	vfs->read = &vfs_read;
 	vfs->write = &vfs_write;
 	vfs->create = &vfs_create;
@@ -397,4 +398,13 @@ fs_node_t* kopen(char* path){
 
 void kclose(fs_node_t* node){
 	kfree(node);
+}
+
+uint16_t ktypeid(char* name){
+	for(uint16_t i = 0;i<fsidx;i++){
+		if(!strcmp(fss[i]->name,name)){
+			return i;
+		}
+	}
+	return 0;
 }

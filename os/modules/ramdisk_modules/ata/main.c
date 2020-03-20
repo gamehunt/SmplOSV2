@@ -368,6 +368,7 @@ uint8_t load(){
 	atafs->mount = &ata_mount;
 	atafs->read = &ata_read;
 	atafs->write = &ata_write;
+	atafs->name = "ata";
 	uint32_t id = register_fs(atafs);
 	kinfo("Searching for ATA devices\n");
 	for(uint8_t i = 0;i<=1;i++){
