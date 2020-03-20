@@ -60,11 +60,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_vfs(); 
 	
 	modules_load();
-	
-	kinfo("CHCK: %x\n",((uint32_t(*)())((sym_entry_t*)symbol_seek("__exported")->addr))());
-	
-	
-	
+
+//	dump_vfs();
+
 	kmount("/root","/dev/sda1",3);
 	fs_node_t* node = kopen("/root/CHECK");
 	
@@ -74,18 +72,20 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 		char buffer[62];
 		kread(node,0,62,buffer);
 		kinfo("CHECK TEXT: %s\n",buffer);
+		kclose(node);
 	}
 	
-	kclose(node);
 	
+
 	fs_node_t* dir = kopen("/root/bin/modules");
+	fs_dirent_t* modd = 0;
+	if(dir){
+		modd = kreaddir(dir);
+		kclose(dir);
+	}
 	
-	fs_dirent_t* modd = kreaddir(dir);
-	
-	kclose(dir);
-	
-	kinfo("Disk module count: %d\n",modd->chld_cnt);
 	if(modd){
+		kinfo("Disk module count: %d\n",modd->chld_cnt);
 		for(uint32_t i = 2;i < modd->chld_cnt; i++){
 			kinfo("Trying to load from disk: %s\n",modd->chlds[i]->name);
 			module_load(modd->chlds[i]);
@@ -94,8 +94,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	mem_stat();
 	fs_node_t* init = kopen("/root/usr/bin/init.smp");
-	create_process(init);
-
+	if(init){
+		create_process(init);
+	}
 	
 	for(;;) {
 		asm("hlt");

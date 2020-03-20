@@ -18,10 +18,11 @@ static uint32_t* heap_start_static;
 //static uint32_t* heap_end;
 
 struct mem_block{
+	//uint8_t guard;
 	uint32_t size;
 	struct mem_block* prev;
 	struct mem_block* next;
-};
+}__attribute__((packed));
 typedef struct mem_block mem_t;
 
 static mem_t* free = 0;
@@ -50,63 +51,81 @@ static mem_t* split(mem_t* orig,uint32_t size){
 	if(orig->size < size+sizeof(mem_t)){
 		return 0;
 	}
+	if(!size){
+		return 0;
+	}
+	uint32_t osize = orig->size;
+	
 	void* mem = ptr(orig);
 	mem_t* newb = (mem_t*)((uint32_t)mem+size);
 	newb->size = orig->size - size - sizeof(mem_t);
-	orig->size -= size+sizeof(mem_t);
+	orig->size = size;
+	//kinfo("SPLIT: %d to %d + %d\n",osize,orig->size,newb->size);
 	return (mem_t*)newb;
 }
 
 void free_insert(mem_t* b){
 	b->prev = 0;
 	b->next = 0;
-	if (!free || (unsigned long)free> (unsigned long)b) {
+	if (!validate(free) || (unsigned long)free> (unsigned long)b) {
 		if (free) {
 			free->prev = b;
 		}
 		b->next = free;
 		free = b;
-	} else {
+	} else if(validate(free)){
 		mem_t *curr = free;
-		while (curr->next && (unsigned long)curr->next < (unsigned long)b) {
+		while (validate(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
 			curr = curr->next;
 		}
-		b->next = curr->next;
+		if(validate(curr->next)){
+			b->next = curr->next;
+			curr->next->prev = b;
+		}
+		b->prev = curr;
 		curr->next = b;
 	}
 }
 
 void free_remove(mem_t* b){
-	if (!b->prev) {
-		if (b->next) {
+	if (!validate(b->prev)) {
+		if (validate(b->next)) {
 			free = b->next;
 		} else {
 			free = 0;
 		}
-	} else {
+	} else if(validate(b->next)){
 		b->prev->next = b->next;
-	}
-	if (b->next) {
 		b->next->prev = b->prev;
+	} else{
+		b->prev->next = 0;
 	}
 }
 
 mem_t* free_block(uint32_t size){
+	//return 0;
+	if(!size){
+		return 0;
+	}
 	mem_t* freeb = free;
 	if(!freeb){
 		return 0;
 	}
-	while(freeb){
+	while(validate(freeb)){
 		if(freeb->size == size){
 			free_remove(freeb);
 			return freeb;
 		}
+		
 		if(freeb->size > size){
 			mem_t* new_b = split(freeb,size);
-			free_insert(new_b);
+			if(validate(new_b)){
+				free_insert(new_b);
+			}
 			free_remove(freeb);
 			return freeb;
-		}	
+		}
+		
 		freeb = freeb->next;
 	}
 	return 0;
@@ -135,6 +154,9 @@ void merge()
 }
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
+	if(!size){
+		return 0;
+	}
 	if(size >= KHEAP_SIZE){
 		crash_info_t crash;
 		crash.description = "KHEAP: Invalid allocation";
@@ -148,12 +170,12 @@ uint32_t* kmalloc(uint32_t size){
 	}
 	i_update_stat(stat_alloc,1);
 	mem_t* block = free_block(size);
-	if(block){
+	if(validate(block)){
 		//kinfo("FREE\n");
 		i_update_stat(stat_alloc_total,size);
 		i_update_stat(stat_max_load,size);
-		block->next = 0;
-		block->prev = 0;
+		block->next = 0xAABBCCDD;
+		block->prev = 0xAABBCCDD;
 		return ptr(block);
 	}else{
 		if((uint32_t)heap_start + sizeof(mem_t)+size >= (uint32_t)heap_start_static+KHEAP_SIZE){
@@ -171,23 +193,30 @@ uint32_t* kmalloc(uint32_t size){
 		mem_t* nblock = heap_start;
 		heap_start = (uint32_t*)((uint32_t)heap_start + sizeof(mem_t)+size);
 		nblock->size = size;
-		nblock->prev = 0;
-		nblock->next = 0;
+		nblock->prev = 0xAABBCCDD;
+		nblock->next = 0xAABBCCDD;
 		return ptr(nblock);
 	}
 	return 0;
 }
 
-
 //frees memory. 
 void kfree(uint32_t* addr){
-	return; //TODO fix fucking kfree
-	i_update_stat(stat_free,1);
+	
+	//return;
+	
 	mem_t* block = header(addr);
+	
+	if(block->size >= KHEAP_SIZE || block->next != 0xAABBCCDD || block->prev != 0xAABBCCDD){
+		return;
+		
+	}
+	
+	i_update_stat(stat_free,1);
 	i_update_stat(stat_freed_total,block->size);
 	i_update_stat(stat_max_load,-block->size);
 	free_insert(block);
-	merge();
+	//merge();
 }
 
 //allocates aligned memory, should be freed as ((void**) ptr)[-1]

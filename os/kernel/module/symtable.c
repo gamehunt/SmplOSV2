@@ -69,6 +69,9 @@ void init_symtable(){
 	symbol_export("kfree",&kfree);
 	symbol_export("krealloc",&krealloc);
 	
+	symbol_export("validate",&validate);
+	symbol_export("virtual2physical",&virtual2physical);
+	
 	symbol_export("outb",&outb);
 	symbol_export("outw",&outw);
 	symbol_export("outl",&outl);

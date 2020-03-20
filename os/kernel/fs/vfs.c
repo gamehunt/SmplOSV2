@@ -215,16 +215,10 @@ fs_node_t* kseek(char* path){
 	for(int i=0;i<path_size(npath);i++){
 		char* part = path_block(npath,i);
 		if(!rnode || !fss[rnode->fsid]->seek){
-			if(!strcmp(npath,part)){
-				kfree(part);
-			}
 			kfree(npath);
 			return 0;
 		}
 		rnode = fss[rnode->fsid]->seek(part,rnode);
-		if(!strcmp(npath,part)){
-				kfree(part);
-		}
 	}
 	kfree(npath);
 	return rnode;
@@ -311,7 +305,7 @@ uint32_t kread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
 	}
-	if(real_node && fss[real_node->fsid]->read){
+	if(validate(real_node) && fss[real_node->fsid]->read){
 		return  fss[real_node->fsid]->read(real_node,offset,size,buffer);
 	}
 	return 0;
@@ -321,7 +315,7 @@ uint32_t kwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer)
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
 	}
-	if(real_node && fss[real_node->fsid]->write){
+	if(validate(real_node) && fss[real_node->fsid]->write){
 		return  fss[real_node->fsid]->write(real_node,offset,size,buffer);
 	}
 	return 0;
@@ -344,7 +338,8 @@ fs_dirent_t* kreaddir(fs_node_t* node){
 		dir->chlds = krealloc(dir->chlds,dir->chld_cnt*sizeof(fs_node_t*));
 		memcpy(dir->chlds,node->childs,node->ccount*sizeof(fs_node_t*));
 	}
-	if(fss[node->fsid]->readdir){				
+	if(fss[node->fsid]->readdir){
+		//kinfo("In custom code\n");				
 		fs_dirent_t* new = fss[node->fsid]->readdir(node);
 		if(new){
 			dir->chld_cnt += new->chld_cnt;

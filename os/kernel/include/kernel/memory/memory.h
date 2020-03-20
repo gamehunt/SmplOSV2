@@ -126,3 +126,5 @@ uint32_t* krealloc(uint32_t* ptr,uint32_t newsize);
 
 void mem_stat();
 
+uint8_t validate(uint32_t addr);
+uint32_t virtual2physical(uint32_t v_addr);

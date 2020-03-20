@@ -86,6 +86,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 proc_t* create_process(fs_node_t* node){
 	asm("cli");
 	//kinfo("HERE\n");
+	//kinfo("%d\n",node->size);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
@@ -138,11 +139,10 @@ void clean_process(proc_t* proc){
 	processes[pid] = 0;
 }
 
-//Currently in crashed on second switch TODO: fix
 void schedule(regs_t reg){
 	asm("cli");
 	if(total_prcs){
-		int32_t ppid = current_piid;
+		//int32_t ppid = current_piid;
 		if(current_piid >= 0 && processes[current_piid]->status != PROC_STOP){
 			proc_t* current = processes[current_piid];
 			save_ctx(current->state,reg);
@@ -155,11 +155,11 @@ void schedule(regs_t reg){
 			if(current_piid >= MAX_PROCESSES){
 				current_piid = 0;
 			}
-			if(processes[current_piid] && processes[current_piid]->status == PROC_STOP){
+			if(validate(processes[current_piid]) && processes[current_piid]->status == PROC_STOP){
 				clean_process(processes[current_piid]);
 			}
 		}while(!processes[current_piid] || processes[current_piid]->status == PROC_STOP);
-		kinfo("Switching from %d to %d\n",ppid,current_piid);
+		//kinfo("Switching from %d to %d\n",ppid,current_piid);
 		setup_ctx(processes[current_piid]->state,reg);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);

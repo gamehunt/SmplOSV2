@@ -219,5 +219,8 @@ void init_paging(){
 	//while(1);
 }
 
+uint8_t validate(uint32_t ptr){
+	return (ptr != 0) && (virtual2physical(ptr) != 0);
+}
 
 
