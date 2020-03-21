@@ -11,6 +11,7 @@
 #include <kernel/fs/vfs.h>
 
 void _start(){
+	//while(1);
 	char* path = "/root/usr/startup.d";
 	fs_node_t* node = sys_call(3,path,0,0,0,0);
 	if(node){

@@ -273,9 +273,7 @@ fs_node_t* fat_mount(fs_node_t* root,fs_node_t* device){
 }
 
 fs_node_t* fat_seek(char* path,fs_node_t* root){
-	
-	
-	
+	//kinfo("%s\n",path);
 	fat_cluster_entry_t* ent = (fat_cluster_entry_t*)root->inode;
 	uint32_t cluster = vfs_check_flag(root->flags, VFS_MOUNTPOINT)?((fat32_bpb_t*)&ent->bpb->ebpb[0])->root_cluster:(((uint32_t)ent->dirent->first_cluster_high<<16) + ent->dirent->first_cluster_low);
 
@@ -284,9 +282,7 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 		fat_cluster_entry_t* entries = kmalloc(sizeof(fat_cluster_entry_t)*16*ent->bpb->sectors_per_cluster);
 		do{
 			memset(entries,0,sizeof(fat_cluster_entry_t)*16*ent->bpb->sectors_per_cluster);
-			//kinfo("%s\n",path);
 			cluster = fat_parse_cluster(root->device,ent->bpb,cluster,entries);
-			//kinfo("%s\n",path);
 			for(uint32_t i = 0;i<16*ent->bpb->sectors_per_cluster;i++){
 				if(!validate(entries[i].dirent)){
 					continue;

@@ -14,8 +14,126 @@ static proc_t* current_proc;
 
 static proc_t* processes[MAX_PROCESSES];
 
-static int32_t current_piid =0;
+static proc_t* ready_procs_high[MAX_PROCESSES];
+static proc_t* ready_procs_low[MAX_PROCESSES];
+static proc_t* wait_procs[MAX_PROCESSES];
+static proc_t* killed_procs[MAX_PROCESSES];
+
+static proc_t* current_process =0;
+static proc_t* init_process = 0;
 static uint32_t total_prcs = 0;
+
+static uint32_t ready_procs_pointer_high = 0;
+static uint32_t ready_procs_pointer_low  = 0;
+
+static uint32_t ready_procs_size_high = 0;
+static uint32_t ready_procs_size_low  = 0;
+
+static uint32_t wait_procs_size = 0;
+static uint32_t killed_procs_size = 0;
+
+proc_t* get_ready_high(){
+	if(ready_procs_size_high == 0){
+		return 0;
+	}
+	uint32_t first = ready_procs_pointer_high;
+	proc_t* proc;
+	do{
+		proc = ready_procs_high[ready_procs_pointer_high];
+		ready_procs_pointer_high++;
+		if(first == ready_procs_high){
+			break;
+		}
+		if(ready_procs_pointer_high > ready_procs_size_high){
+			ready_procs_pointer_high = 0;
+		}
+	}while(!proc);
+	return proc;
+}
+
+
+proc_t* get_ready_low(){
+	if(ready_procs_size_low == 0){
+		return 0;
+	}
+	uint32_t first = ready_procs_pointer_low;
+	proc_t* proc;
+	do{
+		proc = ready_procs_low[ready_procs_pointer_low];
+		ready_procs_pointer_low++;
+		if(first == ready_procs_low){
+			break;
+		}
+		if(ready_procs_pointer_low > ready_procs_size_low){
+			ready_procs_pointer_low = 0;
+		}
+	}while(!proc);
+	return proc;
+}
+
+void ready_insert(proc_t* proc){
+	proc->status = PROC_READY;
+	if(proc->priority == PROC_PRIORITY_HIGH){
+		for(uint32_t i =0;i<ready_procs_size_high;i++){
+			if(!ready_procs_high[i]){
+				ready_procs_high[i]= proc;
+				proc->queue_idx = i;
+				return;
+			}
+		}
+		if(ready_procs_size_high < MAX_PROCESSES){
+			proc->queue_idx = ready_procs_size_high;
+			ready_procs_high[ready_procs_size_high] = proc;
+			ready_procs_size_high++;
+		}
+	}else{
+		for(uint32_t i =0;i<ready_procs_size_low;i++){
+			if(!ready_procs_low[i]){
+				ready_procs_low[i]= proc;
+				proc->queue_idx = i;
+				return;
+			}
+		}
+		if(ready_procs_size_low < MAX_PROCESSES){
+			proc->queue_idx = ready_procs_size_low;
+			ready_procs_low[ready_procs_size_low] = proc;
+			ready_procs_size_low++;
+		}
+	}
+}
+
+void ready_remove(proc_t* proc){
+	if(proc->priority == PROC_PRIORITY_HIGH){
+		ready_procs_high[proc->queue_idx] = 0;
+	}else{
+		ready_procs_low[proc->queue_idx] = 0;
+	}
+}
+
+void wait_insert(proc_t* proc){
+	proc->status = PROC_WAIT;
+	for(uint32_t i =0;i<wait_procs_size;i++){
+		if(!wait_procs[i]){
+			wait_procs[i]= proc;
+			proc->queue_idx = i;
+			return;
+		}
+	}
+	if(wait_procs_size < MAX_PROCESSES){
+		proc->queue_idx = wait_procs_size;
+		ready_procs_low[wait_procs_size] = proc;
+		wait_procs_size++;
+	}
+}
+
+void wait_remove(proc_t* proc){
+	wait_procs[proc->queue_idx] = 0;
+}
+
+void killed_insert(proc_t* proc){
+	killed_procs[killed_procs_size] = proc;
+	killed_procs_size++;
+}
 
 void setup_ctx(context_t* ctx,regs_t r){
 	
@@ -65,15 +183,17 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	
 	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
-	new_proc->status = routine?PROC_RUN:PROC_CREATED;
+	new_proc->status = routine?PROC_READY:PROC_CREATED;
 	
 	new_proc->pid = free_pid();
 	memcpy(new_proc->name,name,strlen(name));
-	
+	new_proc->priority = PROC_PRIORITY_LOW;
 	if(sched){
 		processes[new_proc->pid] = new_proc;
 		
 		total_prcs++;
+		
+		ready_insert(new_proc);
 		
 		kinfo("Process created: '%s' with pid %d (stack %a)\n",name,new_proc->pid,new_proc->state->ebp);
 		asm("sti");
@@ -85,8 +205,7 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 //Currently it works wrong for scheduling new processes TODO: rewrite scheduler
 proc_t* create_process(fs_node_t* node){
 	asm("cli");
-	//kinfo("HERE\n");
-	//kinfo("%d\n",node->size);
+	kinfo("Creating process from node %s\n",node->name);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
@@ -96,36 +215,42 @@ proc_t* create_process(fs_node_t* node){
 
 	set_page_directory(proc->state->cr3);
 	tss_set_kernel_stack(proc->state->k_esp);
-	knpalloc(USER_STACK);
-
 	
+	knpalloc(USER_STACK);
+	
+	for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
+		knpalloc(USER_HEAP + i);
+	}
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	
+	proc->heap = USER_HEAP;
 	
 	uint32_t entry = elf_load_file(buffer);
 	kfree(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
-	//kfree(buffer);
+	
 	if(proc->pid != 0){ //This is hack, TODO rewrite 
-		set_page_directory(processes[current_piid]->state->cr3);
-		tss_set_kernel_stack(processes[current_piid]->state->k_esp);
+		set_page_directory(current_process->state->cr3);
+		tss_set_kernel_stack(current_process->state->k_esp);
 	}
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
 		return 0;
 	}
+	
+	proc->priority = PROC_PRIORITY_LOW;
 	processes[proc->pid] = proc;
 		
 	total_prcs++;
-	
-	if(current_piid < 0){
-		current_piid = 0;
-	}	
+		
+	ready_insert(proc);
 		
 	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->k_esp);
 	if(proc->pid == 0){ //This is hack, TODO rewrite 
+		init_process = proc;
+		current_process = init_process;
 		jump_usermode(entry);
 	}
 	return proc;
@@ -139,44 +264,53 @@ void clean_process(proc_t* proc){
 	processes[pid] = 0;
 }
 
+void clean_processes(){
+	for(uint32_t i=0;i<killed_procs_size;i++){
+		clean_process(killed_procs[i]);
+	}
+	memset(killed_procs,0,killed_procs_size);
+	killed_procs_size = 0;
+}
+
 void schedule(regs_t reg){
 	asm("cli");
 	if(total_prcs){
-		//int32_t ppid = current_piid;
-		if(current_piid >= 0 && processes[current_piid]->status != PROC_STOP){
-			proc_t* current = processes[current_piid];
-			save_ctx(current->state,reg);
-		}else if(current_piid >= 0){
-            clean_process(processes[current_piid]);
+		clean_processes();
+		if(current_process){
+			save_ctx(current_process->state,reg);
 		}
-		do{
-			
-			current_piid++;
-			if(current_piid >= MAX_PROCESSES){
-				current_piid = 0;
-			}
-			if(validate(processes[current_piid]) && processes[current_piid]->status == PROC_STOP){
-				clean_process(processes[current_piid]);
-			}
-		}while(!processes[current_piid] || processes[current_piid]->status == PROC_STOP);
-		//kinfo("Switching from %d to %d\n",ppid,current_piid);
-		setup_ctx(processes[current_piid]->state,reg);
+		proc_t* high = get_ready_high();
+		proc_t* low  = get_ready_low();
+		if(high){
+			current_process = high;
+			setup_ctx(high->state,reg);
+		}else if(low){
+			current_process = low;
+			setup_ctx(low->state,reg);
+		}
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
 	asm("sti");
 }
 
-void exit(uint32_t pid){
-	if(pid == 0){
+void exit(proc_t* proc){
+	if(proc->pid == 0){
 		return;
 	}
-	kinfo("Process %s(%d) marked for stop\n",processes[pid]->name,pid);
-	if(pid < MAX_PROCESSES && processes[pid]){
-		processes[pid]->status = PROC_STOP;
+	kinfo("Stopping process %s(%d)\n",proc->name,proc->pid);
+	if(proc->status == PROC_READY){
+		ready_remove(proc);
+	}else if(proc->status == PROC_WAIT){
+		wait_remove(proc);
+	}
+	proc->status = PROC_STOP;
+	killed_insert(proc);
+	if(proc == current_process){
+		current_process = 0;
 	}
 }
 
-uint32_t get_current_pid(){
-	return current_piid;
+proc_t* get_current_process(){
+	return current_process;
 }

@@ -277,6 +277,7 @@ uint8_t init_ps2_mouse(){
 		kinfo("Mouse not found!\n");
 		return 0;
 	}
+	//TODO
 	return 1;
 }
 
@@ -294,8 +295,6 @@ uint8_t load(){
 	if(!init_ps2_mouse()){
 		kerr("Failed to initialize PS2 Mouse\n");
 	}
-	
-	//while(1);
 	return 0;
 }
 uint8_t unload(){

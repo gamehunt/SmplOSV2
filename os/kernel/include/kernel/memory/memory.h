@@ -30,8 +30,12 @@
 
 #define KHEAP_SIZE 64*1024*1024 //64 mib heap
 
-#define USER_STACK 0xC0000000
+#define USER_STACK   0xC0000000
 #define KERNEL_STACK 0xCF000000
+#define USER_HEAP    0xE0000000
+#define USER_HEAP_SIZE 4096*4 //base 16 kib heap per process
+
+#define KERNEL_PT_MAP 0xFFC00000
 
 struct gdt_entry {
   uint16_t limit;

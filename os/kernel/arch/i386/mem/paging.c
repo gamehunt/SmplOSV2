@@ -72,12 +72,12 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 		//printf("New PT at %a\n",pte);
 		table_mappings[pde] = pt_entry(pte,_flags);
 		if(paging_flag){
-			flush_tlb(0xFFC00000 + pde*4096);
+			flush_tlb(KERNEL_PT_MAP + pde*4096);
 		}
 		current_page_directory[pde] = pd_entry(pte,_flags);
 	}
 	i_pd_entry = current_page_directory[pde];
-	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
+	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
 		kwarn("Trying to remap %a...\n",v_addr);
@@ -97,7 +97,7 @@ uint32_t virtual2physical(uint32_t v_addr){
 		//kinfo("PD NOT PRESENT\n");
 		return 0;
 	}
-	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
+	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
 		return address(i_pt_entry);
@@ -128,7 +128,9 @@ uint32_t* kpalloc(){
 
 //Allocates next page with addr vaddr
 uint32_t* knpalloc(uint32_t vaddr){
-	kmpalloc(vaddr,kfalloc(),0);
+	uint32_t frame = kfalloc();
+	//kinfo("KNPALLOC(%a) - %a\n",vaddr,frame);
+	kmpalloc(vaddr,frame,0);
 	return(uint32_t*)vaddr;
 }
 
@@ -151,7 +153,7 @@ void kpfree(uint32_t v_addr){
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		return;
 	}
-	uint32_t* k_pt = (uint32_t*)(paging_flag?(0xFFC00000 + pde*4096):(address(i_pd_entry)));
+	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
 		uint32_t addr = address(k_pt[pte]);
@@ -165,7 +167,7 @@ void kpfree(uint32_t v_addr){
 			}
 			if(flag){
 				current_page_directory[pde] = 0x0;
-				kpfree(0xFFC00000 + pde*4096);
+				kpfree(KERNEL_PT_MAP + pde*4096);
 			}
 		}
 		kffree(addr);

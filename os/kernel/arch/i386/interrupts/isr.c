@@ -65,7 +65,7 @@ void fault_handler(regs_t r){
 		crash.regs = r;	
 		crash.description = exc_m[r->int_no];
 		char message[128];
-		sprintf(message,"kpanic() invoked via unhandled isr\nError code: %a\n",r->err_code);
+		sprintf(message,"kpanic() invoked via unhandled isr\n[E] Error code: %a\n",r->err_code);
 		crash.extra_info = message;
 		kpanic(crash);
 	}

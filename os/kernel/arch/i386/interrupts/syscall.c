@@ -23,6 +23,7 @@ void syscall_handler(regs_t r){
 		kerr("Invalid syscall: %a\n",r->eax);
 		return;
 	}
+	
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
 		//kinfo("Syscall %d -> %a %a %a %a %a\n",r->eax,r->ebx,r->ecx,r->edx,r->esi,r->edi);
@@ -72,7 +73,7 @@ uint32_t sys_ioctl(uint32_t node,uint32_t req,uint32_t argp,uint32_t ___,uint32_
 }
 
 uint32_t sys_exit(uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-	exit(get_current_pid());
+	exit(get_current_process());
 	return 0;
 }
 
