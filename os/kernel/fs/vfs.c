@@ -408,3 +408,10 @@ uint16_t ktypeid(char* name){
 	}
 	return 0;
 }
+
+void kaddwaiter(fs_node_t* node,void* waiter){
+	if(fss[node->fsid]->add_waiter){
+		fss[node->fsid]->add_waiter(node,waiter);
+	}
+}
+

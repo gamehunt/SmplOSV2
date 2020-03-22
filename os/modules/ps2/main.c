@@ -237,6 +237,7 @@ void ps2_map_devices(uint8_t dual){
 }
 
 void ps2_kbd_int_handler(regs_t regs){
+	//kinfo("KBD\n");
 	char scancode = inb(PS2_IOPORT_DATA);
 	kwrite(kbd_device,0,1,&scancode);
 	irq_end(ps2_kbd?1:12);
@@ -269,6 +270,7 @@ uint8_t init_ps2_kbd(){
 	kbd_device = kmount("/dev/kbd","",ktypeid("pipe"));
 	irq_set_handler(ps2_kbd?1:12,ps2_kbd_int_handler);
 	ps2_device_send(ps2_kbd,PS2_KBD_CMD_ENABLE);
+	//while(1);
 	return 1;
 }
 

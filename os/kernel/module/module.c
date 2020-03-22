@@ -147,7 +147,7 @@ void modules_load(){
 
 uint8_t module_is_loaded(char name[32]){
 	for(uint32_t m = 0;m<last_loaded;m++){
-	//	kinfo("%s %d\n",loaded_modules[m]->name,loaded_modules[m]->state);
+     //	kinfo("%s %d\n",loaded_modules[m]->name,loaded_modules[m]->state);
 		if(!strcmp(name,loaded_modules[m]->name) && loaded_modules[m]->state == 1){
 			
 			return 1;

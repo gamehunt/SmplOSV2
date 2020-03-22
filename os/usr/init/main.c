@@ -13,7 +13,7 @@
 void _start(){
 	//while(1);
 	char* path = "/root/usr/startup.d";
-	fs_node_t* node = sys_call(3,path,0,0,0,0);
+	uint32_t node = sys_call(3,path,0,0,0,0);
 	if(node){
 		fs_dirent_t* dir = sys_call(4,node,0,0,0,0);
 	}

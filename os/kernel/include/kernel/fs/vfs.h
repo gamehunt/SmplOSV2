@@ -17,7 +17,7 @@
 #define VFS_LINK       0x4
 
 struct fs_node{
-	char name[128];	
+	char name[64];	
 	uint32_t size;
 	uint32_t inode;
 	uint8_t flags;
@@ -50,6 +50,8 @@ typedef struct{
 	fs_dirent_t* (*readdir)(fs_node_t*);
 	uint8_t (*remove)(fs_node_t*);
 	uint32_t (*ioctl)(fs_node_t*,uint32_t req, void* argp);
+	uint32_t     (*add_waiter)(fs_node_t*,void*);
+	void     (*remove_waiter)(fs_node_t*,uint32_t);
 }fs_t;
 
 
@@ -80,3 +82,4 @@ uint8_t kremove(char* path);
 fs_dirent_t* kreaddir(fs_node_t* node);
 uint8_t klink(char* src,char* link);
 uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp);
+void    kaddwaiter(fs_node_t* node, void* proc);

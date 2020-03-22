@@ -13,7 +13,7 @@ USER_CFLAGS='-std=gnu99 -O2 -Wall -Wextra'
 USER_LINKS='-lc -lgcc'
 LIBK_CFLAGS="$KERNEL_CFLAGS -D__smplos_libk"
 LIBC_CFLAGS="$KERNEL_CFLAGS -D__smplos_libc"
-BUILDDIRS="libc os"
+BUILDDIRS="libc libs os"
 LOOPDEV1=/dev/loop18
 LOOPDEV2=/dev/loop19
 

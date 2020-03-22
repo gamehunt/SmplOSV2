@@ -30,7 +30,7 @@ typedef struct{
 
 typedef struct{
 	uint32_t pid;
-	char name[250];
+	char name[64];
 	fs_node_t* node;
 	context_t* state;
 	uint8_t priority;
@@ -38,6 +38,9 @@ typedef struct{
 	uint32_t status;
 	uint32_t queue_idx;
 	fs_node_t** fswait_nodes;
+	uint32_t fswait_nodes_cnt;
+	fs_node_t** f_descs; //opened file descriptors (this returned by open() syscall)
+	uint32_t  f_descs_cnt;
 }proc_t;
 
 
@@ -47,9 +50,13 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 proc_t* create_process(fs_node_t* file);
 void setup_ctx(context_t* ctx,regs_t r);
 
-void exit(proc_t* pid);
+void exit(proc_t* pid,regs_t regs);
 
 extern void jump_usermode(uint32_t entry);
 
 proc_t* get_current_process();
+proc_t* get_process_by_pid(uint32_t pid);
 void clean_process(proc_t* proc);
+
+void process_fswait(proc_t* proc, fs_node_t** nodes, uint32_t cnt,regs_t regs);
+void process_fswait_notify(proc_t* proc,fs_node_t* node);

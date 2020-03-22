@@ -15,6 +15,7 @@
 #include <kernel/io/io.h>
 #include <kernel/dev/pci.h>
 #include <kernel/interrupts/irq.h>
+#include <kernel/proc/proc.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -118,4 +119,6 @@ void init_symtable(){
 	
 	symbol_export("irq_set_handler",&irq_set_handler);
 	symbol_export("irq_end",&irq_end);
+	
+	symbol_export("process_fswait_notify",&process_fswait_notify);
 }

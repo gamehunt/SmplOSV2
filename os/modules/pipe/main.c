@@ -9,6 +9,7 @@
 #include <kernel/module/module.h>
 #include <kernel/misc/log.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/proc/proc.h>
 
 #define PIPE_IOCTL_RESIZE 0xA0
 #define PIPE_IOCTL_CLEAR  0xB0
@@ -18,6 +19,8 @@ typedef struct{
 	uint32_t size;
 	uint32_t write_ptr;
 	uint32_t read_ptr;
+	proc_t** waiters;
+	uint32_t waiters_cnt;
 }pipe_info_t;
 
 
@@ -86,7 +89,16 @@ uint32_t pipe_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buff
 	return read;
 }
 
+void pipe_notify_waiters(fs_node_t* pipe){
+	
+	pipe_info_t* inf = (pipe_info_t*)pipe->inode;
+	for(uint32_t i=0;i<inf->waiters_cnt;i++){
+			process_fswait_notify(inf->waiters[i],pipe);
+	}
+}
+
 uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
+	//kinfo("Pipe write\n");
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
 	uint32_t write = 0;
 	for(uint32_t i = 0; i<size; i++){
@@ -100,7 +112,22 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 		}
 		write++;
 	}
+	if(write){
+		pipe_notify_waiters(node);
+	}
 	return write;
+}
+
+void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
+	//kinfo("pipe_add_waiter\n");
+	pipe_info_t* pipe = (pipe_info_t*)node->inode;
+	pipe->waiters_cnt++;
+	if(pipe->waiters_cnt == 1){
+		pipe->waiters = kmalloc(sizeof(proc_t*));
+	}else{
+		pipe->waiters = krealloc(pipe->waiters,pipe->waiters_cnt*sizeof(proc_t*));
+	}
+	pipe->waiters[pipe->waiters_cnt-1] = waiter;
 }
 
 uint8_t load(){
@@ -109,6 +136,7 @@ uint8_t load(){
 	pipefs->ioctl = pipe_ioctl;
 	pipefs->read = pipe_read;
 	pipefs->write = pipe_write;
+	pipefs->add_waiter = pipe_add_waiter;
 	pipefs->name = "pipe";
 	register_fs(pipefs);
 	return 0;

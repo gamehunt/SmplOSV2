@@ -37,7 +37,7 @@ proc_t* get_ready_high(){
 		return 0;
 	}
 	uint32_t first = ready_procs_pointer_high;
-	proc_t* proc;
+	proc_t* proc = 0;
 	do{
 		proc = ready_procs_high[ready_procs_pointer_high];
 		ready_procs_pointer_high++;
@@ -57,7 +57,7 @@ proc_t* get_ready_low(){
 		return 0;
 	}
 	uint32_t first = ready_procs_pointer_low;
-	proc_t* proc;
+	proc_t* proc = 0;
 	do{
 		proc = ready_procs_low[ready_procs_pointer_low];
 		ready_procs_pointer_low++;
@@ -121,7 +121,7 @@ void wait_insert(proc_t* proc){
 	}
 	if(wait_procs_size < MAX_PROCESSES){
 		proc->queue_idx = wait_procs_size;
-		ready_procs_low[wait_procs_size] = proc;
+		wait_procs[wait_procs_size] = proc;
 		wait_procs_size++;
 	}
 }
@@ -179,14 +179,16 @@ int32_t free_pid(){
 proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched){
 	asm("cli");
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
+	memset(new_proc,0,sizeof(proc_t));
 	new_proc->state = kmalloc(sizeof(context_t));
+	memset(new_proc->state,0,sizeof(context_t));
 	
 	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
 	new_proc->state->cr3 = copy_page_directory(kernel_page_directory);
 	new_proc->status = routine?PROC_READY:PROC_CREATED;
 	
 	new_proc->pid = free_pid();
-	memcpy(new_proc->name,name,strlen(name));
+	strcpy(new_proc->name,name);
 	new_proc->priority = PROC_PRIORITY_LOW;
 	if(sched){
 		processes[new_proc->pid] = new_proc;
@@ -202,9 +204,9 @@ proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched
 	return new_proc;
 }
 
-//Currently it works wrong for scheduling new processes TODO: rewrite scheduler
 proc_t* create_process(fs_node_t* node){
 	asm("cli");
+	//kinfo("%d\n",v_addr_to_pde(0xFF000000));
 	kinfo("Creating process from node %s\n",node->name);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
@@ -221,6 +223,7 @@ proc_t* create_process(fs_node_t* node){
 	for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
 		knpalloc(USER_HEAP + i);
 	}
+	
 	proc->state->esp = USER_STACK + 4096;
 	proc->state->ebp = proc->state->esp;
 	
@@ -294,7 +297,7 @@ void schedule(regs_t reg){
 	asm("sti");
 }
 
-void exit(proc_t* proc){
+void exit(proc_t* proc,regs_t r){
 	if(proc->pid == 0){
 		return;
 	}
@@ -308,9 +311,56 @@ void exit(proc_t* proc){
 	killed_insert(proc);
 	if(proc == current_process){
 		current_process = 0;
+		schedule(r);
 	}
 }
 
 proc_t* get_current_process(){
 	return current_process;
+}
+
+proc_t* get_process_by_pid(uint32_t pid){
+	return processes[pid];
+}
+
+void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt,regs_t r){
+	if(proc->status != PROC_WAIT && !proc->fswait_nodes_cnt){
+		
+		proc->fswait_nodes =  kmalloc(sizeof(fs_node_t*)*cnt);
+		memcpy(proc->fswait_nodes,nodes,sizeof(fs_node_t*)*cnt);
+		proc->fswait_nodes_cnt = cnt;
+		for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
+			kaddwaiter(proc->fswait_nodes[i],proc);
+		}
+		if(proc->status == PROC_READY){
+			ready_remove(proc);
+		}
+		wait_insert(proc);
+		//kinfo("Process %s(%d) now waits for events in %d nodes\n",proc->name,proc->pid,cnt);
+		if(r){
+			schedule(r);
+		}
+	}else{
+		//kwarn("Tried to fswait process which already in wait: %s - %d status\n",proc->name,proc->status);
+	}
+}
+
+void process_fswait_awake(proc_t* proc){
+	//kinfo("Awaking...");
+	proc->fswait_nodes_cnt = 0;
+	kfree(proc->fswait_nodes);
+	wait_remove(proc);
+	ready_insert(proc);
+	//kinfo("Awaken %s\n",proc->name);
+}
+
+void process_fswait_notify(proc_t* process,fs_node_t* node){
+	//kinfo("Notifying %s...\n",process->name);
+	if(process->fswait_nodes_cnt){
+		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
+			if(node->inode == process->fswait_nodes[i]->inode){
+				process_fswait_awake(process);
+			}
+		}
+	}
 }

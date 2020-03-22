@@ -36,4 +36,6 @@ then
 	mkdir $SYSINC
 	mkdir $SYSLIB
 	mkdir $SYSROOT/boot
+	mkdir $SYSROOT/usr
+	mkdir $SYSROOT/usr/bin
 fi

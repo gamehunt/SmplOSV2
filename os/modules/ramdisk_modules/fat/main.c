@@ -127,7 +127,7 @@ uint8_t fat_cmp_lfe(fat_lfe_t* lfe, char* string){
 			c = lfe->mid_chars[j];
 		}else if(i<26){
 			if(i==11){
-				j == 0;
+				j = 0;
 			}
 			c = lfe->end_chars[j];
 		}

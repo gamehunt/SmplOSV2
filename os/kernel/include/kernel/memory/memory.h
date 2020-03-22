@@ -18,22 +18,22 @@
 #define PMM_STATE_FREE 0
 #define PMM_STATE_OCCUPIED 1
 
-#define PAGE_PRESENT 0x1
-#define PAGE_RW 0x2
-#define PAGE_USER 0x4
-#define PAGE_WTHROUGH 0x8
+#define PAGE_PRESENT   0x1
+#define PAGE_RW        0x2
+#define PAGE_USER      0x4
+#define PAGE_WTHROUGH  0x8
 #define PAGE_D_NOCACHE 0x10
-#define PAGE_CACHED 0x10
-#define PAGE_ACCESSED 0x20
-#define PAGE_DIRTY 0x40
-#define PAGE_SIZE 0x80
+#define PAGE_CACHED    0x10
+#define PAGE_ACCESSED  0x20
+#define PAGE_DIRTY     0x40
+#define PAGE_SIZE      0x80
 
 #define KHEAP_SIZE 64*1024*1024 //64 mib heap
 
 #define USER_STACK   0xC0000000
 #define KERNEL_STACK 0xCF000000
-#define USER_HEAP    0xE0000000
-#define USER_HEAP_SIZE 4096*4 //base 16 kib heap per process
+#define USER_HEAP    0xD0000000
+#define USER_HEAP_SIZE 64*1024 //base 64 kib heap per process
 
 #define KERNEL_PT_MAP 0xFFC00000
 
