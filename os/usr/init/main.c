@@ -10,7 +10,7 @@
 #include <sys/syscall.h>
 #include <kernel/fs/vfs.h>
 
-void _start(){
+int main(){
 	//while(1);
 	char* path = "/root/usr/startup.d";
 	uint32_t node = sys_call(3,path,0,0,0,0);
@@ -20,4 +20,5 @@ void _start(){
 	char* exec = "/root/usr/bin/shell.smp";
 	sys_call(5,exec,0,0,0,0);
 	while(1);
+	return 0;
 }

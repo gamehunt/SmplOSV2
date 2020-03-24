@@ -23,4 +23,8 @@ void* realloc(uint32_t* ptr,size_t size);
 void free(void* mem);
 
 long long int atoi(const char *c);
+#if !defined(__smplos_libk) && !defined(__smplos_kernel)
+int atexit(void (*)(void));
+char* getenv(const char*);
+#endif
 CH_END

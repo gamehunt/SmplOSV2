@@ -1,15 +1,6 @@
 
 ARCHDIR=arch/$(ARCH)
 
-CRTI_OBJS=\
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
-
-CRTN_OBJS=\
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
-
-
 KERNEL_OBJS=\
 $(ARCHDIR)/boot.o\
 kernel.o\
@@ -48,17 +39,15 @@ module/ramdisk.o\
 module/elf.o\
 
 KERNEL_LINK_OBJS=\
-$(CRTI_OBJS)\
 $(KERNEL_OBJS)\
 $(KERNEL_LINKS) \
-$(CRTN_OBJS)\
 
 .PHONY: all clean install install-headers
 .SUFFIXES: .o .c .S .asm
 
 all: smplos.kernel
 
-smplos.kernel: $(CRTI_OBJS) $(KERNEL_OBJS) $(CRTN_OBJS) $(ARCHDIR)/linker.ld
+smplos.kernel:$(KERNEL_OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(KERNEL_CFLAGS) $(KERNEL_LINK_OBJS) 
 	grub-file --is-x86-multiboot smplos.kernel
 

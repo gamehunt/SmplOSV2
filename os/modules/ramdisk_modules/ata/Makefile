@@ -1,10 +1,10 @@
 CFLAGS:=$(CFLAGS) -ffreestanding -nostdlib -Wall -Wextra -O0
-CPPFLAGS:=$(CPPFLAGS) -I$(SYSROOT)/usr/include -I../../../kernel/include
+CPPFLAGS:=$(CPPFLAGS) 
 LIBS:
 all: ata.smod install
 ata.smod:
 	$(CC) -c main.c $(CFLAGS) $(CPPFLAGS) 
-	$(LD) -m elf_i386 -r main.o -o ata.smod
+	$(LD) -r main.o -o ata.smod
 install:
 	cp ata.smod $(HOME)/SmplOSV2/os/modules/ramdisk_modules/bin
 clean:

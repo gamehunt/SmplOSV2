@@ -8,12 +8,12 @@ all: kbd.a install
 
 clean:
 	rm -f kbd.a
-	rm -f $(HOME)/SmplOSV2/libs/bin/kbd.a
+	rm -f $(HOME)/SmplOSV2/libs/bin/libkbd.a
 	rm -f $(ALL_OBJS) *.o */*.o */*/*.o
 	rm -f $(ALL_OBJS:.o=.d) *.d */*.d */*/*.d
 
 install:
-	cp kbd.a $(HOME)/SmplOSV2/libs/bin/kbd.a
+	cp kbd.a $(HOME)/SmplOSV2/libs/bin/libkbd.a
 	rsync -a include/ ../include
 
 .c.o:

@@ -10,14 +10,16 @@
 
 #include <kernel/multiboot.h>
 #include <kernel/global.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <kernel/memory/memory.h>
 #include <kernel/arch.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/tar.h>
 #include <kernel/misc/debug.h>
 #include <kernel/module/symtable.h>
+
+
+#include <stdio.h>
+#include <stdlib.h>
 //TODO Make all thread-safe
 
 extern uint32_t* k_frame_stack;  

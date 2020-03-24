@@ -9,19 +9,22 @@
 #pragma once
 #include <stdarg.h>
 #include <stdint.h>
-
+#include <stddef.h>
 #include <cheader.h>
 
-#ifdef __smplos_libk
-
-#include<kernel/fs/vfs.h>
-
-#define STDOUT 0
-#define STDERR 1
-
-#endif
-
 CH_START
+
+#if !defined(__smplos_libk) && !defined(__smplos_kernel)
+typedef struct{
+	uint32_t fd;
+	//TODO
+}FILE;
+
+extern FILE* stderr;
+#define stderr stderr
+
+#define SEEK_SET 0
+#endif
 
 void putchar(char c);
 
@@ -31,11 +34,18 @@ void vprintf(const char* restrict format,va_list argptr);
 void printf(const char* restrict str,...);
 void vsprintf(char* buffer, const char* format,va_list argptr);
 void sprintf( char *buffer, const char *format, ... );
+#if !defined(__smplos_libk) && !defined(__smplos_kernel)
+int fflush(FILE *stream);
 
-#ifdef __smplos_libk
-void set_output_stream(uint8_t stream);
-fs_node_t* get_output_stream();
-uint8_t get_output_stream_id();
+int fprintf(FILE *fp, const char *format, ...);
+int vfprintf(FILE*, const char*, va_list);
+int fclose(FILE*);
+FILE* fopen(const char*, const char*);
+
+size_t fread(void*, size_t, size_t, FILE*);
+int fseek(FILE*, long, int);
+long ftell(FILE*);
+size_t fwrite(const void*, size_t, size_t, FILE*);
+void setbuf(FILE*, char*);
 #endif
-
 CH_END

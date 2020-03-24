@@ -1,4 +1,5 @@
 ALL_OBJS=\
+libc_init.o\
 syscall.o \
 string/strlen.o \
 string/memcpy.o \
@@ -24,11 +25,16 @@ time/time.o \
 
 LIBK_OBJS=$(ALL_OBJS:.o=.libk.o)
 LIBC_OBJS=$(ALL_OBJS)\
+stdio/stdio.o\
+
+CRT_OBJS=crt0.o\
+crti.o\
+crtn.o\
 
 .PHONY: all clean install
 .SUFFIXES: .o .libk.o .c .asm
 
-all: libk.a libc.a
+all: libk.a libc.a crt
 
 clean:
 	rm -f libc.a
@@ -37,9 +43,14 @@ clean:
 	rm $(SYSROOT)$(SYSLIB)/libc.a
 	rm -f $(LIBC_OBJS) $(LIBK_OBJS) *.o */*.o */*/*.o
 	rm -f $(LIBC_OBJS:.o=.d) $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -f $(CRT_OBJS)
 install:
 	cp libk.a $(SYSROOT)$(SYSLIB)/libk.a
 	cp libc.a $(SYSROOT)$(SYSLIB)/libc.a
+	cp crt0.o $(SYSROOT)$(SYSLIB)/crt0.o
+	cp crti.o $(SYSROOT)$(SYSLIB)/crti.o
+	cp crtn.o $(SYSROOT)$(SYSLIB)/crtn.o
+
 
 install-headers:
 	rsync -a include/ $(SYSROOT)$(SYSINC)/
@@ -61,4 +72,6 @@ libc.a:$(LIBC_OBJS)
 
 libk.a:$(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
+
+crt:$(CRT_OBJS)
 

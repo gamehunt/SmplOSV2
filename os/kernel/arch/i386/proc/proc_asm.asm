@@ -1,4 +1,4 @@
-GLOBAL jump_usermode ;you may need to remove this _ to work right.. 
+GLOBAL jump_usermode  
 jump_usermode:
      push ebp
      mov  ebp, esp
@@ -17,7 +17,7 @@ jump_usermode:
      or eax, 0x200
      push eax
      push 0x1B; ;user code segment with bottom 2 bits set for ring 3
-     push dword [ebp+8] ;may need to remove the _ for this to work right 
+     push dword [ebp+8] 
      iret
      pop ebp
      ret

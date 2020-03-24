@@ -346,16 +346,13 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt,regs_t r){
 }
 
 void process_fswait_awake(proc_t* proc){
-	//kinfo("Awaking...");
 	proc->fswait_nodes_cnt = 0;
 	kfree(proc->fswait_nodes);
 	wait_remove(proc);
 	ready_insert(proc);
-	//kinfo("Awaken %s\n",proc->name);
 }
 
 void process_fswait_notify(proc_t* process,fs_node_t* node){
-	//kinfo("Notifying %s...\n",process->name);
 	if(process->fswait_nodes_cnt){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
 			if(node->inode == process->fswait_nodes[i]->inode){

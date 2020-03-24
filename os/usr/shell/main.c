@@ -10,7 +10,7 @@
 #include <sys/syscall.h>
 #include <kernel/fs/vfs.h>
 
-void _start(){
+int main(){
 	char* out = "Launched shell";
 	char* path = "/dev/kbd";
 	char* msg = "Keycode received";

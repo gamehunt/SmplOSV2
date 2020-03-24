@@ -1,10 +1,9 @@
-CFLAGS:=$(CFLAGS) $(USER_FLAGS)
-CPPFLAGS:=$(CPPFLAGS) -I$(SYSROOT)/include
+CFLAGS:=$(CFLAGS) $(USER_CFLAGS)
+CPPFLAGS:=$(CPPFLAGS)
 LIBS:
 all: init.smp install
 init.smp:
-	$(CC) -c main.c $(CFLAGS) $(CPPFLAGS) 
-	$(LD) -m elf_i386 main.o -o init.smp --sysroot=$(HOME)/SmplOSV2/sysroot -lc
+	$(CC) -o init.smp main.c  $(CFLAGS) $(CPPFLAGS)
 install:
 	cp init.smp $(HOME)/SmplOSV2/os/usr/bin/init.smp
 clean:

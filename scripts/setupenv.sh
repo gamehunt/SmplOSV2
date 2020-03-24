@@ -22,7 +22,7 @@ export SYSROOT="$HOME/SmplOSV2/sysroot"
 export SYSINC="/include"
 export SYSLIB="/lib"
 export KERNEL_LINKS="$KERNEL_LINKS"
-export CC="$CC --sysroot=$SYSROOT"
+export CC="$CC"
 
 if echo "$TARGET" | grep -Eq -- '-elf($|-)'; then
 	export CC="$CC -isystem=$SYSINC"	

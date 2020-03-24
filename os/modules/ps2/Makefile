@@ -4,7 +4,7 @@ LIBS:
 all: ps2.smod install
 ps2.smod:
 	$(CC) -c main.c $(CFLAGS) $(CPPFLAGS) 
-	$(LD) -m elf_i386 -r main.o -o ps2.smod 
+	$(LD) -r main.o -o ps2.smod 
 install:
 	cp ps2.smod $(HOME)/SmplOSV2/os/modules/bin/ps2.smod
 clean:
