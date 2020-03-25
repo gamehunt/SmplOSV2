@@ -7,6 +7,6 @@ shell.smp:
 install:
 	cp shell.smp $(HOME)/SmplOSV2/os/usr/bin/shell.smp
 clean:
-	rm -rf $(HOME)/SmplOSV2/os/usr/bin/shell.smp
-	rm main.o
-	rm -rf shell.smp
+	-rm -rf $(HOME)/SmplOSV2/os/usr/bin/shell.smp
+	-rm main.o
+	-rm -rf shell.smp

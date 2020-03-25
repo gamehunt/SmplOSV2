@@ -62,7 +62,7 @@ void pit_tick(regs_t r){
 			}
 		}
 		irq_end(0);
-		schedule(r);
+		schedule(r,1);
 }
 
 uint32_t pit_system_ticks(){

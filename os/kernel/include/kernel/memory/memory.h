@@ -31,7 +31,6 @@
 #define KHEAP_SIZE 64*1024*1024 //64 mib heap
 
 #define USER_STACK   0xC0000000
-#define KERNEL_STACK 0xCF000000
 #define USER_HEAP    0xD0000000
 #define USER_HEAP_SIZE 64*1024 //base 64 kib heap per process
 
@@ -132,3 +131,5 @@ void mem_stat();
 
 uint8_t validate(uint32_t addr);
 uint32_t virtual2physical(uint32_t v_addr);
+
+void clean_page_directory(uint32_t* pd); //Makes current page directory as kernel page directory

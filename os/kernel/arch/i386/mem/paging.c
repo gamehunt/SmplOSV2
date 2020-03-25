@@ -225,4 +225,10 @@ uint8_t validate(uint32_t ptr){
 	return (ptr != 0) && (virtual2physical(ptr) != 0);
 }
 
-
+void clean_page_directory(uint32_t* pd){
+	for(uint16_t i=0;i<1024;i++){
+		if(pd[i] != kernel_page_directory[i]){
+			pd[i] = kernel_page_directory[i];
+		}
+	}
+}

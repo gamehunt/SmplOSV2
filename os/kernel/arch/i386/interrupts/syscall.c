@@ -13,7 +13,7 @@
 
 #define MAX_SYSCALL 128
 
-typedef uint32_t(* syscall_t)(regs_t regs,uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e);
+typedef uint32_t(* syscall_t)(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e);
 
 static syscall_t syscalls[MAX_SYSCALL];
 
@@ -25,12 +25,15 @@ void syscall_handler(regs_t r){
 	
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
+		get_current_process()->syscall_state = r;
 		//kinfo("Syscall %d -> %a %a %a %a %a\n",r->eax,r->ebx,r->ecx,r->edx,r->esi,r->edi);
-		uint32_t ret = sysc(r,r->ebx,r->ecx,r->edx,r->esi,r->edi);
+		uint32_t ret = sysc(r->ebx,r->ecx,r->edx,r->esi,r->edi);
 		r->eax = ret;
 	}else{
 		kerr("Syscall %a has null handler\n",r->eax);
 	}
+	
+
 	//kinfo("Syscall exit\n");
 }
 
@@ -38,12 +41,12 @@ void register_syscall(uint16_t id,syscall_t handler){
 	syscalls[id] = handler;
 }
 
-uint32_t sys_echo(regs_t r,uint32_t str,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+uint32_t sys_echo(uint32_t str,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
 	kinfo("[SYS_ECHO] %s %d %d %d %d\n",str,a,b,c,d);
 	return 0;
 }
 
-uint32_t sys_read(regs_t r,uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
+uint32_t sys_read(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
 	}
@@ -52,7 +55,7 @@ uint32_t sys_read(regs_t r,uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint
 	return kread((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
-uint32_t sys_write(regs_t r,uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
+uint32_t sys_write(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
 	}
@@ -62,7 +65,7 @@ uint32_t sys_write(regs_t r,uint32_t fd,uint32_t offs_high,uint32_t offs_low,uin
 	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
-uint32_t sys_open(regs_t r,uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 	//kinfo("[SYS_SEEK] %s\n",(char*)path);
 	fs_node_t* node = kopen((char*)path);
 	get_current_process()->f_descs_cnt++;
@@ -78,7 +81,7 @@ uint32_t sys_open(regs_t r,uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uin
 	return get_current_process()->f_descs_cnt - 1;
 }
 
-uint32_t sys_readdir(regs_t r,uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_readdir(uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
 	}
@@ -86,11 +89,11 @@ uint32_t sys_readdir(regs_t r,uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,ui
 	return (uint32_t)kreaddir(node);
 }
 
-uint32_t sys_exec(regs_t r,uint32_t path,uint32_t argc,uint32_t argv,uint32_t ___,uint32_t _____){
-	return create_process(kseek((char*)path));
+uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t ___,uint32_t _____){
+	return execute(kseek((char*)path),0);
 }
 
-uint32_t sys_ioctl(regs_t r,uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,uint32_t _____){
+uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,uint32_t _____){
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
 	}
@@ -98,25 +101,29 @@ uint32_t sys_ioctl(regs_t r,uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,
 	return kioctl(node,req,argp);
 }
 
-uint32_t sys_exit(regs_t r,uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-	exit(get_current_process(),r);
+uint32_t sys_exit(uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+	exit(get_current_process());
 	return 0;
 }
 
 
-uint32_t sys_fswait(regs_t r,uint32_t fds,uint32_t cnt,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t __,uint32_t ___,uint32_t _____){
 	uint32_t* fds_ptr = (uint32_t*)fds;
 	fs_node_t** nodes = kmalloc(sizeof(fs_node_t*)*cnt);
 	for(uint32_t i=0;i<cnt;i++){
 		nodes[i] = get_current_process()->f_descs[fds_ptr[i]];
 	}
-	process_fswait(get_current_process(),nodes,cnt,r);
+	process_fswait(get_current_process(),nodes,cnt);
 	return 0;
 }
 
-uint32_t sys_yield(regs_t r,uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
-	schedule(r);
+uint32_t sys_yield(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	schedule(0,1);
 	return 0;
+}
+
+uint32_t sys_fork(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	return fork();
 }
 
 void init_syscalls(){
@@ -133,4 +140,5 @@ void init_syscalls(){
 	register_syscall(7,&sys_exit);
 	register_syscall(8,&sys_fswait);
 	register_syscall(9,&sys_yield);
+	register_syscall(10,&sys_fork);
 }

@@ -7,6 +7,6 @@ init.smp:
 install:
 	cp init.smp $(HOME)/SmplOSV2/os/usr/bin/init.smp
 clean:
-	rm -rf $(HOME)/SmplOSV2/os/usr/bin/init.smp
-	rm main.o
-	rm -rf init.smp
+	-rm -rf $(HOME)/SmplOSV2/os/usr/bin/init.smp
+	-rm main.o
+	-rm -rf init.smp

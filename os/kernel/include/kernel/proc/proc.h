@@ -17,6 +17,7 @@
 #define PROC_READY   2
 #define PROC_STOP    3
 #define PROC_WAIT    4
+#define PROC_FORKED  5
 
 #define PROC_PRIORITY_HIGH 1
 #define PROC_PRIORITY_LOW  0
@@ -33,6 +34,8 @@ typedef struct{
 	char name[64];
 	fs_node_t* node;
 	context_t* state;
+	regs_t syscall_state;
+	regs_t signal_state;
 	uint8_t priority;
 	uint8_t* heap;
 	uint32_t status;
@@ -44,13 +47,14 @@ typedef struct{
 }proc_t;
 
 
-void schedule(regs_t reg);
+void schedule(regs_t reg,uint8_t save);
 
-proc_t* create_process_from_routine(const char* name,void* routine,uint8_t sched);
-proc_t* create_process(fs_node_t* file);
+proc_t* create_child(proc_t* parent);
+uint32_t fork();
+
 void setup_ctx(context_t* ctx,regs_t r);
 
-void exit(proc_t* pid,regs_t regs);
+void exit(proc_t* pid);
 
 extern void jump_usermode(uint32_t entry);
 
@@ -58,5 +62,7 @@ proc_t* get_current_process();
 proc_t* get_process_by_pid(uint32_t pid);
 void clean_process(proc_t* proc);
 
-void process_fswait(proc_t* proc, fs_node_t** nodes, uint32_t cnt,regs_t regs);
+void process_fswait(proc_t* proc, fs_node_t** nodes, uint32_t cnt);
 void process_fswait_notify(proc_t* proc,fs_node_t* node);
+
+proc_t* execute(fs_node_t* file,uint8_t init); //executes file in current process

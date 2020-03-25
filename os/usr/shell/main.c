@@ -11,6 +11,7 @@
 #include <kernel/fs/vfs.h>
 
 int main(){
+	//while(1);
 	char* out = "Launched shell";
 	char* path = "/dev/kbd";
 	char* msg = "Keycode received";
