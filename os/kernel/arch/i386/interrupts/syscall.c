@@ -13,6 +13,7 @@
 
 #define MAX_SYSCALL 128
 
+
 typedef uint32_t(* syscall_t)(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e);
 
 static syscall_t syscalls[MAX_SYSCALL];
@@ -33,6 +34,7 @@ void syscall_handler(regs_t r){
 		kerr("Syscall %a has null handler\n",r->eax);
 	}
 	
+	
 
 	//kinfo("Syscall exit\n");
 }
@@ -42,7 +44,7 @@ void register_syscall(uint16_t id,syscall_t handler){
 }
 
 uint32_t sys_echo(uint32_t str,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
-	kinfo("[SYS_ECHO] %s %d %d %d %d\n",str,a,b,c,d);
+	kinfo("[SYS_ECHO][%d] %s %d %d %d %d\n",get_current_process()->pid,str,a,b,c,d);
 	return 0;
 }
 
@@ -81,6 +83,16 @@ uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 	return get_current_process()->f_descs_cnt - 1;
 }
 
+
+uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+	proc_t* proc = get_current_process();
+	if(proc->f_descs_cnt < fds){
+		kclose(proc->f_descs[fds]);
+		proc->f_descs[fds] = 0;
+	}
+	return 0;
+}
+
 uint32_t sys_readdir(uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
@@ -91,6 +103,11 @@ uint32_t sys_readdir(uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,uint32_t __
 
 uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t ___,uint32_t _____){
 	return execute(kseek((char*)path),0);
+}
+
+uint32_t sys_clone(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	create_process("",get_current_process(),1);
+	return 0;
 }
 
 uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,uint32_t _____){
@@ -122,23 +139,35 @@ uint32_t sys_yield(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t __
 	return 0;
 }
 
-uint32_t sys_fork(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
-	return fork();
+uint32_t sys_sbrk(uint32_t size,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	proc_t* proc = get_current_process();
+	uint32_t heap = (uint32_t)proc->heap;
+	uint32_t old_heap = heap;
+	heap = (heap + 0xFFF) & ~0xFFF; // align
+	proc->heap = (uint8_t*)((uint32_t)proc->heap + (heap - old_heap) + size);
+	while(proc->old_heap < (uint32_t)proc->heap){
+		proc->old_heap += 0x1000;
+		knpalloc(proc->old_heap);
+	}
+	proc->heap_size += size;
+	return heap;
 }
 
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
 	
-	register_syscall(0,&sys_echo);
-	register_syscall(1,&sys_read);
-	register_syscall(2,&sys_write);
-	register_syscall(3,&sys_open);
-	register_syscall(4,&sys_readdir);
-	register_syscall(5,&sys_exec);
-	register_syscall(6,&sys_ioctl);
-	register_syscall(7,&sys_exit);
-	register_syscall(8,&sys_fswait);
-	register_syscall(9,&sys_yield);
-	register_syscall(10,&sys_fork);
+	register_syscall(SYS_ECHO,&sys_echo);
+	register_syscall(SYS_READ,&sys_read);
+	register_syscall(SYS_WRITE,&sys_write);
+	register_syscall(SYS_OPEN,&sys_open);
+	register_syscall(SYS_READDIR,&sys_readdir);
+	register_syscall(SYS_EXEC,&sys_exec);
+	register_syscall(SYS_IOCTL,&sys_ioctl);
+	register_syscall(SYS_EXIT,&sys_exit);
+	register_syscall(SYS_FSWAIT,&sys_fswait);
+	register_syscall(SYS_YIELD,&sys_yield);
+	register_syscall(SYS_CLOSE,&sys_close);
+	register_syscall(SYS_SBRK,&sys_sbrk);
+	register_syscall(SYS_CLONE,&sys_clone);
 }

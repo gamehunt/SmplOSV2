@@ -68,7 +68,7 @@ void free_insert(mem_t* b){
 	b->prev = 0;
 	b->next = 0;
 	if (!validate(free) || (unsigned long)free> (unsigned long)b) {
-		if (free) {
+		if (validate(free)) {
 			free->prev = b;
 		}
 		b->next = free;
@@ -108,7 +108,7 @@ mem_t* free_block(uint32_t size){
 		return 0;
 	}
 	mem_t* freeb = free;
-	if(!freeb){
+	if(!validate(freeb)){
 		return 0;
 	}
 	while(validate(freeb)){
@@ -203,7 +203,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 	
-	//return;
+	//return; //TODO find another bug in kfree
 	
 	mem_t* block = header(addr);
 	

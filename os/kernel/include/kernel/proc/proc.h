@@ -13,11 +13,9 @@
 #define MAX_PROCESSES 256
 
 #define PROC_INVALID 0
-#define PROC_CREATED 1
-#define PROC_READY   2
-#define PROC_STOP    3
-#define PROC_WAIT    4
-#define PROC_FORKED  5
+#define PROC_READY   1
+#define PROC_STOP    2
+#define PROC_WAIT    3
 
 #define PROC_PRIORITY_HIGH 1
 #define PROC_PRIORITY_LOW  0
@@ -38,6 +36,8 @@ typedef struct{
 	regs_t signal_state;
 	uint8_t priority;
 	uint8_t* heap;
+	uint32_t old_heap;
+	uint32_t heap_size;
 	uint32_t status;
 	uint32_t queue_idx;
 	fs_node_t** fswait_nodes;

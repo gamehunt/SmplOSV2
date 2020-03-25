@@ -104,7 +104,7 @@ void ready_remove(proc_t* proc){
 	if(proc->priority == PROC_PRIORITY_HIGH){
 		ready_procs_high[proc->queue_idx] = 0;
 	}else{
-		//kinfo("Removed %d from ready\n");
+		//kinfo("Removed %d from ready\n",proc->queue_idx);
 		ready_procs_low[proc->queue_idx] = 0;
 	}
 }
@@ -148,7 +148,6 @@ void setup_ctx(context_t* ctx,regs_t r){
 	r->ecx = ctx->ecx;
 	r->edx = ctx->edx;
 	
-	//kinfo("%a\n",ctx->eip);
 }
 
 void save_ctx(context_t* ctx,regs_t r){
@@ -175,62 +174,63 @@ int32_t free_pid(){
 	return -1;
 }
 
-proc_t* create_child(proc_t* parent){
+
+proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	memset(new_proc,0,sizeof(proc_t));
 	new_proc->state = kmalloc(sizeof(context_t));
 	memset(new_proc->state,0,sizeof(context_t));
+	new_proc->syscall_state = 0;
 	
+	new_proc->state->cr3 = clone?copy_page_directory(parent->state->cr3):copy_page_directory(kernel_page_directory);
 	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
-	new_proc->status = PROC_CREATED;
 	
 	new_proc->pid = free_pid();
 	
-	new_proc->priority = parent->priority;
-	new_proc->heap = USER_HEAP;
-	new_proc->state->esp = USER_STACK + 4096;
-	new_proc->state->ebp = new_proc->state->esp;
-/*	
-	if(sched){
-		processes[new_proc->pid] = new_proc;
+	new_proc->priority = parent?parent->priority:PROC_PRIORITY_LOW;
+	if(!clone){
+		strcpy(new_proc->name,name);
+		new_proc->heap = USER_HEAP;
+		set_page_directory(new_proc->state->cr3);
+		for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
+			knpalloc(USER_HEAP + i);
+		}
+		new_proc->old_heap = new_proc->heap;
+		new_proc->heap_size = USER_HEAP_SIZE;
+		knpalloc(USER_STACK);
+		if(current_process){
+			set_page_directory(current_process->state->cr3);
+		}
+	}else{
 		
-		total_prcs++;
+		strcpy(new_proc->name,parent->name);
+		new_proc->heap = parent->heap;
+		new_proc->old_heap = parent->old_heap;
+		new_proc->heap_size = parent->heap_size;
+	}
+	
+	if(!clone){
+		new_proc->state->esp = USER_STACK + 4096;
+		new_proc->state->ebp = new_proc->state->esp;
+		new_proc->state->eip = 0;
+	}else{
+		new_proc->state->esp = parent->syscall_state->esp;
+		new_proc->state->ebp = parent->syscall_state->ebp;
+		new_proc->state->eip = parent->syscall_state->eip;
 		
-		ready_insert(new_proc);
+		kinfo("Cloned process will jump to %a(par = %a)\n",new_proc->state->eip,parent->syscall_state->eip);
+	}
+	
+	
+
+	processes[new_proc->pid] = new_proc;
+	total_prcs++;
+	ready_insert(new_proc);
 		
-		kinfo("Process created: '%s' with pid %d (stack %a)\n",name,new_proc->pid,new_proc->state->ebp);
-		asm("sti");
-	}	
-*/	
+	kinfo("Process created: '%s' with pid %d (stack %a)\n",new_proc->name,new_proc->pid,new_proc->state->k_esp);
 	return new_proc;
 }
 
-
-uint32_t fork(){
-	if(current_process->status == PROC_FORKED){
-		current_process->status = PROC_READY;
-		return 0;
-	}
-	
-	proc_t* empty_proc = create_child(current_process);
-	strcpy(empty_proc->name,current_process->name);
-	
-	empty_proc->state->cr3 = copy_page_directory(current_process->state->cr3);
-	
-	empty_proc->state->eax = 0;
-	empty_proc->state->esp = current_process->state->esp;
-	empty_proc->state->ebp = current_process->state->ebp;
-	empty_proc->state->eip = current_process->state->eip;
-
-	processes[empty_proc->pid] = empty_proc;
-	total_prcs++;	
-	ready_insert(empty_proc);
-	empty_proc->status = PROC_FORKED;
-	
-	kinfo("Forked from %s: fork pid %d\n",current_process->name,empty_proc->pid);
-	//kinfo("Fork end\n");
-	return empty_proc->pid;
-}
 
 
 proc_t* execute(fs_node_t* node,uint8_t init){
@@ -242,59 +242,35 @@ proc_t* execute(fs_node_t* node,uint8_t init){
 		kerr("Failed to read exec file\n");
 		return 0;
 	}
-	//kinfo("READ\n");
-	proc_t* proc;
+
+	proc_t* proc = create_process(node->name,current_process,0);
 	
-	if(!init){
-		proc = current_process;
-	}else{
-		proc = kmalloc(sizeof(proc_t));
-		memset(proc,0,sizeof(proc_t));
-		proc->state = kmalloc(sizeof(context_t));
-		memset(proc->state,0,sizeof(context_t));
-		proc->state->cr3 = copy_page_directory(kernel_page_directory);
-		proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
-		proc->priority = PROC_PRIORITY_LOW;
-	}
-	strcpy(proc->name,node->name);
 	set_page_directory(proc->state->cr3);
 	tss_set_kernel_stack(proc->state->k_esp);
-	clean_page_directory(proc->state->cr3);
-	knpalloc(USER_STACK);
-	proc->state->esp = USER_STACK + 4096;
-	proc->state->ebp = proc->state->esp;
-	for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
-		knpalloc(USER_HEAP + i);
-	}
 	
 	uint32_t entry = elf_load_file(buffer);
+	
+	if(!init){ //This is hack, TODO rewrite 
+		set_page_directory(current_process->state->cr3);
+		tss_set_kernel_stack(current_process->state->k_esp);
+	}
+	
 	kinfo("ELF loaded\n");
 	kfree(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
+	
 
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
 		return 0;
 	}
-	
-	if(init){
-		processes[proc->pid] = proc;
-		
-		total_prcs++;
-			
-		ready_insert(proc);
-	}
-		
-	kinfo("Process created: '%s' with pid %d (stack %a)\n",node->name,proc->pid,proc->state->k_esp);
+
 	if(init){ //This is hack, TODO rewrite 
 		init_process = proc;
 		current_process = proc;
 		jump_usermode(entry);
-	}else{
-		setup_ctx(proc->state,proc->syscall_state);
 	}
-	
 	
 	return proc;
 }
@@ -303,6 +279,15 @@ void clean_process(proc_t* proc){
 	kinfo("Cleaning process: %s(%d)\n",proc->name,proc->pid);
 	total_prcs--;
 	uint32_t pid = proc->pid;
+	kpfree(processes[proc->pid]->state->cr3);
+	kvfree(processes[proc->pid]->state->k_esp);
+	kfree(processes[proc->pid]->state);
+	for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
+		kclose(processes[proc->pid]->f_descs[i]);
+	}
+	if(processes[proc->pid]->f_descs_cnt){
+		kfree(processes[proc->pid]->f_descs);
+	}
 	kfree(processes[proc->pid]);
 	processes[pid] = 0;
 }
@@ -318,7 +303,7 @@ void clean_processes(){
 void schedule(regs_t reg,uint8_t save){
 	asm("cli");
 	if(total_prcs){
-		if(!reg && current_process){
+		if(!reg && current_process && current_process->syscall_state){
 			reg = current_process->syscall_state;
 		}
 		clean_processes();
@@ -334,7 +319,6 @@ void schedule(regs_t reg,uint8_t save){
 			current_process = low;
 			setup_ctx(low->state,reg);
 		}
-		//kinfo("New: %d\n",current_process->pid);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
@@ -387,8 +371,8 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 			schedule(0,1);
 		}
 	}else{
-		//while(1);
 		//kwarn("Tried to fswait process which already in wait: %s - %d status\n",proc->name,proc->status);
+		//while(1);
 	}
 }
 
