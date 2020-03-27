@@ -147,6 +147,8 @@ void setup_ctx(context_t* ctx,regs_t r){
 	r->ebx = ctx->ebx;
 	r->ecx = ctx->ecx;
 	r->edx = ctx->edx;
+	 
+	//kinfo("EIP -> %a\n",r->eip);
 	
 }
 
@@ -163,6 +165,7 @@ void save_ctx(context_t* ctx,regs_t r){
 	ctx->ecx = r->ecx;
 	ctx->edx = r->edx;
 	
+	//kinfo("EIP <- %a\n",r->eip);
 }
 
 int32_t free_pid(){
@@ -235,7 +238,6 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 
 proc_t* execute(fs_node_t* node,uint8_t init){
 	asm("cli");
-	//kinfo("%d\n",v_addr_to_pde(0xFF000000));
 	kinfo("Creating process from node %s\n",node->name);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
@@ -263,6 +265,7 @@ proc_t* execute(fs_node_t* node,uint8_t init){
 
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
+		exit(proc);
 		return 0;
 	}
 
@@ -301,7 +304,6 @@ void clean_processes(){
 }
 
 void schedule(regs_t reg,uint8_t save){
-	asm("cli");
 	if(total_prcs){
 		if(!reg && current_process && current_process->syscall_state){
 			reg = current_process->syscall_state;
@@ -312,6 +314,7 @@ void schedule(regs_t reg,uint8_t save){
 		}
 		proc_t* high = get_ready_high();
 		proc_t* low  = get_ready_low();
+		
 		if(high){
 			current_process = high;
 			setup_ctx(high->state,reg);
@@ -319,10 +322,11 @@ void schedule(regs_t reg,uint8_t save){
 			current_process = low;
 			setup_ctx(low->state,reg);
 		}
+		
+		//kinfo("Switching to: %d\n",current_process->pid);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
-	asm("sti");
 }
 
 void exit(proc_t* proc){

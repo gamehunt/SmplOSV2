@@ -55,8 +55,6 @@ void isr_unset_handler(uint16_t isr){
 }
 
 void fault_handler(regs_t r){
-	asm("cli");
-	//while(1);
 	irq_handler_t handler = isr_handlers[r->int_no];
 	if(handler){
 		handler(r);
@@ -69,5 +67,4 @@ void fault_handler(regs_t r){
 		crash.extra_info = message;
 		kpanic(crash);
 	}
-	asm("sti");
 }

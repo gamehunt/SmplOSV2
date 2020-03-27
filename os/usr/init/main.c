@@ -12,16 +12,13 @@
 #include <kernel/fs/vfs.h>
 
 int main(){
-	//while(1);
-	char* init = "Init start";
-	char* path = "/root/usr/startup.d";
-	sys_call(SYS_ECHO,init,0,0,0,0);
-	uint32_t node = sys_call(SYS_OPEN,path,0,0,0,0);
+	//*((uint8_t*)0xFFFFFFFF) = 0;
+	sys_echo("Init start",0);
+	uint32_t node = sys_open("/root/usr/startup.d");
 	if(node){
-		fs_dirent_t* dir = sys_call(SYS_READDIR,node,0,0,0,0);
+		fs_dirent_t* dir = sys_readdir(node);
 	}
-	char* exec = "/root/usr/bin/shell.smp";
-	sys_call(SYS_EXEC,exec,0,0,0,0);
+	sys_exec("/root/usr/bin/shell.smp",0,0,0);
 	while(1);
 	return 0;
 }

@@ -13,15 +13,14 @@
 
 int main(){
 	//while(1);
-	char* out = "Launched shell";
-	char* path = "/dev/kbd";
-	char* msg = "Keycode received";
-	sys_call(SYS_ECHO,out,0,0,0,0);
-	fs_node_t* kbd = sys_call(SYS_OPEN,path,0,0,0,0);
+	sys_echo("Launched shell",0);
+	uint32_t kbd = sys_open("/dev/kbd");
 	while(1){
-		sys_call(SYS_FSWAIT,&kbd,1,0,0,0);
-		sys_call(SYS_ECHO,msg,0,0,0,0);
+		sys_fswait(&kbd,1);
+		uint8_t kc;
+		sys_read(kbd,0,1,&kc);
+		sys_echo("Keycode received",kc);
 	}
-	sys_call(SYS_EXIT,0,0,0,0,0);
+	sys_exit(0);
 	while(1);
 }

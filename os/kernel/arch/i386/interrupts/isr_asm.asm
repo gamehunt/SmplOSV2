@@ -52,6 +52,8 @@ ISR_NOERR 127
 extern fault_handler
 
 isr_stub:
+  cli
+
   pusha
   
   push ds
@@ -79,4 +81,6 @@ isr_stub:
 
   add esp, 8
 
+
+  sti
   iret

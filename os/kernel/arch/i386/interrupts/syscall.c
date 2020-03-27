@@ -101,7 +101,7 @@ uint32_t sys_readdir(uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,uint32_t __
 	return (uint32_t)kreaddir(node);
 }
 
-uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t ___,uint32_t _____){
+uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t envp,uint32_t _____){
 	return execute(kseek((char*)path),0);
 }
 
