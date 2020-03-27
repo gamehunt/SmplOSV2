@@ -59,6 +59,7 @@ uint16_t qvid_read_register(uint16_t idx){
 
 void qvid_set_resolution(uint16_t x,uint16_t y,uint16_t bpp,uint8_t use_lfb,uint8_t clear_video){
 	kinfo("Trying to set resolution: %d %d %a\n",x,y,bpp);
+	//while(1);
 	qvid_write_register(VBE_DISPI_INDEX_ENABLE,VBE_DISPI_DISABLED);
 	qvid_write_register(VBE_DISPI_INDEX_XRES, x);
 	qvid_write_register(VBE_DISPI_INDEX_YRES, y);

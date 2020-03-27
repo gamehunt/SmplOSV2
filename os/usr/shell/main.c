@@ -6,21 +6,21 @@
 
 */
 
-#include <stdint.h>
+#include <stdio.h>
 #include <kernel/interrupts/syscalls.h>
 #include <sys/syscall.h>
 #include <kernel/fs/vfs.h>
 
 int main(){
 	//while(1);
+	printf("HUY\n");
 	sys_echo("Launched shell",0);
-	uint32_t kbd = sys_open("/dev/kbd");
+	FILE* kbd = fopen("/dev/kbd","");
 	while(1){
-		sys_fswait(&kbd,1);
+		sys_fswait(&kbd->fd,1);
 		uint8_t kc;
-		sys_read(kbd,0,1,&kc);
+		sys_read(kbd->fd,0,1,&kc);
 		sys_echo("Keycode received",kc);
 	}
-	sys_exit(0);
-	while(1);
+	//while(1);
 }

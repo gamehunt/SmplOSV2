@@ -285,6 +285,7 @@ void clean_process(proc_t* proc){
 	kpfree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->state->k_esp);
 	kfree(processes[proc->pid]->state);
+	kfree(processes[proc->pid]->syscall_state);
 	for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
 		kclose(processes[proc->pid]->f_descs[i]);
 	}
@@ -308,7 +309,6 @@ void schedule(regs_t reg,uint8_t save){
 		if(!reg && current_process && current_process->syscall_state){
 			reg = current_process->syscall_state;
 		}
-		clean_processes();
 		if(current_process && save){
 			save_ctx(current_process->state,reg);
 		}
@@ -322,7 +322,7 @@ void schedule(regs_t reg,uint8_t save){
 			current_process = low;
 			setup_ctx(low->state,reg);
 		}
-		
+		clean_processes();
 		//kinfo("Switching to: %d\n",current_process->pid);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
@@ -388,6 +388,7 @@ void process_fswait_awake(proc_t* proc){
 }
 
 void process_fswait_notify(proc_t* process,fs_node_t* node){
+	//kinfo("Notifying %s\n",process->name);
 	if(process->fswait_nodes_cnt){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
 			if(node->inode == process->fswait_nodes[i]->inode){

@@ -8,11 +8,21 @@
 
 #include <stdio.h>
 #ifdef __smplos_libk
-#include <kernel/dev/eld.h>
+	#include <kernel/dev/eld.h>
+#else
+	#include <sys/syscall.h>
+#endif
+
+#ifndef __smplos_libk
+	void fputs(const char* str,FILE* f){
+		fwrite(str,strlen(str),1,f);
+	}
 #endif
 
 void puts(const char* str){
 	#ifdef __smplos_libk
-	eld_puts(str,strlen(str));
+		eld_puts(str,strlen(str));
+	#else
+		fputs(str,stdout);
 	#endif
 }

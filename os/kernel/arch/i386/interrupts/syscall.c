@@ -63,13 +63,16 @@ uint32_t sys_write(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t siz
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
-	//kinfo("[SYS_WRITE] %s %e %d %a\n",path,offs,size,buffer);
+	//kinfo("[SYS_WRITE] %d %e %d %a\n",fd,offs,size,buffer);
 	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
 uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 	//kinfo("[SYS_SEEK] %s\n",(char*)path);
 	fs_node_t* node = kopen((char*)path);
+	if(!node){
+		node = kcreate(path,0);
+	}
 	get_current_process()->f_descs_cnt++;
 	if(get_current_process()->f_descs){
 		get_current_process()->f_descs = krealloc(get_current_process()->f_descs,get_current_process()->f_descs_cnt*sizeof(fs_node_t*));	

@@ -13,6 +13,7 @@
 
 #define PIPE_IOCTL_RESIZE 0xA0
 #define PIPE_IOCTL_CLEAR  0xB0
+#define PIPE_IOCTL_CREATE 0xC0
 
 typedef struct{
 	uint8_t* buffer;
@@ -23,6 +24,7 @@ typedef struct{
 	uint32_t waiters_cnt;
 }pipe_info_t;
 
+uint32_t idx;
 
 static inline uint32_t pipe_unread(pipe_info_t * pipe) {
 	if (pipe->read_ptr == pipe->write_ptr) {
@@ -52,10 +54,19 @@ uint32_t pipe_ioctl(fs_node_t* pipe,uint32_t req,void* argp){
 		pipe_info_t* inf = (pipe_info_t*)pipe->inode;
 		uint32_t new_size = *((uint32_t*)argp);
 		inf->size = new_size;
-		inf->buffer = krealloc(inf->size);
+		inf->buffer = krealloc(inf->size,new_size);
 	}
 	if(req == PIPE_IOCTL_CLEAR){
 		pipe_info_t* inf = (pipe_info_t*)pipe->inode;
+		inf->write_ptr = 0;
+		inf->read_ptr = 0;
+		memset(inf->buffer,0,inf->size);
+	}
+	if(req == PIPE_IOCTL_CREATE){
+		fs_node_t* pipe = kmount((char*)(((uint32_t*)argp)[0]),"",idx);
+		pipe_info_t* inf = (pipe_info_t*)pipe->inode;
+		inf->size = ((uint32_t*)argp)[1];
+		inf->buffer = krealloc(inf->buffer,inf->size);
 		inf->write_ptr = 0;
 		inf->read_ptr = 0;
 		memset(inf->buffer,0,inf->size);
@@ -138,7 +149,8 @@ uint8_t load(){
 	pipefs->write = pipe_write;
 	pipefs->add_waiter = pipe_add_waiter;
 	pipefs->name = "pipe";
-	register_fs(pipefs);
+	idx = register_fs(pipefs);
+	kmount("/dev/pipe","",idx); //master pipe
 	return 0;
 }
 uint8_t unload(){

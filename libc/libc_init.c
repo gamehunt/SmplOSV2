@@ -1,5 +1,11 @@
+#include <sys/syscall.h>
+
 extern int main(int argc,char** argv);
 
 void libc_init(int argc, char** argv){
-	main(argc,argv); //TODO syscall exit
+	//default std streams
+	sys_open("/dev/null");
+	sys_open("/dev/null");
+	sys_open("/dev/null");
+	sys_exit(main(argc,argv));
 }
