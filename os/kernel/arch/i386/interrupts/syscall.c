@@ -63,12 +63,12 @@ uint32_t sys_write(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t siz
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
-	//kinfo("[SYS_WRITE] %d %e %d %a\n",fd,offs,size,buffer);
+	//kinfo("[SYS_WRITE] %s(%d): %d %e %d %a\n",node->name,node->fsid,fd,offs,size,buffer);
 	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
 uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-	//kinfo("[SYS_SEEK] %s\n",(char*)path);
+	
 	fs_node_t* node = kopen((char*)path);
 	if(!node){
 		node = kcreate(path,0);
@@ -82,7 +82,7 @@ uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 	}
 	
 	get_current_process()->f_descs[get_current_process()->f_descs_cnt-1] = node;
-	
+	//kinfo("[SYS_OPEN] %s(%d) - %d\n",(char*)path,node->fsid,get_current_process()->f_descs_cnt-1);
 	return get_current_process()->f_descs_cnt - 1;
 }
 
@@ -156,6 +156,15 @@ uint32_t sys_sbrk(uint32_t size,uint32_t __,uint32_t ___,uint32_t ____,uint32_t 
 	return heap;
 }
 
+uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t ___,uint32_t ____,uint32_t _____){
+	sys_close(fd_dest,0,0,0,0);
+	proc_t* proc = get_current_process();
+	fs_node_t* node = kmalloc(sizeof(fs_node_t));
+	memcpy(node,proc->f_descs[fd_src],sizeof(fs_node_t));
+	proc->f_descs[fd_dest] = node;
+	sys_close(fd_src,0,0,0,0);
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -173,4 +182,5 @@ void init_syscalls(){
 	register_syscall(SYS_CLOSE,&sys_close);
 	register_syscall(SYS_SBRK,&sys_sbrk);
 	register_syscall(SYS_CLONE,&sys_clone);
+	register_syscall(SYS_ASSIGN,&sys_assign);
 }

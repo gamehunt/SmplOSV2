@@ -250,12 +250,13 @@ uint8_t kremove(char* path){
 	}
 }
 fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
-	kinfo("Mounting %s\n",path);
-	fs_t* fs = 0;
 	if(fsidx <= fsid){
-		kerr("%d is not valid fs!\n",fsid);
+		kerr("Mount: %d is not valid fs!\n",fsid);
 		return 0;
 	}
+	kinfo("Mounting %s with %s\n",path,fss[fsid]->name);
+	fs_t* fs = 0;
+
 	fs = fss[fsid];
 	if(!fs){
 		kerr("Failed to mount %s: fsid %d is unregistered!\n",path,fsid);		
@@ -277,11 +278,16 @@ fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 	}else if(vfs_check_flag(mountpoint->flags,VFS_LINK)){
 		kerr("Failed to mount %s: can't mount link!\n",path);
 		return 0;
+	}else{
+		mountpoint->fsid = fsid;
 	}
 	fs_node_t* device = kseek(devicep);
+	mountpoint->device = device;
 	if(!device && strcmp(devicep,"")){
 		kwarn("Device %s not exists!\n",devicep);
 	}
+	
+	
 	if(fs->mount){
 		return fs->mount(mountpoint,device);
 	}

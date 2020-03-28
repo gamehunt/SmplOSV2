@@ -6,9 +6,10 @@
 
 */
 
-#include<kernel/interrupts/isr.h>
-#include<kernel/io/io.h>
+#include <kernel/interrupts/isr.h>
+#include <kernel/io/io.h>
 #include <kernel/misc/panic.h>
+#include <kernel/proc/proc.h>
 static irq_handler_t isr_handlers[256] = {0};
 
 const char *exc_m[] = {
@@ -58,6 +59,9 @@ void fault_handler(regs_t r){
 	irq_handler_t handler = isr_handlers[r->int_no];
 	if(handler){
 		handler(r);
+	}else if(get_current_process()){
+		kinfo("Process %s caused exception: %s\n",get_current_process()->name,exc_m[r->int_no]);
+		exit(get_current_process());
 	}else{
 		crash_info_t crash;	
 		crash.regs = r;	

@@ -50,6 +50,7 @@ static inline uint32_t pipe_available(pipe_info_t * pipe) {
 }
 
 uint32_t pipe_ioctl(fs_node_t* pipe,uint32_t req,void* argp){
+	//kinfo("Received pipe ioctl: %a\n",req);
 	if(req == PIPE_IOCTL_RESIZE){
 		pipe_info_t* inf = (pipe_info_t*)pipe->inode;
 		uint32_t new_size = *((uint32_t*)argp);
@@ -63,7 +64,9 @@ uint32_t pipe_ioctl(fs_node_t* pipe,uint32_t req,void* argp){
 		memset(inf->buffer,0,inf->size);
 	}
 	if(req == PIPE_IOCTL_CREATE){
-		fs_node_t* pipe = kmount((char*)(((uint32_t*)argp)[0]),"",idx);
+		char* path = (char*)(((uint32_t*)argp)[0]);
+	//	kinfo("ioctl create_pipe: %s\n",path);
+		fs_node_t* pipe = kmount(path,"",idx);
 		pipe_info_t* inf = (pipe_info_t*)pipe->inode;
 		inf->size = ((uint32_t*)argp)[1];
 		inf->buffer = krealloc(inf->buffer,inf->size);
@@ -109,7 +112,7 @@ void pipe_notify_waiters(fs_node_t* pipe){
 }
 
 uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
-	//kinfo("Pipe write\n");
+	//kinfo("Pipe write: %d %d\n",size,buffer[0]);
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
 	uint32_t write = 0;
 	for(uint32_t i = 0; i<size; i++){
@@ -130,7 +133,7 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 }
 
 void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
-	//kinfo("pipe_add_waiter\n");
+	//kinfo("%s: pipe_add_waiter\n",node->name);
 	pipe_info_t* pipe = (pipe_info_t*)node->inode;
 	pipe->waiters_cnt++;
 	if(pipe->waiters_cnt == 1){

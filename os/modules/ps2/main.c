@@ -256,6 +256,8 @@ uint8_t init_ps2_kbd(){
 		kinfo("Keyboard echo selftest passed\n");
 	}
 	ps2_device_send(ps2_kbd,PS2_KBD_CMD_SCNCD);
+	ps2_device_send(ps2_kbd,1);
+	ps2_device_send(ps2_kbd,PS2_KBD_CMD_SCNCD);
 	ps2_device_send(ps2_kbd,0);
 	resp = ps2_device_read();
 	if(resp == 0xFA){

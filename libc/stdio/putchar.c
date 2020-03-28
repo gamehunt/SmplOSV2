@@ -16,7 +16,8 @@
 
 #ifndef __smplos_libk
 void fputc(char c, FILE* f){
-	fwrite(&c,1,1,f);
+	char buffer[] = {c};
+	fwrite(buffer,1,1,f);
 }
 #endif
 

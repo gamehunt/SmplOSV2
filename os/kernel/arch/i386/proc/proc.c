@@ -388,10 +388,12 @@ void process_fswait_awake(proc_t* proc){
 }
 
 void process_fswait_notify(proc_t* process,fs_node_t* node){
-	//kinfo("Notifying %s\n",process->name);
+	
 	if(process->fswait_nodes_cnt){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
+			//kinfo("%s - %a = %s - %a\n",node->name,node->inode,process->fswait_nodes[i]->name, process->fswait_nodes[i]->inode);
 			if(node->inode == process->fswait_nodes[i]->inode){
+				//kinfo("Notifying %s\n",process->name);
 				process_fswait_awake(process);
 			}
 		}

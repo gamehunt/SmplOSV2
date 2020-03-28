@@ -39,7 +39,7 @@ int vfprintf(FILE* fd, const char* restrict format,va_list argptr){
 			i++;
 			char tp = format[i];
 			if(tp == 'c'){
-				char arg = va_arg(argptr,char);
+				char arg = (char)va_arg(argptr,int);
 				fputc(arg,fd);
 			}
 			if(tp == 'd'){
@@ -142,7 +142,7 @@ void vprintf(const char* restrict format,va_list argptr){
 			i++;
 			char tp = format[i];
 			if(tp == 'c'){
-				char arg = va_arg(argptr,char);
+				char arg = (char)va_arg(argptr,int);
 				putchar(arg);
 			}
 			if(tp == 'd'){

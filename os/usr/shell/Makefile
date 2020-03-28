@@ -3,7 +3,7 @@ CPPFLAGS:=$(CPPFLAGS)
 LIBS:
 all: shell.smp install
 shell.smp:
-	$(CC) -o shell.smp main.c $(CFLAGS) $(CPPFLAGS) 
+	$(CC) -o shell.smp main.c $(CFLAGS) $(CPPFLAGS) -lkbd
 install:
 	cp shell.smp $(HOME)/SmplOSV2/os/usr/bin/shell.smp
 clean:

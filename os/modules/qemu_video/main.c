@@ -89,7 +89,7 @@ uint8_t load(){
 	uint16_t ver = qvid_read_register(VBE_DISPI_INDEX_ID);
 	kinfo("Version : %a\n",ver);
 	uint32_t* lfb = (uint32_t*)(pci_read_value(qvid,PCI_BAR0,4) & 0xFFFFFFF0);
-	for(uint16_t i = 0;i<DEFAULT_XRES*DEFAULT_YRES*4/4096;i++){
+	for(uint32_t i = 0;i<(8*1024*1024/4096);i++){
 		kmpalloc((uint32_t*)((uint32_t)lfb+i*4096),(uint32_t*)((uint32_t)lfb+i*4096),0);
 	}
 	kinfo("LFB at %a\n",lfb);

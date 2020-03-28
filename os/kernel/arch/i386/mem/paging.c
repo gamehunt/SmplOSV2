@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <kernel/memory/memory.h>
+#include <kernel/proc/proc.h>
 #include <kernel/global.h>
 #include <kernel/misc/panic.h>
 extern uint32_t k_end;
@@ -179,11 +180,6 @@ void kpfree(uint32_t v_addr){
 }
 
 void pagefault_handler(regs_t r){
-	crash_info_t crash;	
-	crash.regs = r;	
-	crash.description = "Page Fault";
-	char message[60];
-	memset(message,0,60);
 	uint32_t cr2;
 		__asm__ __volatile__ (
         "mov %%cr2, %%eax\n\t"
@@ -191,6 +187,17 @@ void pagefault_handler(regs_t r){
     : /* no input */
     : "%eax"
     );
+	if(get_current_process()){
+		kinfo("Process %s caused page fault at %a\n",get_current_process()->name,cr2);
+		exit(get_current_process());
+		return;
+	}
+	crash_info_t crash;	
+	crash.regs = r;	
+	crash.description = "Page Fault";
+	char message[60];
+	memset(message,0,60);
+
 	sprintf(message,"Fault address: %a, error code = %a",cr2,r->err_code);
 	crash.extra_info = message;
 	kpanic(crash);

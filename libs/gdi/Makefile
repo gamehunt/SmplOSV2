@@ -7,10 +7,10 @@ gdi.o\
 all: gdi.a install
 
 clean:
-	rm -f gdi.a
-	rm -f $(HOME)/SmplOSV2/libs/bin/libgdi.a
-	rm -f $(ALL_OBJS) *.o */*.o */*/*.o
-	rm -f $(ALL_OBJS:.o=.d) *.d */*.d */*/*.d
+	-rm -f gdi.a
+	-rm -f $(HOME)/SmplOSV2/libs/bin/libgdi.a
+	-rm -f $(ALL_OBJS) *.o */*.o */*/*.o
+	-rm -f $(ALL_OBJS:.o=.d) *.d */*.d */*/*.d
 
 install:
 	cp gdi.a $(HOME)/SmplOSV2/libs/bin/libgdi.a
