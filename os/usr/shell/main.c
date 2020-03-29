@@ -17,11 +17,21 @@
 
 uint32_t startup_time;
 
+char* exec = 0;
+char**      argv = 0;
+uint32_t    argc = 0;
+
 void process_word(uint8_t* word){
-	if(!strcmp(word,"dbg")){
-		printf("[%d]echo",time(0)-startup_time);
+	if(!exec){
+		exec = malloc(strlen(word));
+		strcpy(exec,word);
 	}else{
-		printf("[%d]Unknown cmd",time(0)-startup_time);
+		if(!argc){
+			argv = malloc(sizeof(char*));
+		}
+		argv[argc] = malloc(strlen(word));
+		strcpy(argv[argc],word);
+		argc++;
 	}
 }
 
@@ -46,12 +56,26 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 		process_word(word);
 	}
 	free(word);
-}
-
-int test_sig(){
-	sys_echo("SIGTEST received",0);
-	printf("\nSIGTEST received\n");
-	sys_call(SYS_SIGEXIT,0,0,0,0,0);
+	if(exec){
+		uint32_t pid = execv(exec,argv);
+		if(!pid){
+			printf("Failed to execute: %s\n",buffer);
+			//return;
+		}else{
+			sys_waitpid(pid);
+		}
+		//printf("Freeing %d arguments from addr %a\n",argc,argv);
+		for(uint32_t i = 0;i<argc;i++){
+			free(argv[i]);
+		}
+		if(argv){
+			free(argv);
+		}
+		free(exec);
+		exec = 0;
+		argv = 0;
+		argc = 0;
+	}
 }
 
 int main(int argc,char** argv,char** envp){
@@ -61,12 +85,10 @@ int main(int argc,char** argv,char** envp){
 	uint8_t* pipe_buffer = malloc(128);
 	uint8_t* cmd_buffer  = malloc(2048);
 	uint16_t cmd_buff_idx = 0;
-	sys_call(SYS_SIGHANDL,0,test_sig,0,0,0);
-	if(setenv("TEST","ASDASD",1) < 0){
-		printf("[%d]Failed to setup environment!\n",time(0)-startup_time);
+	if(setenv("PATH","/root/usr/bin",1) < 0){
+		printf("Failed to create environment!\n");
 		return 1;
 	}
-	printf("GETENV(\"TEST\") = %s\n",getenv("TEST")==0?"ERROR":getenv("TEST"));
 	printf("[%d]Launched shell\n[%d]>> ",time(0)-startup_time ,time(0)-startup_time);
 	while(1){
 		memset(key,0,sizeof(key_t));

@@ -11,8 +11,8 @@ pid_t fork(void){
 
 
 int execve(const char *filename, char *const argv [], char *const envp[]){
-	sys_exec(filename,argv,envp);
-	return 0; //TODO err code? success?
+	
+	return sys_exec(filename,argv,envp);; //TODO err code? success?
 }
 
 int execvp(const char* f, char* const argv[]){
@@ -20,6 +20,6 @@ int execvp(const char* f, char* const argv[]){
 	return 0; //TODO err code? success?
 }
 int execv(const char* f, char* const argv[]){
-	sys_exec(f,argv,environ);
-	return 0;
+	
+	return sys_exec(f,argv,environ);;
 }

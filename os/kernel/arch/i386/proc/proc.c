@@ -174,8 +174,8 @@ void save_ctx(context_t* ctx,regs_t r){
 	//kinfo("EIP <- %a\n",r->eip);
 }
 
-int32_t free_pid(){
-	for(int32_t i = 0;i<MAX_PROCESSES;i++){
+uint32_t free_pid(){
+	for(uint32_t i = 0;i<MAX_PROCESSES;i++){
 		if(!processes[i]){
 			return i;
 		}
@@ -234,8 +234,16 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 		kinfo("Cloned process will jump to %a(par = %a)\n",new_proc->state->eip,parent->syscall_state->eip);
 	}
 	
-	
-
+	if(parent){
+		if(parent->child_count){
+			parent->childs = krealloc(parent->childs,(parent->child_count+1)*sizeof(proc_t));
+		}else{
+			parent->childs = kmalloc((parent->child_count+1)*sizeof(proc_t));
+		}
+			parent->child_count++;
+			parent->childs[parent->child_count-1] = new_proc;
+			new_proc->parent = parent;
+	}
 	processes[new_proc->pid] = new_proc;
 	total_prcs++;
 	ready_insert(new_proc);
@@ -248,6 +256,9 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 
 proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	asm("cli");
+	if(!validate(node)){
+		return 0;
+	}
 	kinfo("Creating process from node %s; args: %a %a\n",node->name,argv,envp);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
@@ -301,7 +312,6 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		allocation->prev = 0xAABBCCDD;
 		allocation->next = 0xAABBCCDD;
 		usr_argv = (char**)((uint32_t)allocation + sizeof(mem_t));
-		proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
 		for(uint32_t i=0;i<argc;i++){
 			
 			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
@@ -310,8 +320,6 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 			allocation->next = 0xAABBCCDD;
 			usr_argv[i] = (char*)((uint32_t)allocation + sizeof(mem_t)); 
 			strcpy(usr_argv[i],argv_copy[i]);
-			
-			proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
 		}
 	}
 	if(envp){
@@ -320,7 +328,6 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		allocation->prev = 0xAABBCCDD;
 		allocation->next = 0xAABBCCDD;
 		usr_envp = (char**)((uint32_t)allocation + sizeof(mem_t));
-		proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
 		for(uint32_t i=0;i<envsize;i++){
 			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
 			allocation->size = strlen(envp_copy[i]);
@@ -328,7 +335,6 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 			allocation->next = 0xAABBCCDD;
 			usr_envp[i] = (char*)((uint32_t)allocation + sizeof(mem_t));
 			strcpy(usr_envp[i],envp_copy[i]);
-			proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
 		}
 	}
 	if(argv_copy){
@@ -376,6 +382,13 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 }
 
 void clean_process(proc_t* proc){
+	if(proc->pwait){
+		if(proc->parent->status == PROC_WAIT){
+			//kinfo("Awaking process %s\n",proc->parent->name);
+			wait_remove(proc->parent);
+			ready_insert(proc->parent);
+		}
+	}
 	kinfo("Cleaning process: %s(%d)\n",proc->name,proc->pid);
 	total_prcs--;
 	uint32_t pid = proc->pid;
@@ -461,7 +474,7 @@ void exit(proc_t* proc){
 	}else if(proc->status == PROC_WAIT){
 		wait_remove(proc);
 	}
-	proc->status = PROC_STOP;
+	proc->status = PROC_DEAD;
 	killed_insert(proc);
 	if(proc == current_process){
 		current_process = 0;
@@ -511,6 +524,25 @@ void process_fswait_notify(proc_t* process,fs_node_t* node){
 				//kinfo("Notifying %s\n",process->name);
 				process_fswait_awake(process);
 			}
+		}
+	}
+}
+
+void process_waitpid(proc_t* proc,uint32_t pid){
+	if(!proc->child_count){
+		return;
+	}
+	
+	for(uint32_t i = 0;i<proc->child_count;i++){
+		if(proc->childs[i]->pid == pid){
+			proc_t* child = proc->childs[i];
+			child->pwait = 1;
+			ready_remove(proc);
+			wait_insert(proc);
+			if(proc == current_process){
+				schedule(0,1);
+			}
+			break;
 		}
 	}
 }

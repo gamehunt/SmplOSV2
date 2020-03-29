@@ -69,4 +69,8 @@ static inline uint32_t sys_time(){
 	return sys_call(SYS_TIME,0,0,0,0,0);
 }
 
+static inline uint32_t sys_waitpid(int pid){
+	return sys_call(SYS_WAITPID,pid,0,0,0,0);
+}
+
 #endif

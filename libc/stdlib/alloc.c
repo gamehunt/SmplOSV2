@@ -11,8 +11,13 @@
 #include <sys/syscall.h>
 
 #ifndef __smplos_libk
+
+
+
 static uint32_t* heap_start = USER_HEAP;
 static uint32_t heap_size = USER_HEAP_SIZE;
+
+#define VALIDATE_PTR(ptr) (USER_HEAP<=ptr && ptr<= heap_size)
 
 static mem_t* free_list = 0;
 
@@ -42,18 +47,18 @@ static mem_t* split(mem_t* orig,uint32_t size){
 void free_insert(mem_t* b){
 	b->prev = 0;
 	b->next = 0;
-	if (!free_list || (unsigned long)free_list> (unsigned long)b) {
+	if (!VALIDATE_PTR(free_list) || (unsigned long)free_list> (unsigned long)b) {
 		if (free_list) {
 			free_list->prev = b;
 		}
 		b->next = free_list;
 		free_list = b;
-	} else if(free){
+	} else if(VALIDATE_PTR(free_list)){
 		mem_t *curr = free;
-		while (curr->next && (unsigned long)curr->next < (unsigned long)b) {
+		while (VALIDATE_PTR(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
 			curr = curr->next;
 		}
-		if(curr->next){
+		if(VALIDATE_PTR(curr->next)){
 			b->next = curr->next;
 			curr->next->prev = b;
 		}
@@ -63,13 +68,13 @@ void free_insert(mem_t* b){
 }
 
 void free_remove(mem_t* b){
-	if (!b->prev) {
-		if (b->next) {
+	if (!VALIDATE_PTR(b->prev)) {
+		if (VALIDATE_PTR(b->next)) {
 			free_list = b->next;
 		} else {
 			free_list = 0;
 		}
-	} else if(b->next){
+	} else if(VALIDATE_PTR(b->next)){
 		b->prev->next = b->next;
 		b->next->prev = b->prev;
 	} else{
@@ -83,10 +88,10 @@ mem_t* free_block(uint32_t size){
 		return 0;
 	}
 	mem_t* freeb = free_list;
-	if(!freeb){
+	if(!VALIDATE_PTR(freeb)){
 		return 0;
 	}
-	while(freeb){
+	while(VALIDATE_PTR(freeb)){
 		if(freeb->size == size){
 			free_remove(freeb);
 			return freeb;
@@ -94,7 +99,7 @@ mem_t* free_block(uint32_t size){
 		
 		if(freeb->size > size){
 			mem_t* new_b = split(freeb,size);
-			if(new_b){
+			if(VALIDATE_PTR(new_b)){
 				free_insert(new_b);
 			}
 			free_remove(freeb);
@@ -105,6 +110,15 @@ mem_t* free_block(uint32_t size){
 	}
 	return 0;
 }
+
+void fix_user_heap(){
+	mem_t* block = heap_start;
+	while(block->size){
+		block = (mem_t*)((uint32_t)block + sizeof(mem_t) + block->size);
+		heap_start = block;
+	}
+}
+
 #endif
 
 void* malloc(size_t size){
@@ -152,7 +166,7 @@ void free(void* mem){
 		return kfree(mem);
 	#else
 		mem_t* block = header(mem);
-	
+		
 		if(block->size >= heap_size || block->next != 0xAABBCCDD || block->prev != 0xAABBCCDD){
 			return;
 		
@@ -172,5 +186,6 @@ void* realloc(uint32_t* ptr,size_t size){
 	#endif
 	return 0;
 }
+
 
 

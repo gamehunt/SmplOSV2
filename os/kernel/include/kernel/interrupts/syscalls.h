@@ -26,5 +26,6 @@
 #define SYS_SIGHANDL 15
 #define SYS_SIGEXIT  16
 #define SYS_TIME     17
+#define SYS_WAITPID  18
 
 void init_syscalls();

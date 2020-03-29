@@ -117,7 +117,11 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 }
 
 uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t _,uint32_t _____){
-	return execute(kseek((char*)path),argv,envp,0);
+	proc_t* p = execute(kseek((char*)path),argv,envp,0);
+	if(!p){
+		return 0;
+	}
+	return p->pid;
 }
 
 uint32_t sys_clone(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
@@ -195,6 +199,10 @@ uint32_t sys_sigexit(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t 
 uint32_t sys_time(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
 	return rtc_current_time(); //Returns wrong values. We dont count extra day each fourth year!
 }
+uint32_t sys_waitpid(uint32_t pid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	process_waitpid(get_current_process(),pid); 
+	return 0;
+}
 
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
@@ -218,4 +226,5 @@ void init_syscalls(){
 	register_syscall(SYS_SIGHANDL,&sys_sighandl);
 	register_syscall(SYS_SIGEXIT,&sys_sigexit);
 	register_syscall(SYS_TIME,&sys_time);
+	register_syscall(SYS_WAITPID,&sys_waitpid);
 }

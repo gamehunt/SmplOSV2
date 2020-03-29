@@ -14,7 +14,7 @@
 
 #define PROC_INVALID 0
 #define PROC_READY   1
-#define PROC_STOP    2
+#define PROC_DEAD    2
 #define PROC_WAIT    3
 
 #define PROC_PRIORITY_HIGH 1
@@ -46,7 +46,7 @@ typedef struct{
 
 typedef int (*sig_handler_t)(void);
 
-typedef struct{
+struct process{
 	uint32_t pid;
 	char name[64];
 	fs_node_t* node;
@@ -68,7 +68,13 @@ typedef struct{
 	uint32_t fswait_nodes_cnt;
 	fs_node_t** f_descs; //opened file descriptors (this returned by open() syscall)
 	uint32_t  f_descs_cnt;
-}proc_t;
+	struct process*   parent;
+	struct process**  childs;
+	uint32_t  child_count;
+	uint8_t   pwait; //Is parent awaiting us?
+};
+
+typedef struct process proc_t;
 
 
 sig_t* proc_signals[64];
@@ -93,6 +99,7 @@ void clean_process(proc_t* proc);
 
 void process_fswait(proc_t* proc, fs_node_t** nodes, uint32_t cnt);
 void process_fswait_notify(proc_t* proc,fs_node_t* node);
+void process_waitpid(proc_t* proc,uint32_t pid); //Set proc wait for child pid
 
 proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init); //executes file
 
