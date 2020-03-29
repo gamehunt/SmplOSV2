@@ -9,6 +9,7 @@
 #include <stdio.h>
 #ifdef __smplos_libk
 	#include <kernel/dev/eld.h>
+	#include <kernel/fs/vfs.h>
 #else
 	#include <sys/syscall.h>
 #endif

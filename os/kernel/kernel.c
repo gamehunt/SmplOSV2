@@ -97,7 +97,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	mem_stat();
 	fs_node_t* init = kopen("/root/usr/bin/init.smp");
 	if(init){
-		execute(init,1);
+		execute(init,0,0,1);
 	}
 	
 	for(;;) {

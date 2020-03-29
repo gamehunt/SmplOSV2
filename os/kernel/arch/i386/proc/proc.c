@@ -29,6 +29,12 @@ static uint32_t ready_procs_size_low  = 0;
 static uint32_t wait_procs_size = 0;
 static uint32_t killed_procs_size = 0;
 
+
+#define PUSH(esp,type,value)\
+	 esp -= sizeof(type);\
+	*((type*)esp) = value; \
+	 
+
 proc_t* get_ready_high(){
 	if(ready_procs_size_high == 0){
 		return 0;
@@ -236,9 +242,9 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 
 
 
-proc_t* execute(fs_node_t* node,uint8_t init){
+proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	asm("cli");
-	kinfo("Creating process from node %s\n",node->name);
+	kinfo("Creating process from node %s; args: %a %a\n",node->name,argv,envp);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
@@ -247,22 +253,109 @@ proc_t* execute(fs_node_t* node,uint8_t init){
 
 	proc_t* proc = create_process(node->name,current_process,0);
 	
+	int argc = 0;
+	if(validate(argv)){
+		while(validate(argv[argc])){
+			argc++;
+		}
+	}
+	int envsize = 0;
+	if(validate(envp)){
+		while(validate(envp[envsize])){
+			envsize++;
+		}
+	}
+	
+	char** argv_copy = 0;
+	if(argc){
+		argv_copy = kmalloc(sizeof(char*)*argc);
+		for(uint32_t i=0;i<argc;i++){
+			argv_copy[i] = kmalloc(strlen(argv[i]));
+			memcpy(argv_copy[i],argv[i],strlen(argv[i]));
+		}
+	}
+	char** envp_copy = 0;
+	if(envsize){
+		envp_copy = kmalloc(sizeof(char*)*envsize);
+		for(uint32_t i=0;i<envsize;i++){
+			envp_copy[i] = kmalloc(strlen(envp[i]));
+			memcpy(envp_copy[i],envp[i],strlen(envp[i]));
+		}
+	}
 	set_page_directory(proc->state->cr3);
 	tss_set_kernel_stack(proc->state->k_esp);
 	
+	kinfo("Allocating space for %d cmd arguments and %d envp entries\n",argc,envsize);
+	
+	char** usr_argv = 0;
+	char** usr_envp = 0;
+	mem_t* allocation = 0;
+	
+	if(argc){
+		allocation = USER_HEAP;
+		allocation->size =  sizeof(char*)*argc;
+		allocation->prev = 0xAABBCCDD;
+		allocation->next = 0xAABBCCDD;
+		usr_argv = (char**)((uint32_t)allocation + sizeof(mem_t));
+		proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
+		for(uint32_t i=0;i<argc;i++){
+			
+			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
+			allocation->size = strlen(argv_copy[i]);
+			allocation->prev = 0xAABBCCDD;
+			allocation->next = 0xAABBCCDD;
+			usr_argv[i] = (char*)((uint32_t)allocation + sizeof(mem_t)); 
+			strcpy(usr_argv[i],argv_copy[i]);
+			
+			proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
+		}
+	}
+	if(envp){
+		allocation = argc?(mem_t*)((uint32_t)allocation + sizeof(mem_t)+ allocation->size):USER_HEAP;
+		allocation->size =  sizeof(char*)*envsize;
+		allocation->prev = 0xAABBCCDD;
+		allocation->next = 0xAABBCCDD;
+		usr_envp = (char**)((uint32_t)allocation + sizeof(mem_t));
+		proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
+		for(uint32_t i=0;i<envsize;i++){
+			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
+			allocation->size = strlen(envp_copy[i]);
+			allocation->prev = 0xAABBCCDD;
+			allocation->next = 0xAABBCCDD;
+			usr_envp[i] = (char*)((uint32_t)allocation + sizeof(mem_t));
+			strcpy(usr_envp[i],envp_copy[i]);
+			proc->heap = (uint32_t)proc->heap + sizeof(mem_t) + allocation->size;
+		}
+	}
+	if(argv_copy){
+		kfree(argv_copy);
+	}
+	if(envp_copy){
+		kfree(envp_copy);
+	}
+	
 	uint32_t entry = elf_load_file(buffer);
 	
-	if(!init){ //This is hack, TODO rewrite 
-		set_page_directory(current_process->state->cr3);
-		tss_set_kernel_stack(current_process->state->k_esp);
-	}
+	
 	
 	kinfo("ELF loaded\n");
 	kfree(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
 	
-
+	//kinfo("%d\n",usr_argv);
+	
+	PUSH(proc->state->esp,char**,usr_envp);
+	PUSH(proc->state->esp,char**,usr_argv);
+	PUSH(proc->state->esp,int,   argc);
+	
+	
+	
+	if(!init){ //This is hack, TODO rewrite 
+		set_page_directory(current_process->state->cr3);
+		tss_set_kernel_stack(current_process->state->k_esp);
+	}
+	
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
 		exit(proc);

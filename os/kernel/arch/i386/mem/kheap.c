@@ -17,14 +17,6 @@ static uint32_t* heap_start;
 static uint32_t* heap_start_static;
 //static uint32_t* heap_end;
 
-struct mem_block{
-	//uint8_t guard;
-	uint32_t size;
-	struct mem_block* prev;
-	struct mem_block* next;
-}__attribute__((packed));
-typedef struct mem_block mem_t;
-
 static mem_t* free = 0;
 
 static uint32_t stat_alloc,stat_free,stat_merges,stat_alloc_total,stat_freed_total,stat_max_load;

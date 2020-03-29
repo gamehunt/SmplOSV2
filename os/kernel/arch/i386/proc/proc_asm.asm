@@ -11,7 +11,10 @@ jump_usermode:
      mov gs,ax ;we don't need to worry about SS. it's handled by iret
  
      push 0x23 ;user data segment with bottom 2 bits set for ring 3
-     push 0xC0001000 ;push our current ss for the iret stack frame
+     
+     mov eax, esp
+     
+     push eax ;push our current ss for the iret stack frame
      pushf
      pop eax
      or eax, 0x200

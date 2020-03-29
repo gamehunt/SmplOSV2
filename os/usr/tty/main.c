@@ -33,6 +33,18 @@ int main(){
 		uint32_t size = sys_read(tty->fd,0,1024,buffer);
 		for(uint32_t i=0;i<size;i++){
 			uint8_t c = buffer[i];
+			if(c == 0x8){ //backspace
+				x-=9;
+				if(x < 0){
+					x = 0;
+					y-=17;
+					if(y<0){
+						y=0;
+					}
+				}
+				gdi_char(0,x,y,gdi_rgb2linear(255,255,255),gdi_rgb2linear(0,0,0));
+				continue;
+			}
 			if(c == '\n'){
 				x = 0;
 				y+=17;

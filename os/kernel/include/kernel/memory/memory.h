@@ -86,6 +86,14 @@ struct tss_entry_struct
  
 typedef struct tss_entry_struct tss_entry_t;
 
+struct mem_block{
+	//uint8_t guard;
+	uint32_t size;
+	struct mem_block* prev;
+	struct mem_block* next;
+}__attribute__((packed));
+typedef struct mem_block mem_t;
+
 uint32_t* kernel_page_directory;
 uint32_t* current_page_directory;
 extern void enable_paging();

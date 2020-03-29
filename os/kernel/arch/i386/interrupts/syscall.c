@@ -11,6 +11,8 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/proc/proc.h>
 
+#include <dirent.h>
+
 #define MAX_SYSCALL 128
 
 
@@ -96,16 +98,26 @@ uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 	return 0;
 }
 
-uint32_t sys_readdir(uint32_t fd,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32_t _____){
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
-	return (uint32_t)kreaddir(node);
+	fs_dirent_t* kdirent = kreaddir(node);
+	if(kdirent->chld_cnt < index){
+		struct dirent* dent = (struct dirent*)ptr;
+		dent->d_ino = index;
+		memcpy(dent->name,kdirent->chlds[index]->name,strlen(kdirent->chlds[index]->name));
+	}else{
+		kfree(kdirent);
+		return 1;
+	}
+	kfree(kdirent);
+	return 0;
 }
 
-uint32_t sys_exec(uint32_t path,uint32_t argc,uint32_t argv,uint32_t envp,uint32_t _____){
-	return execute(kseek((char*)path),0);
+uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t _,uint32_t _____){
+	return execute(kseek((char*)path),argv,envp,0);
 }
 
 uint32_t sys_clone(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){

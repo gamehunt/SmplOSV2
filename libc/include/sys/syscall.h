@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <dirent.h>
+
 #include <kernel/interrupts/syscalls.h>
 
 #if !defined(__smplos_libk) && !defined(__smplos_kernel) 
@@ -30,12 +32,12 @@ static inline uint32_t sys_close(uint32_t fd){
 	return sys_call(SYS_CLOSE,fd,0,0,0,0);
 }
 
-static inline uint32_t sys_readdir(uint32_t fd){
-	return sys_call(SYS_READDIR,fd,0,0,0,0);
+static inline uint32_t sys_readdir(uint32_t fd,uint32_t index,struct dirent* ptr){
+	return sys_call(SYS_READDIR,fd,index,ptr,0,0);
 }
 
-static inline uint32_t sys_exec(char* path,uint32_t argc,char** argv,char** envp){
-	return sys_call(SYS_EXEC,(uint32_t)path,argc,(uint32_t)argv,(uint32_t)envp,0);
+static inline uint32_t sys_exec(char* path,char** argv,char** envp){
+	return sys_call(SYS_EXEC,(uint32_t)path,(uint32_t)argv,(uint32_t)envp,0,0);
 }
 
 static inline uint32_t sys_clone(){

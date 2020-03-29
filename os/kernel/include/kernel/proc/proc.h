@@ -65,4 +65,4 @@ void clean_process(proc_t* proc);
 void process_fswait(proc_t* proc, fs_node_t** nodes, uint32_t cnt);
 void process_fswait_notify(proc_t* proc,fs_node_t* node);
 
-proc_t* execute(fs_node_t* file,uint8_t init); //executes file in current process
+proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init); //executes file

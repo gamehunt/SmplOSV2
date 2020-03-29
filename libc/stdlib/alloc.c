@@ -14,15 +14,6 @@
 static uint32_t* heap_start = USER_HEAP;
 static uint32_t heap_size = USER_HEAP_SIZE;
 
-
-struct mem_block{
-	//uint8_t guard;
-	uint32_t size;
-	struct mem_block* prev;
-	struct mem_block* next;
-}__attribute__((packed));
-typedef struct mem_block mem_t;
-
 static mem_t* free_list = 0;
 
 static inline mem_t* header(void* alloc){
