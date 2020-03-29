@@ -102,6 +102,7 @@ void init_symtable(){
 	symbol_export("strcat",&strcat);
 	symbol_export("strlen",&strlen);
 	symbol_export("strcmp",&strcmp);
+	symbol_export("strcpy",&strcpy);
 	
 	symbol_export("memset",&memset);
 	symbol_export("memmove",&memmove);

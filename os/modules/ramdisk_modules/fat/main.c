@@ -113,10 +113,30 @@ uint8_t fat_entry_type(uint8_t* entry){
 	return 1;
 }
 
-uint8_t fat_cmp_lfe(fat_lfe_t* lfe, char* string){
+char*   dirent2str(fat_dirent_t* dirent){
+	char* name = kmalloc(12);
+	uint8_t i,j;
+	for(i=0;i<8;i++){
+		
+		if(dirent->name[i] == ' '){
+			dirent->name[i] = '.';
+			for(j=0;j<3;j++){
+				name[i+j+1]=dirent->name[8+j];
+			}
+			break;
+		}else{
+			name[i]= dirent->name[i];
+		}
+	}
+	name[i+j+2] = '\0';
+	return name;
+}
+
+char* lfe2str(fat_lfe_t* lfe){
 	uint16_t i = 0;
 	uint16_t j = 0;
-	while(string[i] != '\0'){
+	char* string = kmalloc(28);
+	while(1){
 		char c = 0;
 		if(i < 5){
 			c = lfe->first_chars[j];
@@ -130,35 +150,20 @@ uint8_t fat_cmp_lfe(fat_lfe_t* lfe, char* string){
 				j = 0;
 			}
 			c = lfe->end_chars[j];
+		}else{
+			break;
 		}
-		if(string[i] != c){
-			return 0;
+		string[i] = c;
+		if(c == '\0'){
+			break;
 		}
 		i++;
 		j+=2;
 	}
-	return 1;
+	string[i+1] = '\0';
+	return string;
 }
 
-uint8_t fat_cmp_dirent(char* name,char ent[11]){
-	for(uint8_t i=0;i<8;i++){
-		if(name[i] == '.'){
-			for(uint8_t j=0;j<3;j++){
-				if(ent[8+j] != name[i+1+j]){
-					return 0;
-				}
-			}
-			return 1;
-		}
-		if(name[i] == '\0'){
-			break;
-		}
-		if(name[i] != ent[i]){
-			return 0;
-		}
-	}
-	return 1;
-}
 
 uint32_t fat_read_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,uint8_t* buffer){
 	uint32_t fat_size = ((fat32_bpb_t*)&bpb->ebpb[0])->sectors_per_fat;
@@ -288,12 +293,15 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 					continue;
 				}
 				
-				
-				uint8_t r1 = fat_cmp_dirent(path,entries[i].dirent->name);
-				uint8_t r2 = (validate(entries[i].lfe) && fat_cmp_lfe(entries[i].lfe,path));
-				if(r1 || r2){
+				char* dirent_name = dirent2str(entries[i].dirent);
+				char* lfe_name    = validate(entries[i].lfe)?lfe2str(entries[i].lfe):"";
+				//kinfo("%s %s ETA: %s\n",dirent_name,lfe_name,path);
+				if(!strcmp(dirent_name,path) || !strcmp(lfe_name,path)){
 						fs_node_t* node = kmalloc(sizeof(fs_node_t));
-						memcpy(node->name,entries[i].dirent->name,11);
+						char* name = lfe_name == ""?dirent_name:lfe_name;
+						strcpy(node->name,name);
+						kfree(dirent_name);
+						kfree(lfe_name);
 						node->device = root->device;
 						node->parent = root;
 						fat_cluster_entry_t* seekent = kmalloc(sizeof(fat_cluster_entry_t));
@@ -374,8 +382,17 @@ fs_dirent_t* fat_readdir(fs_node_t* node){
 						if(!validate(entries[i].dirent)){
 							continue;
 						}
+						char* dirent_name = dirent2str(entries[i].dirent);
+						char* lfe_name    = validate(entries[i].lfe)?lfe2str(entries[i].lfe):"";
+						char* name = lfe_name == ""?dirent_name:lfe_name;
+						
 						fs_node_t* dnode = kmalloc(sizeof(fs_node_t));
-						memcpy(dnode->name,entries[i].dirent->name,11);
+						
+						strcpy(dnode->name,name);
+						
+						kfree(dirent_name);
+						kfree(lfe_name);
+						
 						dnode->device = node->device;
 						dnode->parent = node;
 						fat_cluster_entry_t* seekent = kmalloc(sizeof(fat_cluster_entry_t));
