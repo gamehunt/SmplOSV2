@@ -26,5 +26,7 @@ long long int atoi(const char *c);
 #if !defined(__smplos_libk) && !defined(__smplos_kernel)
 int atexit(void (*)(void));
 char* getenv(const char*);
+int setenv(const char *name, const char *value, int overwrite);
+int unsetenv(const char *name);
 #endif
 CH_END

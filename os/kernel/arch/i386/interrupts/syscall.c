@@ -177,6 +177,21 @@ uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t ___,uint32_t ____,
 	sys_close(fd_src,0,0,0,0);
 }
 
+uint32_t sys_sig(uint32_t pid,uint32_t sig,uint32_t ___,uint32_t ____,uint32_t _____){
+	send_signal(get_process_by_pid(pid),sig);
+	return 0;
+}
+
+uint32_t sys_sighandl(uint32_t sig,uint32_t handler,uint32_t ___,uint32_t ____,uint32_t _____){
+	set_sig_handler(get_current_process(),handler,sig);
+	return 0;
+}
+
+uint32_t sys_sigexit(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	exit_sig(get_current_process());
+	return 0;
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -195,4 +210,7 @@ void init_syscalls(){
 	register_syscall(SYS_SBRK,&sys_sbrk);
 	register_syscall(SYS_CLONE,&sys_clone);
 	register_syscall(SYS_ASSIGN,&sys_assign);
+	register_syscall(SYS_SIG,&sys_sig);
+	register_syscall(SYS_SIGHANDL,&sys_sighandl);
+	register_syscall(SYS_SIGEXIT,&sys_sigexit);
 }

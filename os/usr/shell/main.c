@@ -45,13 +45,21 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 	free(word);
 }
 
+int test_sig(){
+	sys_echo("SIGTEST received",0);
+	printf("SIGTEST received\n");
+	sys_call(SYS_SIGEXIT,0,0,0,0,0);
+}
+
 int main(int argc,char** argv,char** envp){
-	printf("Launched shell\n>> ");
+	
 	FILE* kbd = fopen("/dev/kbd","");
 	key_t* key = malloc(sizeof(key_t));
 	uint8_t* pipe_buffer = malloc(128);
 	uint8_t* cmd_buffer  = malloc(2048);
 	uint16_t cmd_buff_idx = 0;
+	sys_call(SYS_SIGHANDL,0,test_sig,0,0,0);
+	printf("Launched shell\n>> ");
 	while(1){
 		memset(key,0,sizeof(key_t));
 		memset(pipe_buffer,0,128);

@@ -1,6 +1,4 @@
 ALL_OBJS=\
-libc_init.o\
-syscall.o \
 string/strlen.o \
 string/memcpy.o \
 string/memset.o \
@@ -23,9 +21,16 @@ stdlib/atoi.o \
 time/clock.o \
 time/time.o \
 
+
+
 LIBK_OBJS=$(ALL_OBJS:.o=.libk.o)
 LIBC_OBJS=$(ALL_OBJS)\
+libc_init.o\
+syscall.o \
 stdio/stdio.o\
+dirent/dirent.o \
+unistd/exec.o \
+stdlib/env.o \
 
 CRT_OBJS=crt0.o\
 crti.o\

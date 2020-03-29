@@ -190,6 +190,7 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	new_proc->state = kmalloc(sizeof(context_t));
 	memset(new_proc->state,0,sizeof(context_t));
 	new_proc->syscall_state = 0;
+	new_proc->signal_state = kmalloc(sizeof(regs_t));
 	
 	new_proc->state->cr3 = clone?copy_page_directory(parent->state->cr3):copy_page_directory(kernel_page_directory);
 	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
@@ -197,6 +198,9 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	new_proc->pid = free_pid();
 	
 	new_proc->priority = parent?parent->priority:PROC_PRIORITY_LOW;
+	
+	new_proc->sig_stack_esp = -1;
+	
 	if(!clone){
 		strcpy(new_proc->name,name);
 		new_proc->heap = USER_HEAP;
@@ -290,7 +294,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	char** usr_argv = 0;
 	char** usr_envp = 0;
 	mem_t* allocation = 0;
-	
+	//Here we manually manage memory blocks in user heap
 	if(argc){
 		allocation = USER_HEAP;
 		allocation->size =  sizeof(char*)*argc;
@@ -378,7 +382,10 @@ void clean_process(proc_t* proc){
 	kpfree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->state->k_esp);
 	kfree(processes[proc->pid]->state);
-	kfree(processes[proc->pid]->syscall_state);
+	kfree(processes[proc->pid]->signal_state);
+	if(processes[proc->pid]->sig_stack_esp >= 0){
+		kfree(processes[proc->pid]->sig_stack);
+	}
 	for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
 		kclose(processes[proc->pid]->f_descs[i]);
 	}
@@ -403,17 +410,35 @@ void schedule(regs_t reg,uint8_t save){
 			reg = current_process->syscall_state;
 		}
 		if(current_process && save){
-			save_ctx(current_process->state,reg);
+			save_ctx(current_process->in_sig?current_process->signal_state:current_process->state,reg);
 		}
 		proc_t* high = get_ready_high();
 		proc_t* low  = get_ready_low();
 		
 		if(high){
-			current_process = high;
-			setup_ctx(high->state,reg);
+			current_process = high;	
 		}else if(low){
 			current_process = low;
-			setup_ctx(low->state,reg);
+		}
+		setup_ctx(current_process->in_sig?current_process->signal_state:current_process->state,reg);
+
+		if(!current_process->in_sig && current_process->sig_stack_esp >= 0){
+			
+			uint32_t signum = current_process->sig_stack[current_process->sig_stack_esp];
+			
+			current_process->sig_stack_esp--;
+			if(current_process->sig_stack_esp < 0){
+				kfree(current_process->sig_stack);
+			}
+			sig_handler_t sig = current_process->sig_handlers[signum];
+			
+			if(sig){
+				current_process->in_sig = 1;
+				reg->eip = sig;
+			}else if(proc_signals[signum]->unhandled_behav == SIG_UNHANDLD_KILL){
+				current_process->syscall_state = reg;
+				exit(current_process);
+			}
 		}
 		clean_processes();
 		//kinfo("Switching to: %d\n",current_process->pid);
@@ -424,6 +449,10 @@ void schedule(regs_t reg,uint8_t save){
 
 void exit(proc_t* proc){
 	if(proc->pid == 0){
+		if(proc == current_process){
+			current_process = 0;
+		}
+		schedule(proc->syscall_state,0);
 		return;
 	}
 	kinfo("Stopping process %s(%d)\n",proc->name,proc->pid);
@@ -450,7 +479,6 @@ proc_t* get_process_by_pid(uint32_t pid){
 
 void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 	if(proc->status != PROC_WAIT && !proc->fswait_nodes_cnt){
-		//kinfo("%d\n",proc->status);
 		proc->fswait_nodes =  kmalloc(sizeof(fs_node_t*)*cnt);
 		memcpy(proc->fswait_nodes,nodes,sizeof(fs_node_t*)*cnt);
 		proc->fswait_nodes_cnt = cnt;
@@ -462,14 +490,9 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 			ready_remove(proc);
 		}
 		wait_insert(proc);
-		//kinfo("Process %s(%d) now waits for events in %d nodes\n",proc->name,proc->pid,cnt);
 		if(proc == current_process){
-			//kinfo("SCHED\n");
 			schedule(0,1);
 		}
-	}else{
-		//kwarn("Tried to fswait process which already in wait: %s - %d status\n",proc->name,proc->status);
-		//while(1);
 	}
 }
 
@@ -484,11 +507,85 @@ void process_fswait_notify(proc_t* process,fs_node_t* node){
 	
 	if(process->fswait_nodes_cnt){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
-			//kinfo("%s - %a = %s - %a\n",node->name,node->inode,process->fswait_nodes[i]->name, process->fswait_nodes[i]->inode);
 			if(node->inode == process->fswait_nodes[i]->inode){
 				//kinfo("Notifying %s\n",process->name);
 				process_fswait_awake(process);
 			}
 		}
 	}
+}
+
+void send_signal(proc_t* proc,uint32_t sig){
+	
+	if(!validate(proc)){
+		return;
+	}
+	if(proc == current_process){ //Bad idea
+		return;
+	}
+	if(proc->sig_stack_esp >= MAX_SIGSTACK_SIZE){
+		return;
+	}
+	proc->sig_stack_esp++;
+	if(!proc->sig_stack_esp){
+		proc->sig_stack = kmalloc(sizeof(uint32_t));
+	}else{
+		proc->sig_stack = krealloc(proc->sig_stack,(proc->sig_stack_esp+1)*sizeof(uint32_t));
+	}
+	proc->sig_ret_state = proc->state;
+	if(proc->state == PROC_WAIT){
+		if(proc_signals[sig]->block_behav == SIG_BLOCK_AWAKE){
+			proc->sig_stack[proc->sig_stack_esp] = sig;
+			wait_remove(proc);
+			ready_insert(proc);
+		}
+		else if(proc_signals[sig]->block_behav == SIG_BLOCK_KILL){
+			proc->sig_stack[proc->sig_stack_esp] = sig;
+			exit(proc);
+		}
+		else if(proc_signals[sig]->block_behav == SIG_BLOCK_SKIP){
+			proc->sig_stack_esp--;
+			if(proc->sig_stack_esp < 0){
+				kfree(proc->sig_stack);
+			}
+		}else{
+			proc->sig_stack[proc->sig_stack_esp] = sig;
+		}
+	}
+
+	
+	//return;
+	//kinfo("SIG\n");
+	//while(1);
+}
+
+void exit_sig(proc_t* p){
+	p->in_sig = 0;
+	if(p->sig_ret_state == PROC_WAIT){
+		ready_remove(p);
+		wait_insert(p);
+	}
+	schedule(0,0);
+}
+
+void sig_register(uint32_t sig, sig_t* ss){
+	if(sig < 64){
+		proc_signals[sig] = ss;
+	}
+}
+
+void init_signals(){
+	sig_t* test_sig = kmalloc(sizeof(sig_t));
+	memcpy(test_sig->name,"SIGTEST",8);
+	test_sig->unhandled_behav = SIG_UNHANDLD_IGNORE;
+	test_sig->block_behav     = SIG_BLOCK_WAIT;
+	test_sig->sig_num = 0;
+	sig_register(0,test_sig);
+}
+
+void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig){
+	if(sig>=64){
+		return;
+	}
+	proc->sig_handlers[sig] = handl;
 }

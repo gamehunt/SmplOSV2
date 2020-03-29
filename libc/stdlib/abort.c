@@ -7,6 +7,7 @@
 */
 
 #include <stdlib.h>
+#include <sys/syscall.h>
 #include <kernel/misc/panic.h>
 
 __attribute__((__noreturn__)) void abort(void){
@@ -14,7 +15,7 @@ __attribute__((__noreturn__)) void abort(void){
 		crash_info_t crash;
 		crash.description = "abort() called";
 		kpanic(crash);
+	#else
+		sys_exit(1);
 	#endif
-
-	while(1);
 }
