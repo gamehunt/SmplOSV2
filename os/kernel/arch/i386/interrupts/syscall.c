@@ -192,6 +192,10 @@ uint32_t sys_sigexit(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t 
 	return 0;
 }
 
+uint32_t sys_time(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	return rtc_current_time(); //Returns wrong values. We dont count extra day each fourth year!
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -213,4 +217,5 @@ void init_syscalls(){
 	register_syscall(SYS_SIG,&sys_sig);
 	register_syscall(SYS_SIGHANDL,&sys_sighandl);
 	register_syscall(SYS_SIGEXIT,&sys_sigexit);
+	register_syscall(SYS_TIME,&sys_time);
 }

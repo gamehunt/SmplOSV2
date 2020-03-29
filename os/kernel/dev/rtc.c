@@ -8,6 +8,7 @@
 
 #include <kernel/dev/cmos.h>
 #include <kernel/dev/rtc.h>
+#define from_bcd(val)  ((val / 16) * 10 + (val & 0xf))
 
 uint8_t rtc_get_update_flag(){
 	uint8_t data = cmos_read_value(RTC_ST_A);
@@ -22,8 +23,8 @@ void init_rtc(){
 //don't count v. years!
 uint32_t rtc_current_time(){
 	while(rtc_get_update_flag());
-	uint32_t years_elapsed = (cmos_read_value(RTC_CENT)*100+cmos_read_value(RTC_YEAR)) - 1970;
-	uint32_t month_elapsed = cmos_read_value(RTC_MONTH) - 1;
-	uint32_t secs_elapsed = cmos_read_value(RTC_MDAY)*24*3600 + cmos_read_value(RTC_HRS)*3600 + cmos_read_value(RTC_MIN)*60 + cmos_read_value(RTC_SEC);
+	uint32_t years_elapsed = (from_bcd(cmos_read_value(RTC_CENT))*100+from_bcd(cmos_read_value(RTC_YEAR))) - 1970;
+	uint32_t month_elapsed = from_bcd(cmos_read_value(RTC_MONTH)) - 1;
+	uint32_t secs_elapsed = from_bcd(cmos_read_value(RTC_MDAY))*24*3600 + from_bcd(cmos_read_value(RTC_HRS))*3600 + from_bcd(cmos_read_value(RTC_MIN))*60 + from_bcd(cmos_read_value(RTC_SEC));
 	return ((years_elapsed * 31556952)+(month_elapsed * 2629746)+secs_elapsed);
 }

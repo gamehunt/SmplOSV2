@@ -65,4 +65,8 @@ static inline uint32_t sys_sbrk(uint32_t size){
 	return sys_call(SYS_SBRK,size,0,0,0,0);
 }
 
+static inline uint32_t sys_time(){
+	return sys_call(SYS_TIME,0,0,0,0,0);
+}
+
 #endif

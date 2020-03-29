@@ -15,7 +15,7 @@ static char* env_get_name(char* entry){
 static char* env_get_value(char* entry){
 	for(uint32_t i=0;i<strlen(entry);i++){
 		if(entry[i] == '='){
-			return substr(entry,i,strlen(entry));
+			return substr(entry,i+1,strlen(entry));
 		}
 	}
 	return 0;
@@ -32,6 +32,7 @@ static char* env_set_value(char* entry,char* value){
 }
 
 char* getenv(const char* a){
+	//return 0;
 	if(!env_size){
 		return 0;
 	}
@@ -43,9 +44,6 @@ char* getenv(const char* a){
 	return 0;
 }
 int setenv(const char *name, const char *value, int overwrite){
-	if(!env_size){
-		return -1;
-	}
 	int zero = -1;
 	for(int i=0;i<env_size;i++){
 		if(!environ[i]){
@@ -72,7 +70,7 @@ int setenv(const char *name, const char *value, int overwrite){
 	strcpy(environ[ind],name);
 	environ[ind] = strcat(environ[ind],"=");
 	environ[ind] = strcat(environ[ind],value);
-	return -1;
+	return 0;
 }
 int unsetenv(const char *name){
 	if(!env_size){

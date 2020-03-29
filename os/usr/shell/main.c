@@ -9,16 +9,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <kernel/interrupts/syscalls.h>
 #include <sys/syscall.h>
 #include <kernel/fs/vfs.h>
 #include <kbd.h>
 
+uint32_t startup_time;
+
 void process_word(uint8_t* word){
 	if(!strcmp(word,"dbg")){
-		printf("echo\n");
+		printf("[%d]echo",time(0)-startup_time);
 	}else{
-		printf("Unknown cmd\n");
+		printf("[%d]Unknown cmd",time(0)-startup_time);
 	}
 }
 
@@ -47,19 +50,24 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 
 int test_sig(){
 	sys_echo("SIGTEST received",0);
-	printf("SIGTEST received\n");
+	printf("\nSIGTEST received\n");
 	sys_call(SYS_SIGEXIT,0,0,0,0,0);
 }
 
 int main(int argc,char** argv,char** envp){
-	
+	startup_time = time(0);
 	FILE* kbd = fopen("/dev/kbd","");
 	key_t* key = malloc(sizeof(key_t));
 	uint8_t* pipe_buffer = malloc(128);
 	uint8_t* cmd_buffer  = malloc(2048);
 	uint16_t cmd_buff_idx = 0;
 	sys_call(SYS_SIGHANDL,0,test_sig,0,0,0);
-	printf("Launched shell\n>> ");
+	if(setenv("TEST","ASDASD",1) < 0){
+		printf("[%d]Failed to setup environment!\n",time(0)-startup_time);
+		return 1;
+	}
+	printf("GETENV(\"TEST\") = %s\n",getenv("TEST")==0?"ERROR":getenv("TEST"));
+	printf("[%d]Launched shell\n[%d]>> ",time(0)-startup_time ,time(0)-startup_time);
 	while(1){
 		memset(key,0,sizeof(key_t));
 		memset(pipe_buffer,0,128);
@@ -85,7 +93,7 @@ int main(int argc,char** argv,char** envp){
 						memset(cmd_buffer,0,cmd_buff_idx);
 						cmd_buff_idx=0;
 					}
-					printf("\n>> ");
+					printf("\n[%d]>> ",time(0)-startup_time);
 				}else{
 					putchar(key->key);
 					cmd_buffer[cmd_buff_idx] = key->key;

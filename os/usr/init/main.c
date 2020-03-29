@@ -17,6 +17,7 @@ int main(){
 	execv("/root/usr/bin/tty.smp",0);
 	char* args[] = {"arg",0};
 	execv("/root/usr/bin/shell.smp",args,0);
+	sys_call(SYS_SIG,2,0,0,0,0);
 	while(1);
 	return 0;
 }

@@ -21,12 +21,12 @@ FILE* stderr = &_stderr;
 
 size_t fwrite(const void* ptr, size_t sz, size_t block_size, FILE* f){
 	uint32_t real_size = sz * block_size;
-	return sys_write(f->fd,0,block_size,ptr) / sz;
+	return sys_write(f->fd,0,real_size,ptr) / sz;
 }
 
 size_t fread(void* ptr, size_t sz, size_t block_size, FILE* f){
 	uint32_t real_size = sz * block_size;
-	return sys_read(f->fd,0,block_size,ptr) / sz;
+	return sys_read(f->fd,0,real_size,ptr) / sz;
 }
 
 FILE* fopen(const char* name,const char* mode){
