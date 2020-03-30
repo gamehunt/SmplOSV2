@@ -7,16 +7,9 @@
 */
 
 #include <stdio.h>
-#include <string.h>
 
-int main(int argc,char** argv){
+int main(){
 
-	if(!argc){
-		printf("Usage: echo [text]");
-	}else{
-		for(int i=0;i<argc;i++){
-			printf("%s ",argv[i]);
-		}
-	}
+	printf("ECHO");
 	return 0;
 }
