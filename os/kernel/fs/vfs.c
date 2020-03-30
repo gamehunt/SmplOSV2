@@ -1,9 +1,7 @@
 /*	
-
     Copyright (C) 2020
      
     Author: gamehunt 
-
 */
 
 #include <kernel/fs/vfs.h>
@@ -420,4 +418,3 @@ void kaddwaiter(fs_node_t* node,void* waiter){
 		fss[node->fsid]->add_waiter(node,waiter);
 	}
 }
-
