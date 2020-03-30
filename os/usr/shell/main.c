@@ -15,7 +15,7 @@
 #include <kernel/fs/vfs.h>
 #include <kbd.h>
 
-uint32_t startup_time;
+char cwdbuffer[256];
 
 char*       exec = 0;
 char**      argv = 0;
@@ -29,8 +29,11 @@ void process_word(uint8_t* word){
 	}else{
 		if(!argc){
 			argv = malloc(sizeof(char*));
+		}else{
+			argv = realloc(argv,sizeof(char*)*(argc+1));
 		}
-		argv[argc] = malloc(strlen(word));
+		argv[argc] = malloc(strlen(word)+1);
+		memset(argv[argc],0,strlen(word)+1);
 		strcpy(argv[argc],word);
 		argc++;
 	}
@@ -70,16 +73,39 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 		word = strtok(NULL," ");
 	}
 	if(exec){
-		char* fullpath = seekenv(exec);
-		if(!fullpath){
-			printf("[%d]Executable not found: %s\n",time(0)-startup_time,exec);
-		}else{
-			uint32_t pid = execv(fullpath,argv);
-			if(!pid){
-				printf("[%d]Failed to execute: %s\n",time(0)-startup_time,buffer);
-				//return;
+		if(argc){
+			for(int i=0;i<argc;i++){
+				if(argv[i][0] == '$'){
+					char* newarg = getenv(strtok(argv[i],"$"));
+					if(!newarg){
+						newarg = " ";
+					}
+					free(argv[i]);
+					argv[i] = malloc(strlen(newarg)+1);
+					strcpy(argv[i],newarg);
+				}
+			}
+		}
+		if(!strcmp("cd",exec)){
+			if(argc){
+				if(chdir(argv[0]) < 0){
+					printf("No such directory\n");
+				}
 			}else{
-				sys_waitpid(pid);
+				printf("Usage: cd [path]\n");
+			}
+		}else{
+			char* fullpath = seekenv(exec);
+			if(!fullpath){
+				printf("Executable not found: %s\n",exec);
+			}else{
+				uint32_t pid = execv(fullpath,argv);
+				if(!pid){
+					printf("Failed to execute: %s\n",buffer);
+				//return;
+				}else{
+					sys_waitpid(pid);
+				}
 			}
 		}
 		//printf("Freeing %d arguments from addr %a\n",argc,argv);
@@ -97,7 +123,7 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 }
 
 int main(int argc,char** argv,char** envp){
-	startup_time = time(0);
+	//printf("cwdbuffer at %a\n",cwdbuffer);
 	FILE* kbd = fopen("/dev/kbd","r");
 	key_t* key = malloc(sizeof(key_t));
 	uint8_t* pipe_buffer = malloc(128);
@@ -107,7 +133,7 @@ int main(int argc,char** argv,char** envp){
 		printf("Failed to create environment!\n");
 		return 1;
 	}
-	printf("[%d]Launched shell\n[%d]>> ",time(0)-startup_time ,time(0)-startup_time);
+	printf("Launched shell\n[%s]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR");
 	while(1){
 		memset(key,0,sizeof(key_t));
 		memset(pipe_buffer,0,128);
@@ -133,7 +159,7 @@ int main(int argc,char** argv,char** envp){
 						memset(cmd_buffer,0,cmd_buff_idx);
 						cmd_buff_idx=0;
 					}
-					printf("\n[%d]>> ",time(0)-startup_time);
+					printf("\n[%s]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR");
 				}else{
 					putchar(key->key);
 					cmd_buffer[cmd_buff_idx] = key->key;

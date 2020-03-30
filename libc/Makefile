@@ -32,6 +32,8 @@ syscall.o \
 stdio/stdio.o\
 dirent/dirent.o \
 unistd/exec.o \
+unistd/getcwd.o \
+unistd/chdir.o \
 stdlib/env.o \
 
 CRT_OBJS=crt0.o\

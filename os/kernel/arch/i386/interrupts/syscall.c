@@ -215,6 +215,26 @@ uint32_t sys_waitpid(uint32_t pid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t
 	return 0;
 }
 
+uint32_t sys_getcwd(uint32_t buffer,uint32_t buffer_size,uint32_t ___,uint32_t ____,uint32_t _____){
+	if(buffer_size < strlen(get_current_process()->work_dir_abs)){
+	//	kerr("Buffer size too small: need %d\n",strlen(get_current_process()->work_dir_abs));
+		return 0;
+	}
+	strcpy(buffer,get_current_process()->work_dir_abs);
+	return buffer;
+}
+
+uint32_t sys_chdir(uint32_t path,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	fs_node_t* node = kseek(path);
+	if(node){
+		strcpy(get_current_process()->work_dir_abs,path);
+		get_current_process()->work_dir = node;
+		return 0;
+	}
+	return -1;
+}
+
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -238,4 +258,6 @@ void init_syscalls(){
 	register_syscall(SYS_SIGEXIT,&sys_sigexit);
 	register_syscall(SYS_TIME,&sys_time);
 	register_syscall(SYS_WAITPID,&sys_waitpid);
+	register_syscall(SYS_GETCWD,&sys_getcwd);
+	register_syscall(SYS_CHDIR,&sys_chdir);
 }

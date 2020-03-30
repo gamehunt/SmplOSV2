@@ -73,4 +73,12 @@ static inline uint32_t sys_waitpid(int pid){
 	return sys_call(SYS_WAITPID,pid,0,0,0,0);
 }
 
+static inline uint32_t sys_getcwd(char* buffer,uint32_t buffer_size){
+	return sys_call(SYS_GETCWD,buffer,buffer_size,0,0,0);
+}
+
+static inline uint32_t sys_chdir(char* path){
+	return sys_call(SYS_CHDIR,path,0,0,0,0);
+}
+
 #endif

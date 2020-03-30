@@ -27,6 +27,8 @@
 #define SYS_SIGEXIT  16
 #define SYS_TIME     17
 #define SYS_WAITPID  18
+#define SYS_GETCWD   19
+#define SYS_CHDIR    20
 
 //vfs opened node flags. TODO: append and truncate
 #define F_READ   	1

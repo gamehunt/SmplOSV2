@@ -72,6 +72,8 @@ struct process{
 	struct process**  childs;
 	uint32_t  child_count;
 	uint8_t   pwait; //Is parent awaiting us?
+	char     work_dir_abs[256];
+	fs_node_t* work_dir;
 };
 
 typedef struct process proc_t;
