@@ -23,8 +23,8 @@ static inline uint32_t sys_write(uint32_t fd,uint64_t offset,uint32_t size,uint8
 	return sys_call(SYS_WRITE,fd,offs_high,offs_low,size,(uint32_t)buffer);
 }
 
-static inline uint32_t sys_open(char* path){
-	return sys_call(SYS_OPEN,(uint32_t)path,0,0,0,0);
+static inline uint32_t sys_open(char* path,uint8_t flags){
+	return sys_call(SYS_OPEN,(uint32_t)path,flags,0,0,0);
 }
 
 

@@ -25,4 +25,6 @@ char * strcat(char *dest, const char *src);
 uint32_t strcmp(const char *X, const char *Y);
 char* substr(const char *src, int m, int n);
 void strcpy(char dest[], const char source[]);
+char* strtok(char* str,const char* delimiter);
+const char* strchr(const char* str,int sym);
 CH_END

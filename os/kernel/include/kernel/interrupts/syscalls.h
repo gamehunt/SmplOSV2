@@ -28,4 +28,9 @@
 #define SYS_TIME     17
 #define SYS_WAITPID  18
 
+//vfs opened node flags. TODO: append and truncate
+#define F_READ   	1
+#define F_WRITE  	2
+#define F_CREATE 	4
+
 void init_syscalls();

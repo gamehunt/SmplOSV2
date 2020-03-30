@@ -257,6 +257,7 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	asm("cli");
 	if(!validate(node)){
+		kinfo("Tried to create process from invalid node %a!\n",node);
 		return 0;
 	}
 	kinfo("Creating process from node %s; args: %a %a\n",node->name,argv,envp);

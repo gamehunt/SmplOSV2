@@ -8,6 +8,8 @@ string/strcat.o \
 string/strcmp.o \
 string/substr.o \
 string/strcpy.o \
+string/strchr.o \
+string/strtok.o \
 stdio/putchar.o \
 stdio/puts.o \
 stdio/vprintf.o \

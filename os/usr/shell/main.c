@@ -17,13 +17,14 @@
 
 uint32_t startup_time;
 
-char* exec = 0;
+char*       exec = 0;
 char**      argv = 0;
 uint32_t    argc = 0;
 
 void process_word(uint8_t* word){
 	if(!exec){
-		exec = malloc(strlen(word));
+		exec = malloc(strlen(word)+1);
+		memset(exec,0,strlen(word)+1);
 		strcpy(exec,word);
 	}else{
 		if(!argc){
@@ -33,36 +34,53 @@ void process_word(uint8_t* word){
 		strcpy(argv[argc],word);
 		argc++;
 	}
+	//printf("Processed\n");
+}
+
+
+char* seekenv(char* cmd){
+	char* path = getenv("PATH");
+	char* part = strtok(path,":");
+	char* fullname = malloc(strlen(cmd)+5);
+	memset(fullname,0,strlen(cmd)+5);
+	while(part){
+		strcpy(fullname,cmd);
+		strcat(fullname,".smp");
+		char* fullpath = malloc(256);
+		memset(fullpath,0,256);
+		strcpy(fullpath,part);
+		strcat(fullpath,"/");
+		strcat(fullpath,fullname);
+		FILE* f;
+		if(f = fopen(fullpath,"r")){
+			fclose(f);
+			free(fullname);
+			free(part);
+			return fullpath;
+		}
+		part = strtok(NULL,":");
+	}
+	return 0;
 }
 
 void process_input(uint8_t* buffer,uint32_t buff_size){
-	uint8_t* word = malloc(buff_size+1);
-	uint32_t i=0;
-	uint32_t w_ptr = 0;
-	while(i < buff_size){
-			if(buffer[i] == ' '){
-				word[w_ptr] = '\0';
-				process_word(word);
-				w_ptr = 0;
-				i++;
-				continue;
-			}
-			word[w_ptr] = buffer[i];
-			i++;
-			w_ptr++;
-	}
-	if(w_ptr){
-		word[w_ptr] = '\0';
+	char* word = strtok(buffer," ");
+	while(word){
 		process_word(word);
+		word = strtok(NULL," ");
 	}
-	free(word);
 	if(exec){
-		uint32_t pid = execv(exec,argv);
-		if(!pid){
-			printf("Failed to execute: %s\n",buffer);
-			//return;
+		char* fullpath = seekenv(exec);
+		if(!fullpath){
+			printf("[%d]Executable not found: %s\n",time(0)-startup_time,exec);
 		}else{
-			sys_waitpid(pid);
+			uint32_t pid = execv(fullpath,argv);
+			if(!pid){
+				printf("[%d]Failed to execute: %s\n",time(0)-startup_time,buffer);
+				//return;
+			}else{
+				sys_waitpid(pid);
+			}
 		}
 		//printf("Freeing %d arguments from addr %a\n",argc,argv);
 		for(uint32_t i = 0;i<argc;i++){
@@ -80,7 +98,7 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 
 int main(int argc,char** argv,char** envp){
 	startup_time = time(0);
-	FILE* kbd = fopen("/dev/kbd","");
+	FILE* kbd = fopen("/dev/kbd","r");
 	key_t* key = malloc(sizeof(key_t));
 	uint8_t* pipe_buffer = malloc(128);
 	uint8_t* cmd_buffer  = malloc(2048);

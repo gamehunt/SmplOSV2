@@ -21,7 +21,7 @@ int main(){
 	FILE* master_pipe = fopen("/dev/pipe","");
 	sys_ioctl(master_pipe->fd,0xC0,args);
 	sys_close(master_pipe->fd);
-	FILE* tty = fopen("/dev/tty","");
+	FILE* tty = fopen("/dev/tty","r+");
 	gdi_init("/dev/fb0",1024,768);
 	int x = 0;
 	int y = 12;

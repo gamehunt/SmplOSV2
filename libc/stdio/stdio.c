@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/syscall.h>
+#include <kernel/interrupts/syscalls.h>
 
 FILE _stdout={
 		.fd = 0
@@ -29,9 +30,28 @@ size_t fread(void* ptr, size_t sz, size_t block_size, FILE* f){
 	return sys_read(f->fd,0,real_size,ptr) / sz;
 }
 
+//TODO more modes
 FILE* fopen(const char* name,const char* mode){
 	FILE* f = malloc(sizeof(FILE));
-	f->fd = sys_open(name);
+	uint8_t flags = 0;
+	if(!strcmp(mode,"r")){
+		flags |= F_READ;
+	}
+	if(!strcmp(mode,"w")){
+		flags |= F_WRITE;
+	}
+	if(!strcmp(mode,"r+")){
+		flags |= F_READ;
+		flags |= F_WRITE;
+		flags |= F_CREATE;
+	}
+	int fd = sys_open(name,flags);
+	if(fd < 0){
+		free(f);
+		return 0;
+	}else{
+		f->fd = (uint32_t)fd;
+	} 
 	return f;
 }
 

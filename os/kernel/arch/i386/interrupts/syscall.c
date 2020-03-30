@@ -55,6 +55,9 @@ uint32_t sys_read(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t size
 		return 0;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
+	if(!(node->open_flags & F_READ)){
+		return 0;
+	}
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
 	return kread((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
@@ -64,16 +67,21 @@ uint32_t sys_write(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t siz
 		return 0;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
+	if(!(node->open_flags & F_WRITE)){
+		return 0;
+	}
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
 	//kinfo("[SYS_WRITE] %s(%d): %d %e %d %a\n",node->name,node->fsid,fd,offs,size,buffer);
 	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
-uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t _____){
 	
 	fs_node_t* node = kopen((char*)path);
-	if(!node){
+	if(!node && (flags & F_CREATE)){
 		node = kcreate(path,0);
+	}else if(!node){
+		return -1;
 	}
 	get_current_process()->f_descs_cnt++;
 	if(get_current_process()->f_descs){
@@ -82,6 +90,8 @@ uint32_t sys_open(uint32_t path,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 		get_current_process()->f_descs_cnt = 1;
 		get_current_process()->f_descs = kmalloc(sizeof(fs_node_t*));
 	}
+	
+	node->open_flags = flags;
 	
 	get_current_process()->f_descs[get_current_process()->f_descs_cnt-1] = node;
 	//kinfo("[SYS_OPEN] %s(%d) - %d\n",(char*)path,node->fsid,get_current_process()->f_descs_cnt-1);
@@ -117,6 +127,7 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 }
 
 uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t _,uint32_t _____){
+	//kinfo("Trying to execute: %s\n",path);
 	proc_t* p = execute(kseek((char*)path),argv,envp,0);
 	if(!p){
 		return 0;

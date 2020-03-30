@@ -22,6 +22,7 @@ struct fs_node{
 	uint32_t inode;
 	uint8_t flags;
 	uint8_t type;
+	uint8_t open_flags; //Set when node opened
 	struct fs_node* parent;
 	struct fs_node* device;
 	struct fs_node** childs;
