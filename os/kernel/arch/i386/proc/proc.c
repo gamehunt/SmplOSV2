@@ -286,16 +286,18 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	if(argc){
 		argv_copy = kmalloc(sizeof(char*)*argc);
 		for(uint32_t i=0;i<argc;i++){
-			argv_copy[i] = kmalloc(strlen(argv[i]));
-			memcpy(argv_copy[i],argv[i],strlen(argv[i]));
+			argv_copy[i] = kmalloc(strlen(argv[i])+1);
+			memset(argv_copy[i],0,strlen(argv[i])+1);
+			strcpy(argv_copy[i],argv[i]);
 		}
 	}
 	char** envp_copy = 0;
 	if(envsize){
 		envp_copy = kmalloc(sizeof(char*)*envsize);
 		for(uint32_t i=0;i<envsize;i++){
-			envp_copy[i] = kmalloc(strlen(envp[i]));
-			memcpy(envp_copy[i],envp[i],strlen(envp[i]));
+			envp_copy[i] = kmalloc(strlen(envp[i])+1);
+			memset(envp_copy[i],0,strlen(envp[i])+1);
+			strcpy(envp_copy[i],envp[i]);
 		}
 	}
 	set_page_directory(proc->state->cr3);
@@ -316,10 +318,11 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		for(uint32_t i=0;i<argc;i++){
 			
 			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
-			allocation->size = strlen(argv_copy[i]);
+			allocation->size = strlen(argv_copy[i])+1;
 			allocation->prev = 0xAABBCCDD;
 			allocation->next = 0xAABBCCDD;
 			usr_argv[i] = (char*)((uint32_t)allocation + sizeof(mem_t)); 
+			memset(usr_argv[i],0,strlen(argv_copy[i])+1);
 			strcpy(usr_argv[i],argv_copy[i]);
 		}
 	}
@@ -331,10 +334,11 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		usr_envp = (char**)((uint32_t)allocation + sizeof(mem_t));
 		for(uint32_t i=0;i<envsize;i++){
 			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
-			allocation->size = strlen(envp_copy[i]);
+			allocation->size = strlen(envp_copy[i]) + 1;
 			allocation->prev = 0xAABBCCDD;
 			allocation->next = 0xAABBCCDD;
 			usr_envp[i] = (char*)((uint32_t)allocation + sizeof(mem_t));
+			memset(usr_envp[i],0,strlen(envp_copy[i])+1);
 			strcpy(usr_envp[i],envp_copy[i]);
 		}
 	}

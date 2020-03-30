@@ -22,6 +22,7 @@ char**      argv = 0;
 uint32_t    argc = 0;
 
 void process_word(uint8_t* word){
+	//printf("PRC: %s\n",word);
 	if(!exec){
 		exec = malloc(strlen(word)+1);
 		memset(exec,0,strlen(word)+1);
@@ -29,8 +30,11 @@ void process_word(uint8_t* word){
 	}else{
 		if(!argc){
 			argv = malloc(sizeof(char*));
+		}else{
+			argv = realloc(argv,sizeof(char*)*(argc+1));
 		}
-		argv[argc] = malloc(strlen(word));
+		argv[argc] = malloc(strlen(word)+1);
+		memset(argv[argc],0,strlen(word)+1);
 		strcpy(argv[argc],word);
 		argc++;
 	}
@@ -74,6 +78,20 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 		if(!fullpath){
 			printf("[%d]Executable not found: %s\n",time(0)-startup_time,exec);
 		}else{
+			//TODO concated env variables (such as $HOME$PREFIX)
+			if(argc){
+				for(int i=0;i<argc;i++){
+					if(argv[i][0] == '$'){
+						char* newarg = getenv(strtok(argv[i],"$"));
+						if(!newarg){
+							newarg = " ";
+						}
+						free(argv[i]);
+						argv[i] = malloc(strlen(newarg)+1);
+						strcpy(argv[i],newarg);
+					}
+				}
+			}
 			uint32_t pid = execv(fullpath,argv);
 			if(!pid){
 				printf("[%d]Failed to execute: %s\n",time(0)-startup_time,buffer);
