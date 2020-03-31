@@ -100,6 +100,7 @@ uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t
 
 
 uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+//	kinfo("[SYS_CLOSE] %d\n",fds);
 	proc_t* proc = get_current_process();
 	if(proc->f_descs_cnt < fds){
 		kclose(proc->f_descs[fds]);
@@ -109,12 +110,17 @@ uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 }
 
 uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32_t _____){
+	kinfo("{SYSRDR} %d %d %a\n",fd,index,ptr);
 	if(get_current_process()->f_descs_cnt <= fd){
-		return 0;
+		return 1;
+	}
+	if(!validate(ptr)){
+		return 1;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
 	fs_dir_t* kdirent = kreaddir(node);
-	if(kdirent->chld_cnt < index){
+	kinfo("[SRD] %d %d\n",kdirent->chld_cnt,index);
+	if(kdirent->chld_cnt > index){
 		struct dirent* dent = (struct dirent*)ptr;
 		dent->d_ino = index;
 		memcpy(dent->name,kdirent->chlds[index]->name,strlen(kdirent->chlds[index]->name));
@@ -123,6 +129,7 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 		return 1;
 	}
 	kfree(kdirent);
+	
 	return 0;
 }
 

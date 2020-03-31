@@ -141,8 +141,6 @@ fs_node_t* kseek(char* path){
 fs_node_t* kcreate(char* path, uint8_t type){
 	path = canonize_absolute(path);
 	
-	
-	
 	char* name = path_block(path,path_size(path)-1);
 	uint32_t l = strlen(name);
 	path = substr(path,0,strlen(path)-l-1);
@@ -236,7 +234,6 @@ uint32_t kwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer)
 
 
 fs_dir_t* kreaddir(fs_node_t* node){
-	//kinfo("NODE %s: %d vfs childs\n",node->name,node->ccount);
 	if(vfs_check_flag(node->flags,VFS_LINK)){
 		node = (fs_node_t*)node->inode;
 	}

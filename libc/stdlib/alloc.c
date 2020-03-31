@@ -18,6 +18,7 @@ static uint32_t* heap_start = USER_HEAP;
 static uint32_t heap_size = USER_HEAP_SIZE;
 
 #define VALIDATE_PTR(ptr) (USER_HEAP<=ptr && ptr<= heap_size)
+#define validate VALIDATE_PTR 
 
 static mem_t* free_list = 0;
 
@@ -28,7 +29,7 @@ static inline void* ptr(mem_t* alloc){
 	return (void*)((uint32_t)alloc + sizeof(mem_t));
 } 
 static mem_t* split(mem_t* orig,uint32_t size){
-	if(orig->size < size+sizeof(mem_t)){
+	if(orig->size <= size+sizeof(mem_t)){
 		return 0;
 	}
 	if(!size){
@@ -40,25 +41,26 @@ static mem_t* split(mem_t* orig,uint32_t size){
 	mem_t* newb = (mem_t*)((uint32_t)mem+size);
 	newb->size = orig->size - size - sizeof(mem_t);
 	orig->size = size;
-	//kinfo("SPLIT: %d to %d + %d\n",osize,orig->size,newb->size);
+	//kinfo("SPLIT: %d to %d + %d + %d | REQ: %d\n",osize,orig->size,newb->size,sizeof(mem_t),size);
 	return (mem_t*)newb;
 }
 
 void free_insert(mem_t* b){
 	b->prev = 0;
 	b->next = 0;
-	if (!VALIDATE_PTR(free_list) || (unsigned long)free_list> (unsigned long)b) {
-		if (free_list) {
+	if (!validate(free_list) || (unsigned long)free> (unsigned long)b) {
+		if (validate(free_list)) {
 			free_list->prev = b;
 		}
-		b->next = free_list;
+		b->next = free;
 		free_list = b;
-	} else if(VALIDATE_PTR(free_list)){
+		b->prev = 0;
+	} else if(validate(free)){
 		mem_t *curr = free;
-		while (VALIDATE_PTR(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
+		while (validate(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
 			curr = curr->next;
 		}
-		if(VALIDATE_PTR(curr->next)){
+		if(validate(curr->next)){
 			b->next = curr->next;
 			curr->next->prev = b;
 		}
@@ -68,13 +70,14 @@ void free_insert(mem_t* b){
 }
 
 void free_remove(mem_t* b){
-	if (!VALIDATE_PTR(b->prev)) {
-		if (VALIDATE_PTR(b->next)) {
+	if (!validate(b->prev)) {
+		if (validate(b->next)) {
 			free_list = b->next;
+			free_list->prev = 0;
 		} else {
 			free_list = 0;
 		}
-	} else if(VALIDATE_PTR(b->next)){
+	} else if(validate(b->next)){
 		b->prev->next = b->next;
 		b->next->prev = b->prev;
 	} else{
@@ -83,30 +86,30 @@ void free_remove(mem_t* b){
 }
 
 mem_t* free_block(uint32_t size){
-	//return 0;
 	if(!size){
 		return 0;
 	}
 	mem_t* freeb = free_list;
-	if(!VALIDATE_PTR(freeb)){
+	if(!validate(freeb)){
 		return 0;
 	}
-	while(VALIDATE_PTR(freeb)){
+	while(validate(freeb)){
 		if(freeb->size == size){
 			free_remove(freeb);
 			return freeb;
 		}
-		
-		if(freeb->size > size){
+		if(freeb->size > size + sizeof(mem_t)){
+			//continue;
 			mem_t* new_b = split(freeb,size);
-			if(VALIDATE_PTR(new_b)){
+			if(validate(new_b)){
 				free_insert(new_b);
 			}
+			//kinfo("After split: %d when req %d\n",freeb->size,size);
 			free_remove(freeb);
 			return freeb;
 		}
-		
 		freeb = freeb->next;
+		
 	}
 	return 0;
 }

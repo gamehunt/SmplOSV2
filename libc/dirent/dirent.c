@@ -1,17 +1,22 @@
+#include <stdio.h>
 #include <dirent.h>
-
+#include <sys/syscall.h>
 //TODO errno? 
 
 DIR * opendir (const char * dirname){
-	uint32_t fd = fopen(dirname,"");
+	FILE* f = fopen(dirname,"");
+	if(!f){
+		return 0;
+	}
 	DIR* d = malloc(sizeof(DIR));
-	d->fd = fd;
+	d->fd = f->fd;
+	free(f);
 	d->c_entry = 0;
 	return d;
 }
 int closedir (DIR * dir){
 	if(dir && dir->fd != -1){
-		fclose(dir->fd);
+		sys_close(dir->fd);
 		free(dir);
 		return 0;
 	}
@@ -19,9 +24,11 @@ int closedir (DIR * dir){
 }
 struct dirent * readdir (DIR * dirp){
 	struct dirent* dent = malloc(sizeof(struct dirent));
-	uint32_t resp = sys_readdir(dirp->fd,++dirp->c_entry,dent);
+	uint32_t resp = sys_readdir(dirp->fd,dirp->c_entry,dent);
 	if(resp){
-		memset(dent,0,sizeof(struct dirent));
+		free(dent);
+		return 0;
 	}
+	dirp->c_entry++;
 	return dent;
 }
