@@ -30,6 +30,8 @@
 #define SIG_BLOCK_KILL  2
 #define SIG_BLOCK_AWAKE 3
 
+#define PROC_ROOT_UID 0
+
 typedef struct{
 	uint32_t cr3,esp,ebp,eip;
 	uint32_t eax,ebx,ecx,edx;
@@ -74,6 +76,7 @@ struct process{
 	uint8_t   pwait; //Is parent awaiting us?
 	char     work_dir_abs[256];
 	fs_node_t* work_dir;
+	uint32_t uid;
 };
 
 typedef struct process proc_t;

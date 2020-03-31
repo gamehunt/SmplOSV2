@@ -34,6 +34,8 @@ dirent/dirent.o \
 unistd/exec.o \
 unistd/getcwd.o \
 unistd/chdir.o \
+unistd/getpid.o \
+unistd/uid.o \
 stdlib/env.o \
 
 CRT_OBJS=crt0.o\

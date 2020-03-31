@@ -26,6 +26,7 @@ typedef struct{
 
 struct fs_node{
 	char name[64];	
+	uint32_t owner;
 	uint32_t size;
 	uint32_t inode;
 	uint8_t flags;

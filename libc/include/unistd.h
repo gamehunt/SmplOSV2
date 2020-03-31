@@ -14,4 +14,7 @@ int execvp(const char*, char* const[]);
 pid_t fork(void);
 char* getcwd(char*,int);
 int   chdir(char*);
+pid_t getpid();
+uid_t getuid();
+int   setuid(uid_t uid);
 #endif

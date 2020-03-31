@@ -146,7 +146,7 @@ int main(int argc,char** argv,char** envp){
 		printf("Failed to create environment!\n");
 		return 1;
 	}
-	printf("Launched shell\n[%s]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR");
+	printf("Launched shell\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
 	while(1){
 		memset(key,0,sizeof(key_t));
 		memset(pipe_buffer,0,128);
@@ -172,7 +172,7 @@ int main(int argc,char** argv,char** envp){
 						memset(cmd_buffer,0,cmd_buff_idx);
 						cmd_buff_idx=0;
 					}
-					printf("\n[%s]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR");
+					printf("\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
 				}else{
 					putchar(key->key);
 					cmd_buffer[cmd_buff_idx] = key->key;

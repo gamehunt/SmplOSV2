@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <dirent.h>
-
+#include <sys/types.h>
 #include <kernel/interrupts/syscalls.h>
 
 #if !defined(__smplos_libk) && !defined(__smplos_kernel) 
@@ -73,12 +73,21 @@ static inline uint32_t sys_waitpid(int pid){
 	return sys_call(SYS_WAITPID,pid,0,0,0,0);
 }
 
-static inline uint32_t sys_getcwd(char* buffer,uint32_t buffer_size){
+static inline char* sys_getcwd(char* buffer,uint32_t buffer_size){
 	return sys_call(SYS_GETCWD,buffer,buffer_size,0,0,0);
 }
 
 static inline uint32_t sys_chdir(char* path){
 	return sys_call(SYS_CHDIR,path,0,0,0,0);
+}
+static inline pid_t sys_getpid(){
+	return sys_call(SYS_GETPID,0,0,0,0,0);
+}
+static inline uid_t sys_getuid(){
+	return sys_call(SYS_GETUID,0,0,0,0,0);
+}
+static inline int sys_setuid(uid_t uid){
+	return sys_call(SYS_SETUID,uid,0,0,0,0);
 }
 
 #endif

@@ -201,6 +201,8 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	
 	new_proc->sig_stack_esp = -1;
 	
+	new_proc->uid = parent?parent->uid:PROC_ROOT_UID;
+	
 	if(parent){
 		new_proc->work_dir = parent->work_dir;
 		strcpy(new_proc->work_dir_abs,parent->work_dir_abs);

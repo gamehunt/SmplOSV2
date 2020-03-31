@@ -240,6 +240,19 @@ uint32_t sys_chdir(uint32_t path,uint32_t _,uint32_t ___,uint32_t ____,uint32_t 
 	}
 	return -1;
 }
+uint32_t sys_getpid(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	return get_current_process()->pid;
+}
+uint32_t sys_getuid(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	return get_current_process()->uid;
+}
+uint32_t sys_setuid(uint32_t uid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+	if(get_current_process()->uid != PROC_ROOT_UID){
+		return -1; //Only root can change it's owner
+	}
+	get_current_process()->uid = uid;
+	return 0;
+}
 
 
 void init_syscalls(){
@@ -267,4 +280,7 @@ void init_syscalls(){
 	register_syscall(SYS_WAITPID,&sys_waitpid);
 	register_syscall(SYS_GETCWD,&sys_getcwd);
 	register_syscall(SYS_CHDIR,&sys_chdir);
+	register_syscall(SYS_GETUID,&sys_getuid);
+	register_syscall(SYS_SETUID,&sys_setuid);
+	register_syscall(SYS_GETPID,&sys_getpid);
 }
