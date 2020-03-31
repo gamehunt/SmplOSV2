@@ -14,8 +14,10 @@
 int main(){
 	//*((uint8_t*)0xFFFFFFFF) = 0;
 	sys_echo("Init start",0);
+	
+	//TODO this should be readen from some file
 	execv("/usr/bin/tty.smp",0);
-	execv("/usr/bin/login.smp",0);
+	execv("/usr/bin/shell.smp",0);
 	while(1);
 	return 0;
 }

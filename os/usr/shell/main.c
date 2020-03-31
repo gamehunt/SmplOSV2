@@ -171,7 +171,8 @@ int main(int argc,char** argv,char** envp){
 	
 	sys_signal(SIG_CHILD,sig_child);
 	
-	printf("Launched shell\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
+	printf("Launched shell\n");
+	process_input("login",strlen("login"));
 	while(1){
 		memset(key,0,sizeof(key_t));
 		memset(pipe_buffer,0,128);
