@@ -61,7 +61,7 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 	}
 	
 	for(int i=0;i<par->entry->child_count;i++){
-		//printf("--Got: %a (%d): %s\n",(uint32_t)par->childs[i],i,par->childs[i]->name);
+		//printf("--Got: %a (%d): %s\n",(uint32_t)par->entry->childs[i],i,par->entry->childs[i]->name);
 		if(!strcmp(name,par->entry->childs[i]->name)){
 			return par->entry->childs[i];
 		}

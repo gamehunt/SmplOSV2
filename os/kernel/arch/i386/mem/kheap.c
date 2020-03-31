@@ -40,7 +40,7 @@ static inline void* ptr(mem_t* alloc){
 } 
 
 static mem_t* split(mem_t* orig,uint32_t size){
-	if(orig->size < size+sizeof(mem_t)){
+	if(orig->size <= size+sizeof(mem_t)){
 		return 0;
 	}
 	if(!size){
@@ -52,7 +52,7 @@ static mem_t* split(mem_t* orig,uint32_t size){
 	mem_t* newb = (mem_t*)((uint32_t)mem+size);
 	newb->size = orig->size - size - sizeof(mem_t);
 	orig->size = size;
-	//kinfo("SPLIT: %d to %d + %d\n",osize,orig->size,newb->size);
+	//kinfo("SPLIT: %d to %d + %d + %d | REQ: %d\n",osize,orig->size,newb->size,sizeof(mem_t),size);
 	return (mem_t*)newb;
 }
 
@@ -65,6 +65,7 @@ void free_insert(mem_t* b){
 		}
 		b->next = free;
 		free = b;
+		b->prev = 0;
 	} else if(validate(free)){
 		mem_t *curr = free;
 		while (validate(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
@@ -83,6 +84,7 @@ void free_remove(mem_t* b){
 	if (!validate(b->prev)) {
 		if (validate(b->next)) {
 			free = b->next;
+			free->prev = 0;
 		} else {
 			free = 0;
 		}
@@ -107,15 +109,18 @@ mem_t* free_block(uint32_t size){
 			free_remove(freeb);
 			return freeb;
 		}
-		if(freeb->size > size){
+		if(freeb->size > size + sizeof(mem_t)){
+			//continue;
 			mem_t* new_b = split(freeb,size);
 			if(validate(new_b)){
 				free_insert(new_b);
 			}
+			//kinfo("After split: %d when req %d\n",freeb->size,size);
 			free_remove(freeb);
 			return freeb;
 		}
 		freeb = freeb->next;
+		
 	}
 	return 0;
 }
@@ -143,11 +148,7 @@ void merge()
 }
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
-	if(!size){
-		kwarn("Tried to do allocation with null size. It's bad.\n");
-		return 0;
-	}
-	if(size >= KHEAP_SIZE){
+	if(!size || size >= KHEAP_SIZE){
 		crash_info_t crash;
 		crash.description = "KHEAP: Invalid allocation";
 		char message[128]; 
@@ -155,8 +156,6 @@ uint32_t* kmalloc(uint32_t size){
 		crash.extra_info = message;
 		crash.regs = 0;
 		kpanic(crash);
-		//return 0;
-		return 0;
 	}
 	i_update_stat(stat_alloc,1);
 	mem_t* block = free_block(size);
@@ -168,6 +167,7 @@ uint32_t* kmalloc(uint32_t size){
 		block->prev = 0xAABBCCDD;
 		return ptr(block);
 	}else{
+		//
 		if((uint32_t)heap_start + sizeof(mem_t)+size >= (uint32_t)heap_start_static+KHEAP_SIZE){
 			crash_info_t crash;
 			crash.description = "KHEAP: Out of memory";
@@ -176,7 +176,6 @@ uint32_t* kmalloc(uint32_t size){
 			crash.extra_info = message;
 			crash.regs = 0;
 			kpanic(crash);
-			return 0;
 		}
 		i_update_stat(stat_alloc_total,size);
 		i_update_stat(stat_max_load,size);
@@ -185,6 +184,7 @@ uint32_t* kmalloc(uint32_t size){
 		nblock->size = size;
 		nblock->prev = 0xAABBCCDD;
 		nblock->next = 0xAABBCCDD;
+		
 		return ptr(nblock);
 	}
 	return 0;
@@ -193,7 +193,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 	
-	return; //TODO find another bug in kfree
+	//return; //TODO find another bug in kfree
 	
 	mem_t* block = header(addr);
 	
