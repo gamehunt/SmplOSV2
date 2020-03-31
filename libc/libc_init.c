@@ -22,13 +22,9 @@ void libc_init(int argc, char** argv, char** envp){
 	env_size = i;
 	
 	//default std streams
-	if(!sys_open("/dev/tty",F_WRITE)){
-		sys_open("/dev/null",F_WRITE);
-	}
-	if(!sys_open("/dev/tty",F_WRITE)){
-		sys_open("/dev/null",F_WRITE);
-	}
-	sys_open("/dev/null",F_READ);
+	sys_open("/dev/stdout",F_WRITE);
+	sys_open("/dev/stderr",F_WRITE);
+	sys_open("/dev/stdin",F_READ);
 	
 	sys_exit(main(argc,argv,envp));
 }

@@ -487,6 +487,7 @@ void exit(proc_t* proc){
 		wait_remove(proc);
 	}
 	proc->status = PROC_DEAD;
+	send_signal(proc->parent,SIG_CHILD);
 	killed_insert(proc);
 	if(proc == current_process){
 		current_process = 0;
@@ -615,12 +616,12 @@ void sig_register(uint32_t sig, sig_t* ss){
 }
 
 void init_signals(){
-	sig_t* test_sig = kmalloc(sizeof(sig_t));
-	memcpy(test_sig->name,"SIGTEST",8);
-	test_sig->unhandled_behav = SIG_UNHANDLD_IGNORE;
-	test_sig->block_behav     = SIG_BLOCK_WAIT;
-	test_sig->sig_num = 0;
-	sig_register(0,test_sig);
+	sig_t* sigchld = kmalloc(sizeof(sig_t));
+	strcpy(sigchld->name,"SIGCHILD");
+	sigchld->unhandled_behav = SIG_UNHANDLD_IGNORE;
+	sigchld->block_behav     = SIG_BLOCK_AWAKE;
+	sigchld->sig_num = SIG_CHILD;
+	sig_register(SIG_CHILD,sigchld);
 }
 
 void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig){

@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <kernel/interrupts/syscalls.h>
+#include <kernel/proc/proc.h>
 
 #if !defined(__smplos_libk) && !defined(__smplos_kernel) 
 
@@ -88,6 +89,18 @@ static inline uid_t sys_getuid(){
 }
 static inline int sys_setuid(uid_t uid){
 	return sys_call(SYS_SETUID,uid,0,0,0,0);
+}
+static inline int sys_link(char* whom,char* to){
+	return sys_call(SYS_LINK,whom,to,0,0,0);
+}
+static inline int sys_send(uint32_t pid,uint32_t sig){
+	return sys_call(SYS_SIG,pid,sig,0,0,0);
+}
+static inline int sys_signal(uint32_t sig, sig_handler_t handler){
+	return sys_call(SYS_SIGHANDL,sig,handler,0,0,0);
+}
+static inline int sys_sigexit(){
+	return sys_call(SYS_SIGEXIT,0,0,0,0,0);
 }
 
 #endif

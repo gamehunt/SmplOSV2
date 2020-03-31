@@ -15,12 +15,15 @@
 
 #include <gdi.h>
 
+
 int main(){
 	char* path = "/dev/tty";
 	uint32_t args[] = {(uint32_t)path,1024};
 	FILE* master_pipe = fopen("/dev/pipe","");
 	sys_ioctl(master_pipe->fd,0xC0,args);
 	sys_close(master_pipe->fd);
+	sys_link("/dev/tty","/dev/stdout");
+	sys_link("/dev/tty","/dev/stderr");
 	FILE* tty = fopen("/dev/tty","r+");
 	gdi_init("/dev/fb0",1024,768);
 	int x = 0;

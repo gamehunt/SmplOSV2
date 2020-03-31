@@ -54,6 +54,6 @@ size_t fwrite(const void*, size_t, size_t, FILE*);
 void setbuf(FILE*, char*);
 void fputc(char,FILE*);
 void fputs(const char*, FILE*);
-
+char *fgets(char *str, int num, FILE *stream);
 #endif
 CH_END

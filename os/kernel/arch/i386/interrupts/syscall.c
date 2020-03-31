@@ -110,7 +110,6 @@ uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 }
 
 uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32_t _____){
-	kinfo("{SYSRDR} %d %d %a\n",fd,index,ptr);
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 1;
 	}
@@ -119,7 +118,6 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
 	fs_dir_t* kdirent = kreaddir(node);
-	kinfo("[SRD] %d %d\n",kdirent->chld_cnt,index);
 	if(kdirent->chld_cnt > index){
 		struct dirent* dent = (struct dirent*)ptr;
 		dent->d_ino = index;
@@ -253,6 +251,9 @@ uint32_t sys_setuid(uint32_t uid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t 
 	get_current_process()->uid = uid;
 	return 0;
 }
+uint32_t sys_link(uint32_t patha,uint32_t pathb,uint32_t ___,uint32_t ____,uint32_t _____){
+	return klink(patha,pathb)?1:0;
+}
 
 
 void init_syscalls(){
@@ -283,4 +284,5 @@ void init_syscalls(){
 	register_syscall(SYS_GETUID,&sys_getuid);
 	register_syscall(SYS_SETUID,&sys_setuid);
 	register_syscall(SYS_GETPID,&sys_getpid);
+	register_syscall(SYS_LINK,&sys_link);
 }

@@ -21,6 +21,16 @@ char*       exec = 0;
 char**      argv = 0;
 uint32_t    argc = 0;
 
+
+static uint8_t in_exec = 0;
+
+int sig_child(){
+	in_exec = 0;
+	printf("\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
+	sys_sigexit();
+}
+
+
 void process_word(uint8_t* word){
 	if(!exec){
 		exec = malloc(strlen(word)+1);
@@ -115,7 +125,7 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 					printf("Failed to execute: %s\n",buffer);
 				//return;
 				}else{
-					sys_waitpid(pid);
+					in_exec = 1;
 				}
 			}else{
 				printf("Executable not found: %s\n",exec);
@@ -137,15 +147,30 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 
 int main(int argc,char** argv,char** envp){
 	//printf("cwdbuffer at %a\n",cwdbuffer);
-	FILE* kbd = fopen("/dev/kbd","r");
+
+	char* path = "/dev/stdin";
+	
 	key_t* key = malloc(sizeof(key_t));
 	uint8_t* pipe_buffer = malloc(128);
 	uint8_t* cmd_buffer  = malloc(2048);
 	uint16_t cmd_buff_idx = 0;
+	
+	FILE* master_pipe = fopen("/dev/pipe","");
+	FILE* kbd = fopen("/dev/kbd","r");
+		
+	uint32_t pipe_params[] = {(uint32_t)path,1024};
+	sys_ioctl(master_pipe->fd,0xC0,pipe_params);
+	sys_close(master_pipe->fd);
+	
+	FILE* instd = fopen("/dev/stdin","w");
+	
 	if(setenv("PATH","/usr/bin",1) < 0){
 		printf("Failed to create environment!\n");
 		return 1;
 	}
+	
+	sys_signal(SIG_CHILD,sig_child);
+	
 	printf("Launched shell\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
 	while(1){
 		memset(key,0,sizeof(key_t));
@@ -168,11 +193,17 @@ int main(int argc,char** argv,char** envp){
 						putchar('\n');
 						cmd_buffer[cmd_buff_idx+1] = '\0';
 						cmd_buff_idx++;
-						process_input(cmd_buffer,cmd_buff_idx);
+						if(!in_exec){
+							process_input(cmd_buffer,cmd_buff_idx); //Process shell cmd
+						}else{
+							fwrite(cmd_buffer,cmd_buff_idx,1,instd); //Send to process
+						}
 						memset(cmd_buffer,0,cmd_buff_idx);
 						cmd_buff_idx=0;
 					}
-					printf("\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
+					if(!in_exec){
+						printf("\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
+					}
 				}else{
 					putchar(key->key);
 					cmd_buffer[cmd_buff_idx] = key->key;

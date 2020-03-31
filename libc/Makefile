@@ -30,6 +30,7 @@ LIBC_OBJS=$(ALL_OBJS)\
 libc_init.o\
 syscall.o \
 stdio/stdio.o\
+stdio/fgets.o\
 dirent/dirent.o \
 unistd/exec.o \
 unistd/getcwd.o \

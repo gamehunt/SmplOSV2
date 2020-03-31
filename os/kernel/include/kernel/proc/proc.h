@@ -32,6 +32,8 @@
 
 #define PROC_ROOT_UID 0
 
+#define SIG_CHILD 0
+
 typedef struct{
 	uint32_t cr3,esp,ebp,eip;
 	uint32_t eax,ebx,ecx,edx;
