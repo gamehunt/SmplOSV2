@@ -129,7 +129,7 @@ int main(int argc,char** argv,char** envp){
 	uint8_t* pipe_buffer = malloc(128);
 	uint8_t* cmd_buffer  = malloc(2048);
 	uint16_t cmd_buff_idx = 0;
-	if(setenv("PATH","/root/usr/bin",1) < 0){
+	if(setenv("PATH","/usr/bin",1) < 0){
 		printf("Failed to create environment!\n");
 		return 1;
 	}

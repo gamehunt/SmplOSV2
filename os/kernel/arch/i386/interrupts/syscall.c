@@ -113,7 +113,7 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 		return 0;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
-	fs_dirent_t* kdirent = kreaddir(node);
+	fs_dir_t* kdirent = kreaddir(node);
 	if(kdirent->chld_cnt < index){
 		struct dirent* dent = (struct dirent*)ptr;
 		dent->d_ino = index;

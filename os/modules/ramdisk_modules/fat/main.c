@@ -247,7 +247,7 @@ uint32_t fat_parse_cluster(fs_node_t* device,fat_bpb_t* bpb,uint32_t cluster,fat
 }
 
 fs_node_t* fat_mount(fs_node_t* root,fs_node_t* device){
-	if(!device){
+	if(!validate(device)){
 		kerr("Failed to mount node: Invalid device!\n");
 		return root; 
 	}
@@ -288,20 +288,20 @@ fs_node_t* fat_seek(char* path,fs_node_t* root){
 				char* lfe_name    = validate(entries[i].lfe)?lfe2str(entries[i].lfe):"";
 				//kinfo("%s %s ETA: %s\n",dirent_name,lfe_name,path);
 				if(!strcmp(dirent_name,path) || !strcmp(lfe_name,path)){
-						fs_node_t* node = kmalloc(sizeof(fs_node_t));
+						fs_node_t* node = allocate_fs_node();
 						char* name = lfe_name == ""?dirent_name:lfe_name;
 						strcpy(node->name,name);
 						kfree(dirent_name);
 						kfree(lfe_name);
 						node->device = root->device;
-						node->parent = root;
+						node->entry->parent = root;
+						node->entry->child_count = 0;
 						fat_cluster_entry_t* seekent = kmalloc(sizeof(fat_cluster_entry_t));
 						memset(seekent,0,sizeof(fat_cluster_entry_t));
 						memcpy(seekent,&entries[i],sizeof(fat_cluster_entry_t));
 						node->inode = (uint32_t)seekent;
 						node->size = seekent->dirent->file_size;
 						node->fsid = fsid;
-						node->ccount = 0;
 						node->flags = 0;
 						kfree(entries);
 						return node;
@@ -354,11 +354,11 @@ uint32_t fat_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffe
 	}
 }
 
-fs_dirent_t* fat_readdir(fs_node_t* node){
+fs_dir_t* fat_readdir(fs_node_t* node){
 	fat_cluster_entry_t* ent = (fat_cluster_entry_t*)node->inode;
-	fs_dirent_t* dir = 0;
+	fs_dir_t* dir = 0;
 	if(ent->dirent->attribs == 0x10){
-		dir = kmalloc(sizeof(fs_dirent_t));
+		dir = kmalloc(sizeof(fs_dir_t));
 		dir->chld_cnt = 0;
 		dir->chlds = kmalloc(sizeof(fs_node_t*));
 		uint32_t cluster = vfs_check_flag(node->flags, VFS_MOUNTPOINT)?((fat32_bpb_t*)&ent->bpb->ebpb[0])->root_cluster:(((uint32_t)ent->dirent->first_cluster_high<<16) + ent->dirent->first_cluster_low);
@@ -377,7 +377,7 @@ fs_dirent_t* fat_readdir(fs_node_t* node){
 						char* lfe_name    = validate(entries[i].lfe)?lfe2str(entries[i].lfe):"";
 						char* name = lfe_name == ""?dirent_name:lfe_name;
 						
-						fs_node_t* dnode = kmalloc(sizeof(fs_node_t));
+						fs_node_t* dnode = allocate_fs_node();
 						
 						strcpy(dnode->name,name);
 						
@@ -385,7 +385,8 @@ fs_dirent_t* fat_readdir(fs_node_t* node){
 						kfree(lfe_name);
 						
 						dnode->device = node->device;
-						dnode->parent = node;
+						dnode->entry->parent = node;
+						dnode->entry->child_count = 0;
 						fat_cluster_entry_t* seekent = kmalloc(sizeof(fat_cluster_entry_t));
 						memset(seekent,0,sizeof(fat_cluster_entry_t));
 						memcpy(seekent,&entries[i],sizeof(fat_cluster_entry_t));
@@ -393,7 +394,7 @@ fs_dirent_t* fat_readdir(fs_node_t* node){
 						dnode->inode = (uint32_t)seekent;
 						dnode->size = entries[i].dirent->file_size;
 						dnode->fsid = fsid;
-						dnode->ccount = 0;
+						
 						dnode->flags = 0;
 						
 						dir->chld_cnt++;

@@ -11,7 +11,7 @@
 #include <kernel/misc/stat.h>
 #include <kernel/global.h>
 #include <string.h>
-//Very,very,VERY simple allocator, alloc: O(n), free: O(n)
+//Simple allocator, alloc: O(n), free: O(n)
 static uint32_t allocated;
 static uint32_t* heap_start;
 static uint32_t* heap_start_static;
@@ -95,7 +95,6 @@ void free_remove(mem_t* b){
 }
 
 mem_t* free_block(uint32_t size){
-	//return 0;
 	if(!size){
 		return 0;
 	}
@@ -108,7 +107,6 @@ mem_t* free_block(uint32_t size){
 			free_remove(freeb);
 			return freeb;
 		}
-		
 		if(freeb->size > size){
 			mem_t* new_b = split(freeb,size);
 			if(validate(new_b)){
@@ -117,7 +115,6 @@ mem_t* free_block(uint32_t size){
 			free_remove(freeb);
 			return freeb;
 		}
-		
 		freeb = freeb->next;
 	}
 	return 0;
@@ -147,6 +144,7 @@ void merge()
 //just allocates memory
 uint32_t* kmalloc(uint32_t size){
 	if(!size){
+		kwarn("Tried to do allocation with null size. It's bad.\n");
 		return 0;
 	}
 	if(size >= KHEAP_SIZE){
@@ -195,7 +193,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 	
-	//return; //TODO find another bug in kfree
+	return; //TODO find another bug in kfree
 	
 	mem_t* block = header(addr);
 	
@@ -203,6 +201,8 @@ void kfree(uint32_t* addr){
 		return;
 		
 	}
+	
+	memset(addr,0,block->size);
 	
 	i_update_stat(stat_free,1);
 	i_update_stat(stat_freed_total,block->size);

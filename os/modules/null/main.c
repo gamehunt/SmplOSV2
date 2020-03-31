@@ -29,7 +29,7 @@ uint8_t load(){
 	nullfs->write = null_write;
 	nullfs->name = "null";
 	uint32_t idx = register_fs(nullfs);
-	kmount("/dev/null",0,idx);
+	kmount("/dev/null","",idx);
 	return 0;
 }
 uint8_t unload(){

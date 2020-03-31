@@ -60,14 +60,13 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_pit();
 	init_rtc();
 	init_vfs(); 
+	
 	init_signals();
 	
 	modules_load();
-
-//	dump_vfs();
-
-	kmount("/root","/dev/sda1",ktypeid("fat"));
-	fs_node_t* node = kopen("/root/CHECK");
+	
+	kmount("/","/dev/sda1",ktypeid("fat"));
+	fs_node_t* node = kopen("/CHECK");
 	
 	
 	 
@@ -80,8 +79,8 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	
 
-	fs_node_t* dir = kopen("/root/bin/modules");
-	fs_dirent_t* modd = 0;
+	fs_node_t* dir = kopen("/bin/modules");
+	fs_dir_t* modd = 0;
 	if(dir){
 		modd = kreaddir(dir);
 		kclose(dir);
@@ -96,7 +95,9 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	}
 	
 	mem_stat();
-	fs_node_t* init = kopen("/root/usr/bin/init.smp");
+	
+	
+	fs_node_t* init = kopen("/usr/bin/init.smp");
 	if(init){
 		execute(init,0,0,1);
 	}

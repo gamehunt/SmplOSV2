@@ -93,7 +93,7 @@ uint8_t load(){
 		kmpalloc((uint32_t*)((uint32_t)lfb+i*4096),(uint32_t*)((uint32_t)lfb+i*4096),0);
 	}
 	kinfo("LFB at %a\n",lfb);
-	fs_node_t* node = kcreate("/dev/fb0",0);
+	fs_node_t* node = kcreate("/dev/fb0",VFS_TYPE_VIRTUAL);
 	node->inode = (uint32_t)lfb;
 	node->ioctl = fb_ioctl;
 	return 0;

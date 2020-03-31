@@ -81,20 +81,16 @@ void init_symtable(){
 	symbol_export("inw",&inw);
 	symbol_export("inl",&inl);
 	
-	symbol_export("create_vfs_mapping",&create_vfs_mapping);
 	symbol_export("allocate_fs_node",&allocate_fs_node);
 	symbol_export("kmount",&kmount);
 	symbol_export("kread",&kread);
 	symbol_export("kwrite",&kwrite);
-	symbol_export("kumount",&kumount);
 	symbol_export("kseek",&kseek);
 	symbol_export("kcreate",&kcreate);
-	symbol_export("kremove",&kremove);
 	symbol_export("kopen",&kopen);
 	symbol_export("kclose",&kclose);
 	symbol_export("ktypeid",&ktypeid);
 	symbol_export("register_fs",&register_fs);
-	symbol_export("unregister_fs",&unregister_fs);
 	symbol_export("vfs_set_flag",&vfs_set_flag);
 	symbol_export("vfs_check_flag",&vfs_check_flag);
 	symbol_export("vfs_clear_flag",&vfs_clear_flag);

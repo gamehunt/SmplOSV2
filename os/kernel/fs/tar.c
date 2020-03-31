@@ -8,6 +8,7 @@
 
 #include <kernel/fs/tar.h>
 #include <kernel/memory/memory.h>
+#include <kernel/misc/pathutils.h>
 
 static uint32_t tarfs_id = 0;
 
@@ -36,63 +37,8 @@ fs_node_t* tar_header2node(tar_hdr_t* hdr){
 	node->flags = 0;
 	return node;
 }
-static uint32_t path_size(char* path){
-	uint32_t blocks = 0 ;
-	for(int i=0;i<strlen(path);i++){
-		if(path[i] == '/'){
-			blocks++;
-		}
-	}
-	return blocks-1;
-}
 
-static char* path_block(char* path,uint32_t block){
-	//printf("BLOCK\n");
-	uint32_t blocks = 0 ;
-	int a=-1;
-	int b=-1;
-	for(int i=0;i<strlen(path);i++){
-		if(blocks==block && path[i] == '/'){
-			if(a < 0){
-				a = i+1;
-			}else{
-				b = i;
-				break;
-			}
-		}else if(path[i] == '/'){
-			blocks++;
-		}
-	}
-	if(a > 0 && b > 0){
-		//printf("BLOCK END\n");
-		return substr(path,a,b);
-	}
-	//printf("BLOCK END\n");
-	return path;
-}
-static char* canonize_absolute(char* path){
-	//printf("CANONIZE\n");
-	char* npath = kmalloc(sizeof(char)*256);
-	uint32_t size = strlen(path);	
-	if(path[0]!='/'){
-		size++;
-	}
-	if(path[strlen(path)-1] != '/'){
-		size++;
-	}
-	npath = kmalloc(size+2);
-	memset(npath,0,size+2);
-	if(path[0]!='/'){
-		npath[0]='/';
-	}
-	strcat(npath,path);
-	if(path[strlen(path)-1] != '/'){
-		strcat(npath,"/");
-	}
-	//printf("CANONIZE END\n");
-	return npath; //npath
-}
-fs_node_t* tar_mount(fs_node_t* root){
+fs_node_t* tar_mount(fs_node_t* root,fs_node_t* device){
 	tar_hdr_t** hdrs = kmalloc(sizeof(tar_hdr_t*)*module_ramdisk_count());
 	root->inode = hdrs;
 	
@@ -106,7 +52,7 @@ fs_node_t* tar_mount(fs_node_t* root){
 			//kinfo("%s\n",header);
 			if (header->filename[0] == '\0')
 				break;
-			memcpy(header->filename,path_block(canonize_absolute(header->filename),path_size(canonize_absolute(header->filename))-1));
+			strcpy(header->filename,path_block(canonize_absolute(header->filename),path_size(canonize_absolute(header->filename))-1));
 			unsigned int size = getsize(header->size);
 			
 			hdrs[j] = header;
@@ -168,9 +114,9 @@ fs_node_t* tar_seek(char* s,fs_node_t* root){
 }
 uint32_t init_tar(){
 	fs_t* fs = kmalloc(sizeof(fs_t));
+	fs->name = "tar";
 	fs->mount = &tar_mount;
 	fs->read = &tar_read;
-	fs->umount = &tar_umount;
 	fs->seek = &tar_seek;
 	tarfs_id = register_fs(fs);
 	kinfo("TarFS initialized: fsid %d\n",tarfs_id);

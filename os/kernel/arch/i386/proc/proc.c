@@ -365,9 +365,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	kfree(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);
-	
-	//kinfo("%d\n",usr_argv);
-	
+
 	PUSH(proc->state->esp,char**,usr_envp);
 	PUSH(proc->state->esp,char**,usr_argv);
 	PUSH(proc->state->esp,int,   argc);
@@ -395,16 +393,16 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 }
 
 void clean_process(proc_t* proc){
+	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 	if(proc->pwait){
 		if(proc->parent->status == PROC_WAIT){
-			//kinfo("Awaking process %s\n",proc->parent->name);
 			wait_remove(proc->parent);
 			ready_insert(proc->parent);
 		}
 	}
-	kinfo("Cleaning process: %s(%d)\n",proc->name,proc->pid);
-	total_prcs--;
+	
 	uint32_t pid = proc->pid;
+	total_prcs--;
 	kpfree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->state->k_esp);
 	kfree(processes[proc->pid]->state);
@@ -467,7 +465,6 @@ void schedule(regs_t reg,uint8_t save){
 			}
 		}
 		clean_processes();
-		//kinfo("Switching to: %d\n",current_process->pid);
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
@@ -534,7 +531,6 @@ void process_fswait_notify(proc_t* process,fs_node_t* node){
 	if(process->fswait_nodes_cnt){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
 			if(node->inode == process->fswait_nodes[i]->inode){
-				//kinfo("Notifying %s\n",process->name);
 				process_fswait_awake(process);
 			}
 		}
@@ -542,21 +538,18 @@ void process_fswait_notify(proc_t* process,fs_node_t* node){
 }
 
 void process_waitpid(proc_t* proc,uint32_t pid){
+	
 	if(!proc->child_count){
 		return;
 	}
 	
-	for(uint32_t i = 0;i<proc->child_count;i++){
-		if(proc->childs[i]->pid == pid){
-			proc_t* child = proc->childs[i];
-			child->pwait = 1;
+	if(get_process_by_pid(pid) && get_process_by_pid(pid)->parent == proc){
+			get_process_by_pid(pid)->pwait = 1;
 			ready_remove(proc);
 			wait_insert(proc);
 			if(proc == current_process){
 				schedule(0,1);
 			}
-			break;
-		}
 	}
 }
 

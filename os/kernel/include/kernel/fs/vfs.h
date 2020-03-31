@@ -9,36 +9,40 @@
 #pragma once
 #include <stdint.h>
 
-#define MAX_FS 65535
+#define VFS_DIRECTORY  0x01
+#define VFS_MOUNTPOINT 0x02
+#define VFS_LINK       0x04
 
-#define VFS_PRESENT    0x1
-#define VFS_MOUNTED    0x2 //Idk why...
-#define VFS_MOUNTPOINT 0x2 //
-#define VFS_LINK       0x4
+#define VFS_TYPE_VIRTUAL 0x01
+#define VFS_TYPE_REAL    0x00
+
+struct fs_node;
+
+typedef struct{
+	uint32_t child_count;
+	struct fs_node** childs;
+	struct fs_node*  parent;
+}vfs_entry_t;
 
 struct fs_node{
 	char name[64];	
 	uint32_t size;
 	uint32_t inode;
 	uint8_t flags;
-	uint8_t type;
 	uint8_t open_flags; //Set when node opened
-	struct fs_node* parent;
 	struct fs_node* device;
-	struct fs_node** childs;
-	uint32_t ccount;
+	vfs_entry_t*    entry;
 	uint16_t fsid;
-	uint32_t(*ioctl)(struct fs_node*,uint32_t req,void* argp);
+	uint32_t(*ioctl)(struct fs_node*,uint32_t req,void* argp); //We can make ioctl different for different nodes in the same fsid
 };
 
 typedef struct fs_node fs_node_t;
 
-struct fs_dirent{
+struct fs_dir{
 	uint32_t chld_cnt;
 	fs_node_t** chlds;
 };
-
-typedef struct fs_dirent fs_dirent_t;
+typedef struct fs_dir fs_dir_t;
 
 typedef struct{
 	const char* name;
@@ -48,20 +52,17 @@ typedef struct{
 	uint32_t (*write)(fs_node_t*, uint64_t, uint32_t, uint8_t*);
 	fs_node_t* (*seek)(char*,fs_node_t*);
 	fs_node_t* (*create)(char*,fs_node_t*,uint8_t);
-	fs_dirent_t* (*readdir)(fs_node_t*);
+	fs_dir_t* (*readdir)(fs_node_t*); //returns child at index
 	uint8_t (*remove)(fs_node_t*);
 	uint32_t (*ioctl)(fs_node_t*,uint32_t req, void* argp);
 	uint32_t     (*add_waiter)(fs_node_t*,void*);
 	void     (*remove_waiter)(fs_node_t*,uint32_t);
 }fs_t;
 
-
 void dump_vfs();
 void init_vfs();
 uint16_t register_fs(fs_t* fs);
 uint8_t unregister_fs(uint16_t fs);
-
-fs_node_t* create_vfs_mapping(char* path);
 
 fs_node_t* allocate_fs_node();
 
@@ -80,7 +81,7 @@ uint8_t kumount();
 uint32_t kread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
 uint32_t kwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer);
 uint8_t kremove(char* path);
-fs_dirent_t* kreaddir(fs_node_t* node);
+fs_dir_t* kreaddir(fs_node_t* node);
 uint8_t klink(char* src,char* link);
 uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp);
 void    kaddwaiter(fs_node_t* node, void* proc);
