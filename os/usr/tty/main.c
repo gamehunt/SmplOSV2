@@ -15,19 +15,23 @@
 
 #include <gdi.h>
 
+#define XRES 1024
+#define YRES 768
 
 int main(){
 	char* path = "/dev/tty";
 	uint32_t args[] = {(uint32_t)path,1024};
+	FILE* fb = fopen("/dev/fb0","w");
 	FILE* master_pipe = fopen("/dev/pipe","");
 	sys_ioctl(master_pipe->fd,0xC0,args);
 	sys_close(master_pipe->fd);
 	sys_link("/dev/tty","/dev/stdout");
 	sys_link("/dev/tty","/dev/stderr");
 	FILE* tty = fopen("/dev/tty","r+");
-	gdi_init("/dev/fb0",1024,768);
+	gdi_init("/dev/fb0",XRES,YRES);
 	int x = 0;
 	int y = 12;
+	int yoffs = 17;
 	uint8_t* buffer = malloc(1024);
 	//TODO scrolling
 	while(1){
@@ -51,15 +55,23 @@ int main(){
 			if(c == '\n'){
 				x = 0;
 				y+=17;
+				if(y >= YRES){
+					sys_ioctl(fb->fd,0x20,&yoffs);
+					yoffs+=17;
+				}
 				continue;
 			}
 			if(c == '\t'){
 				x += 30;
-				if(x >= 1024){
+				if(x >= XRES){
 						x = 0;
 						y+=17;
-					}
-					continue;
+						if(y >= YRES){ //TODO move this block to separate function
+							sys_ioctl(fb->fd,0x20,&yoffs);
+							yoffs+=17;
+						}
+				}
+				continue;
 			}
 			if(c == '\0'){
 				continue;
@@ -70,6 +82,10 @@ int main(){
 			if(x >= 1024){
 				x = 0;
 				y+=17;
+				if(y >= YRES){
+					sys_ioctl(fb->fd,0x20,&yoffs);
+					yoffs+=17; //TODO handle overflow
+				}
 			}
 		}
 	}
