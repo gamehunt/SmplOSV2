@@ -172,7 +172,15 @@ int main(int argc,char** argv,char** envp){
 	sys_signal(SIG_CHILD,sig_child);
 	
 	printf("Launched shell\n");
+	
+	uint32_t random = 0;
+	FILE* random_file = fopen("/dev/random","r");
+	fread(&random,4,1,random_file);
+	fclose(random_file);
+	printf("\nToday's random integer is %a\n\n",random);
+	
 	process_input("login",strlen("login"));
+	
 	while(1){
 		memset(key,0,sizeof(key_t));
 		memset(pipe_buffer,0,128);

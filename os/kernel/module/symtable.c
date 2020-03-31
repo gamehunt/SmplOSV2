@@ -14,6 +14,7 @@
 #include <kernel/memory/memory.h>
 #include <kernel/io/io.h>
 #include <kernel/dev/pci.h>
+#include <kernel/dev/rtc.h>
 #include <kernel/interrupts/irq.h>
 #include <kernel/proc/proc.h>
 #include <string.h>
@@ -118,4 +119,6 @@ void init_symtable(){
 	symbol_export("irq_end",&irq_end);
 	
 	symbol_export("process_fswait_notify",&process_fswait_notify);
+	
+	symbol_export("rtc_current_time",&rtc_current_time);
 }
