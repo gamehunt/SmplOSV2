@@ -95,10 +95,21 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 				printf("Usage: cd [path]\n");
 			}
 		}else{
-			char* fullpath = seekenv(exec);
-			if(!fullpath){
-				printf("Executable not found: %s\n",exec);
+			char* fullpath = 0;
+			if(exec[0] == '.'){
+				FILE* f;
+				fullpath = strcat(getcwd(cwdbuffer,256),exec);
+				if(!(f = fopen(fullpath,"r"))){
+					fullpath = 0;
+				}else{
+					fclose(f);
+				}
+			}else if(exec[0] == '/'){
+				fullpath = exec;
 			}else{
+				fullpath = seekenv(exec);
+			}
+			if(fullpath){
 				uint32_t pid = execv(fullpath,argv);
 				if(!pid){
 					printf("Failed to execute: %s\n",buffer);
@@ -106,6 +117,8 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 				}else{
 					sys_waitpid(pid);
 				}
+			}else{
+				printf("Executable not found: %s\n",exec);
 			}
 		}
 		//printf("Freeing %d arguments from addr %a\n",argc,argv);

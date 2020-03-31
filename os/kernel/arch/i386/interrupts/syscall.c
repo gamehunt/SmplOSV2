@@ -10,7 +10,7 @@
 #include <kernel/interrupts/isr.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/proc/proc.h>
-
+#include <kernel/misc/pathutils.h>
 #include <dirent.h>
 
 #define MAX_SYSCALL 128
@@ -227,7 +227,7 @@ uint32_t sys_getcwd(uint32_t buffer,uint32_t buffer_size,uint32_t ___,uint32_t _
 uint32_t sys_chdir(uint32_t path,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
 	fs_node_t* node = kseek(path);
 	if(node){
-		strcpy(get_current_process()->work_dir_abs,path);
+		strcpy(get_current_process()->work_dir_abs,canonize_absolute(path));
 		get_current_process()->work_dir = node;
 		return 0;
 	}

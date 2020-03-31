@@ -17,7 +17,7 @@ int   chdir(char* path){
 	}
 	while(part){
 		//This wastes LOTS of memory
-		if(!strcmp(part,"..")){
+		if(!strcmp(part,"..") && strcmp(curpath,"/")){
 			
 			char* last = path_block(curpath,path_size(curpath)-1);
 			uint32_t l = strlen(last);
