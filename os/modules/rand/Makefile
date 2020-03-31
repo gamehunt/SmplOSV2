@@ -11,4 +11,5 @@ install:
 clean:
 	rm -rf $(HOME)/SmplOSV2/os/modules/bin/rand.smod
 	rm main.o
+	rm rdrand.o
 	rm -rf rand.smod
