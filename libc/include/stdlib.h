@@ -25,11 +25,13 @@ void* realloc(uint32_t* ptr,size_t size);
 void free(void* mem);
 
 long long int atoi(const char *c);
+
 #if !defined(__smplos_libk) && !defined(__smplos_kernel)
 int atexit(void (*)(void));
 char* getenv(const char*);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
+void exit(int status);
 
 void fix_user_heap();
 #endif

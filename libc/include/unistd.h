@@ -15,6 +15,7 @@ pid_t fork(void);
 char* getcwd(char*,int);
 int   chdir(char*);
 pid_t getpid();
+pid_t getppid(void);  
 uid_t getuid();
 int   setuid(uid_t uid);
 #endif

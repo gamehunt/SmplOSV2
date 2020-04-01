@@ -440,7 +440,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
-		exit(proc);
+		proc_exit(proc);
 		return 0;
 	}
 
@@ -456,7 +456,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 void clean_process(proc_t* proc){
 	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 	if(proc->pwait){
-		if(proc->parent->status == PROC_WAIT){
+		if(proc->parent && proc->parent->status == PROC_WAIT){
 			wait_remove(proc->parent);
 			ready_insert(proc->parent);
 		}
@@ -464,6 +464,7 @@ void clean_process(proc_t* proc){
 	
 	uint32_t pid = proc->pid;
 	total_prcs--;
+	#if 0  //Crashes when first shell exiting TODO: fix it
 	kpfree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->state->k_esp);
 	kfree(processes[proc->pid]->state);
@@ -478,6 +479,7 @@ void clean_process(proc_t* proc){
 		kfree(processes[proc->pid]->f_descs);
 	}
 	kfree(processes[proc->pid]);
+	#endif 
 	processes[pid] = 0;
 }
 
@@ -532,7 +534,7 @@ void schedule(regs_t reg,uint8_t save){
 				reg->eip = sig;
 			}else if(proc_signals[signum]->unhandled_behav == SIG_UNHANDLD_KILL){
 				current_process->syscall_state = reg;
-				exit(current_process);
+				proc_exit(current_process);
 			}
 		}
 		clean_processes();
@@ -541,7 +543,7 @@ void schedule(regs_t reg,uint8_t save){
 	}
 }
 
-void exit(proc_t* proc){
+void proc_exit(proc_t* proc){
 	if(proc->pid == 0){
 		if(proc == current_process){
 			current_process = 0;
@@ -556,7 +558,13 @@ void exit(proc_t* proc){
 		wait_remove(proc);
 	}
 	proc->status = PROC_DEAD;
-	send_signal(proc->parent,SIG_CHILD);
+	if(proc->parent){
+		send_signal(proc->parent,SIG_CHILD);
+	}
+	for(uint32_t i=0;i<proc->child_count;i++){
+		proc->childs[i]->parent = 0;
+		proc->childs[i]->pwait = 0;
+	}
 	killed_insert(proc);
 	if(proc == current_process){
 		current_process = 0;
@@ -651,7 +659,7 @@ void send_signal(proc_t* proc,uint32_t sig){
 		}
 		else if(proc_signals[sig]->block_behav == SIG_BLOCK_KILL){
 			proc->sig_stack[proc->sig_stack_esp] = sig;
-			exit(proc);
+			proc_exit(proc);
 		}
 		else if(proc_signals[sig]->block_behav == SIG_BLOCK_SKIP){
 			proc->sig_stack_esp--;

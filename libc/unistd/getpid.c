@@ -4,3 +4,6 @@
 pid_t getpid(){
 	return sys_getpid(); 
 }
+pid_t getppid(void){
+	return sys_getppid();
+}

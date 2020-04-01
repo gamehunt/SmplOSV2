@@ -107,4 +107,8 @@ static inline int sys_sleep(uint32_t ticks){
 	return sys_call(SYS_SLEEP,ticks,0,0,0,0);
 }
 
+static inline pid_t sys_getppid(){
+	return sys_call(SYS_GETPPID,0,0,0,0,0);
+}
+
 #endif

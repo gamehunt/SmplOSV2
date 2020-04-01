@@ -17,7 +17,8 @@ int main(){
 	
 	//TODO this should be readen from some file
 	execv("/usr/bin/tty.smp",0);
-	execv("/usr/bin/shell.smp",0);
+	char* args[] = {"-sL"};
+	execv("/usr/bin/shell.smp",args);
 	while(1);
 	return 0;
 }

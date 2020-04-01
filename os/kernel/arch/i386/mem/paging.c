@@ -189,7 +189,7 @@ void pagefault_handler(regs_t r){
     );
 	if(get_current_process() && get_current_process()->pid != 0){
 		kinfo("Process %s caused page fault at %a\n",get_current_process()->name,cr2);
-		exit(get_current_process());
+		proc_exit(get_current_process());
 		return;
 	}
 	crash_info_t crash;	

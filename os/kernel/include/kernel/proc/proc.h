@@ -98,7 +98,7 @@ uint32_t fork();
 
 void setup_ctx(context_t* ctx,regs_t r);
 
-void exit(proc_t* pid);
+void proc_exit(proc_t* pid);
 
 extern void jump_usermode(uint32_t entry);
 

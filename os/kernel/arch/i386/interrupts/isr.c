@@ -61,7 +61,7 @@ void fault_handler(regs_t r){
 		handler(r);
 	}else if(get_current_process()){
 		kinfo("Process %s caused exception: %s\n",get_current_process()->name,exc_m[r->int_no]);
-		exit(get_current_process());
+		proc_exit(get_current_process());
 	}else{
 		crash_info_t crash;	
 		crash.regs = r;	

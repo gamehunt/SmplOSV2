@@ -13,9 +13,10 @@
 
 //Here will be login system
 int main(int argc,char** argv){
-	
+printf("-----------SmplOSV2 Login-----------\n");
 //lol
 while(1){
+	
 	printf("Enter login:");
 	char login[32];
 	fgets(login,32,stdin);
@@ -29,6 +30,8 @@ while(1){
 			printf("Invalid password\n");
 		}else{
 			printf("You logged in as a root\n");
+			char* args[] = {"-s"};
+			execv("/usr/bin/shell.smp",args);
 			break;
 		}
 	}

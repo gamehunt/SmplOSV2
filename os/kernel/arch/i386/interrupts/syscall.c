@@ -154,7 +154,7 @@ uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,uint32_t 
 }
 
 uint32_t sys_exit(uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-	exit(get_current_process());
+	proc_exit(get_current_process());
 	return 0;
 }
 
@@ -258,7 +258,12 @@ uint32_t sys_sleep(uint32_t ticks,uint32_t __,uint32_t ___,uint32_t ____,uint32_
 	process_sleep(get_current_process(),ticks);
 	return 0;
 }
-
+uint32_t sys_getppid(uint32_t _, uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	if(!get_current_process()->parent){
+		return -1;
+	}
+	return get_current_process()->parent->pid;;
+}
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -289,4 +294,5 @@ void init_syscalls(){
 	register_syscall(SYS_GETPID,&sys_getpid);
 	register_syscall(SYS_LINK,&sys_link);
 	register_syscall(SYS_SLEEP,&sys_sleep);
+	register_syscall(SYS_GETPPID,&sys_getppid);
 }
