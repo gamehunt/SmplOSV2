@@ -15,6 +15,7 @@ static proc_t* ready_procs_high[MAX_PROCESSES];
 static proc_t* ready_procs_low[MAX_PROCESSES];
 static proc_t* wait_procs[MAX_PROCESSES];
 static proc_t* killed_procs[MAX_PROCESSES];
+static proc_t* sleep_procs[MAX_PROCESSES];
 
 static proc_t* current_process =0;
 static proc_t* init_process = 0;
@@ -27,6 +28,7 @@ static uint32_t ready_procs_size_high = 0;
 static uint32_t ready_procs_size_low  = 0;
 
 static uint32_t wait_procs_size = 0;
+static uint32_t sleep_procs_size = 0;
 static uint32_t killed_procs_size = 0;
 
 
@@ -138,6 +140,63 @@ void wait_remove(proc_t* proc){
 void killed_insert(proc_t* proc){
 	killed_procs[killed_procs_size] = proc;
 	killed_procs_size++;
+}
+
+//TODO optimize
+void sleep_insert(proc_t* proc){
+	proc->status = PROC_SLEEP;
+	if(!sleep_procs_size){
+		sleep_procs[0] = proc;
+		proc->queue_idx = 0;
+		sleep_procs_size++;
+	}else{
+		uint32_t delta = 0;
+		uint32_t idx = 0;
+		uint8_t flag = 0;
+		for(idx;idx<sleep_procs_size;idx++){
+			delta += sleep_procs[idx]->sleep_time;
+			if(delta >= proc->sleep_time){
+				idx++;
+				flag = 1;
+				break;
+			}
+		}
+		proc->sleep_time -= delta;
+		if(!flag){
+			idx = sleep_procs_size;
+			sleep_procs_size++;
+		}
+		uint32_t qidx = idx;
+		while(sleep_procs[qidx] && qidx < MAX_PROCESSES-1){
+			sleep_procs[qidx+1] = sleep_procs[qidx];
+			sleep_procs[qidx+1]->queue_idx = qidx+1;
+			sleep_procs[qidx+1]->sleep_time-=proc->sleep_time;
+			qidx++;
+		}
+		sleep_procs[idx] = proc;
+		proc->queue_idx = idx;
+	}
+}
+
+void sleep_remove(proc_t* proc){
+	sleep_procs[proc->queue_idx] = 0;
+	if(sleep_procs_size > 1){
+		for(uint32_t i = proc->queue_idx;i<sleep_procs_size;i++){
+		//printf("1:%d\n",i);
+			sleep_procs[i] = sleep_procs[i+1];
+			sleep_procs[i]->queue_idx = i;
+		}
+	}
+	for(uint32_t i=sleep_procs_size-1;i>=0;i--){ //Probably we should do the same for other queues?
+		
+		if(!sleep_procs[i]){
+			sleep_procs_size--;
+		}
+		
+		if(!sleep_procs_size){
+			break;
+		}
+	}
 }
 
 void setup_ctx(context_t* ctx,regs_t r){
@@ -432,6 +491,16 @@ void clean_processes(){
 
 void schedule(regs_t reg,uint8_t save){
 	if(total_prcs){
+		if(sleep_procs_size){
+			while(sleep_procs_size){
+				sleep_procs[0]->sleep_time--;
+				if(!sleep_procs[0]->sleep_time){
+					process_awake(sleep_procs[0]);
+				}else{
+					break;
+				}
+			}
+		}
 		if(!reg && current_process && current_process->syscall_state){
 			reg = current_process->syscall_state;
 		}
@@ -561,7 +630,7 @@ void send_signal(proc_t* proc,uint32_t sig){
 	if(!validate(proc)){
 		return;
 	}
-	if(proc == current_process){ //Bad idea
+	if(proc == current_process){ //Bad idea for now
 		return;
 	}
 	if(proc->sig_stack_esp >= MAX_SIGSTACK_SIZE){
@@ -629,4 +698,24 @@ void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig){
 		return;
 	}
 	proc->sig_handlers[sig] = handl;
+}
+
+void process_sleep(proc_t* proc, uint32_t ticks){
+	if(proc->status == PROC_READY){
+		ready_remove(proc);
+	}
+	if(proc->status == PROC_WAIT){
+		wait_remove(proc);
+	}
+	proc->sleep_time = ticks;
+	sleep_insert(proc);
+	
+	if(proc == current_process){
+		schedule(0,1);
+	}
+}
+
+void process_awake(proc_t* proc){
+	sleep_remove(proc);
+	ready_insert(proc);
 }

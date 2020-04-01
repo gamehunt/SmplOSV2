@@ -16,6 +16,7 @@
 #define PROC_READY   1
 #define PROC_DEAD    2
 #define PROC_WAIT    3
+#define PROC_SLEEP   4
 
 #define PROC_PRIORITY_HIGH 1
 #define PROC_PRIORITY_LOW  0
@@ -58,17 +59,17 @@ struct process{
 	regs_t syscall_state;
 	regs_t signal_state;
 	sig_handler_t sig_handlers[64];
-	uint32_t* sig_stack;
+	uint32_t* sig_stack; //stack of signals
 	long      sig_stack_esp;
-	uint8_t in_sig;
+	uint8_t in_sig; //Is we are handling signal?
 	uint8_t priority;
 	uint8_t* heap;
-	uint32_t old_heap;
+	uint32_t old_heap; //Heap before growth
 	uint32_t heap_size;
 	int      status;
-	uint8_t sig_ret_state;
-	uint32_t queue_idx;
-	fs_node_t** fswait_nodes;
+	uint8_t sig_ret_state; //Status to which we return after signal;
+	uint32_t queue_idx; //Index in queues
+	fs_node_t** fswait_nodes; //Nodes which we are wait
 	uint32_t fswait_nodes_cnt;
 	fs_node_t** f_descs; //opened file descriptors (this returned by open() syscall)
 	uint32_t  f_descs_cnt;
@@ -76,9 +77,10 @@ struct process{
 	struct process**  childs;
 	uint32_t  child_count;
 	uint8_t   pwait; //Is parent awaiting us?
-	char     work_dir_abs[256];
+	char     work_dir_abs[256]; //Absolute path to work dir
 	fs_node_t* work_dir;
-	uint32_t uid;
+	uint32_t uid; //User id
+	uint32_t sleep_time; //TIme until awake (usually delta in sleep queue);
 };
 
 typedef struct process proc_t;
@@ -107,6 +109,8 @@ void clean_process(proc_t* proc);
 void process_fswait(proc_t* proc, fs_node_t** nodes, uint32_t cnt);
 void process_fswait_notify(proc_t* proc,fs_node_t* node);
 void process_waitpid(proc_t* proc,uint32_t pid); //Set proc wait for child pid
+void process_sleep(proc_t* proc, uint32_t ticks);
+void process_awake(proc_t* proc);
 
 proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init); //executes file
 

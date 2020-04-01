@@ -103,4 +103,8 @@ static inline int sys_sigexit(){
 	return sys_call(SYS_SIGEXIT,0,0,0,0,0);
 }
 
+static inline int sys_sleep(uint32_t ticks){
+	return sys_call(SYS_SLEEP,ticks,0,0,0,0);
+}
+
 #endif

@@ -254,7 +254,10 @@ uint32_t sys_setuid(uint32_t uid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t 
 uint32_t sys_link(uint32_t patha,uint32_t pathb,uint32_t ___,uint32_t ____,uint32_t _____){
 	return klink(patha,pathb)?1:0;
 }
-
+uint32_t sys_sleep(uint32_t ticks,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	process_sleep(get_current_process(),ticks);
+	return 0;
+}
 
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
@@ -285,4 +288,5 @@ void init_syscalls(){
 	register_syscall(SYS_SETUID,&sys_setuid);
 	register_syscall(SYS_GETPID,&sys_getpid);
 	register_syscall(SYS_LINK,&sys_link);
+	register_syscall(SYS_SLEEP,&sys_sleep);
 }

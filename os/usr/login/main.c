@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <dirent.h>
+#include <sys/syscall.h>
 
 
 //Here will be login system

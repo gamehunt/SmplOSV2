@@ -33,6 +33,7 @@
 #define SYS_GETUID   22
 #define SYS_GETPID   23
 #define SYS_LINK     24
+#define SYS_SLEEP    25
 
 //vfs opened node flags. TODO: append and truncate
 #define F_READ   	1
