@@ -251,8 +251,11 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	new_proc->syscall_state = 0;
 	new_proc->signal_state = kmalloc(sizeof(regs_t));
 	
+	uint32_t cpdir = current_page_directory;
+	set_page_directory(kernel_page_directory);
 	new_proc->state->cr3 = clone?copy_page_directory(parent->state->cr3):copy_page_directory(kernel_page_directory);
 	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
+	set_page_directory(cpdir);
 	
 	new_proc->pid = free_pid();
 	
@@ -464,21 +467,26 @@ void clean_process(proc_t* proc){
 	
 	uint32_t pid = proc->pid;
 	total_prcs--;
-	#if 0  //Crashes when first shell exiting TODO: fix it
-	kpfree(processes[proc->pid]->state->cr3);
-	kvfree(processes[proc->pid]->state->k_esp);
-	kfree(processes[proc->pid]->state);
-	kfree(processes[proc->pid]->signal_state);
-	if(processes[proc->pid]->sig_stack_esp >= 0){
-		kfree(processes[proc->pid]->sig_stack);
-	}
-	for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
-		kclose(processes[proc->pid]->f_descs[i]);
-	}
-	if(processes[proc->pid]->f_descs_cnt){
-		kfree(processes[proc->pid]->f_descs);
-	}
-	kfree(processes[proc->pid]);
+	#if 1  //TODO: fix the rest of it
+		uint32_t cpdir = current_page_directory;
+		set_page_directory(kernel_page_directory);
+		kpfree(processes[proc->pid]->state->cr3);
+		set_page_directory(cpdir);
+		kvfree(processes[proc->pid]->state->k_esp);
+		kfree(processes[proc->pid]->state);
+		kfree(processes[proc->pid]->signal_state);
+		if(processes[proc->pid]->sig_stack_esp >= 0){
+			kfree(processes[proc->pid]->sig_stack);
+		}
+		for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
+			if(validate(processes[proc->pid]->f_descs[i])){
+				kclose(processes[proc->pid]->f_descs[i]);
+			}
+		}
+		if(processes[proc->pid]->f_descs_cnt && validate(processes[proc->pid]->f_descs)){
+			kfree(processes[proc->pid]->f_descs);
+		}
+		//kfree(processes[proc->pid]);
 	#endif 
 	processes[pid] = 0;
 }
