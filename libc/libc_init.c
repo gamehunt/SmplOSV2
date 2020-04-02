@@ -21,10 +21,15 @@ void libc_init(int argc, char** argv, char** envp){
 	environ[i] = 0;
 	env_size = i;
 	
-	//default std streams
-	sys_open("/dev/stdout",F_WRITE);
-	sys_open("/dev/stderr",F_WRITE);
-	sys_open("/dev/stdin",F_READ);
-	
+	char path[64];
+	memset(path,0,64);
+	sprintf(path,"/proc/%d/stdout",getpid());
+	sys_open(path,F_WRITE);
+	memset(path,0,64);
+	sprintf(path,"/proc/%d/stderr",getpid());
+	sys_open(path,F_WRITE);
+	memset(path,0,64);
+	sprintf(path,"/proc/%d/stdin",getpid());
+	sys_open(path,F_READ);
 	sys_exit(main(argc,argv,envp));
 }

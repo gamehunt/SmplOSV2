@@ -305,4 +305,4 @@ uint8_t unload(){
 	return 0;
 }
 
-KERNEL_MODULE("ps2",load,unload,1,"pipe");
+KERNEL_MODULE("ps2",load,unload,0,"");

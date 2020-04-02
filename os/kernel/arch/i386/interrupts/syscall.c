@@ -52,10 +52,12 @@ uint32_t sys_echo(uint32_t str,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
 
 uint32_t sys_read(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t size,uint32_t buffer){
 	if(get_current_process()->f_descs_cnt <= fd){
+		//kinfo("ENOFD\n");
 		return 0;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
 	if(!(node->open_flags & F_READ)){
+		//kinfo("ENOPERM\n");
 		return 0;
 	}
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
@@ -83,15 +85,22 @@ uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t
 	}else if(!node){
 		return -1;
 	}
+	node->open_flags = flags;
+	for(uint32_t i=0;i<get_current_process()->f_descs_cnt;i++){
+		if(!get_current_process()->f_descs[i]){
+			get_current_process()->f_descs[i] = node;
+		//	kinfo("Opened %s as %d\n",path,i);
+			return i;
+		}
+	}
 	get_current_process()->f_descs_cnt++;
 	if(get_current_process()->f_descs){
 		get_current_process()->f_descs = krealloc(get_current_process()->f_descs,get_current_process()->f_descs_cnt*sizeof(fs_node_t*));	
 	}else{
-		get_current_process()->f_descs_cnt = 1;
 		get_current_process()->f_descs = kmalloc(sizeof(fs_node_t*));
 	}
 	
-	node->open_flags = flags;
+	
 	
 	get_current_process()->f_descs[get_current_process()->f_descs_cnt-1] = node;
 	//kinfo("[SYS_OPEN] %s(%d) - %d\n",(char*)path,node->fsid,get_current_process()->f_descs_cnt-1);
@@ -102,7 +111,7 @@ uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t
 uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 //	kinfo("[SYS_CLOSE] %d\n",fds);
 	proc_t* proc = get_current_process();
-	if(proc->f_descs_cnt < fds){
+	if(proc->f_descs_cnt > fds){
 		kclose(proc->f_descs[fds]);
 		proc->f_descs[fds] = 0;
 	}
@@ -163,7 +172,9 @@ uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t __,uint32_t ___,uint32_t 
 	uint32_t* fds_ptr = (uint32_t*)fds;
 	fs_node_t** nodes = kmalloc(sizeof(fs_node_t*)*cnt);
 	for(uint32_t i=0;i<cnt;i++){
-		nodes[i] = get_current_process()->f_descs[fds_ptr[i]];
+		if(fds_ptr[i] < get_current_process()->f_descs_cnt){
+			nodes[i] = get_current_process()->f_descs[fds_ptr[i]];
+		}
 	}
 	process_fswait(get_current_process(),nodes,cnt);
 	return 0;
@@ -264,6 +275,10 @@ uint32_t sys_getppid(uint32_t _, uint32_t __,uint32_t ___,uint32_t ____,uint32_t
 	}
 	return get_current_process()->parent->pid;;
 }
+uint32_t sys_pipe(uint32_t path, uint32_t size,uint32_t ___,uint32_t ____,uint32_t _____){
+	fs_node_t* node = pipe_create(path,size);
+	return node?0:1;
+}
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -295,4 +310,5 @@ void init_syscalls(){
 	register_syscall(SYS_LINK,&sys_link);
 	register_syscall(SYS_SLEEP,&sys_sleep);
 	register_syscall(SYS_GETPPID,&sys_getppid);
+	register_syscall(SYS_PIPE,&sys_pipe);
 }

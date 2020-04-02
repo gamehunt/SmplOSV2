@@ -6,10 +6,10 @@
 
 */
 
-#include <kernel/module/module.h>
+#include <kernel/fs/pipe.h>
 #include <kernel/misc/log.h>
-#include <kernel/fs/vfs.h>
 #include <kernel/proc/proc.h>
+
 
 #define PIPE_IOCTL_RESIZE 0xA0
 #define PIPE_IOCTL_CLEAR  0xB0
@@ -100,6 +100,7 @@ uint32_t pipe_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buff
 		}
 		read++;
 	}
+	//kinfo("Pipe readen: %d\n",read);
 	return read;
 }
 
@@ -129,6 +130,7 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 	if(write){
 		pipe_notify_waiters(node);
 	}
+	//kinfo("Pipe written: %d\n",write);
 	return write;
 }
 
@@ -144,20 +146,32 @@ void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
 	pipe->waiters[pipe->waiters_cnt-1] = waiter;
 }
 
-uint8_t load(){
+fs_node_t* pipe_create(char* path,uint32_t buffer_size){
+	fs_node_t* node = kmount(path,"",idx);
+	if(node){
+		pipe_info_t* inf = (pipe_info_t*)node->inode;
+		inf->buffer = krealloc(inf->buffer,buffer_size);
+		inf->size = buffer_size;
+		node->size = buffer_size;
+	}
+}
+
+void pipe_umount(fs_node_t* node){
+	pipe_info_t* inf = (pipe_info_t*)node->inode;
+	kfree(inf->buffer);
+	kfree(inf);
+}
+
+void init_pipe(){
 	fs_t* pipefs = kmalloc(sizeof(fs_t));
 	pipefs->mount = mount_pipe;
+	pipefs->umount = pipe_umount;
 	pipefs->ioctl = pipe_ioctl;
 	pipefs->read = pipe_read;
 	pipefs->write = pipe_write;
-	pipefs->add_waiter = pipe_add_waiter;
 	pipefs->name = "pipe";
 	idx = register_fs(pipefs);
 	kmount("/dev/pipe","",idx); //master pipe
 	return 0;
 }
-uint8_t unload(){
-	return 0;
-}
 
-KERNEL_MODULE("pipe",load,unload,0,"");

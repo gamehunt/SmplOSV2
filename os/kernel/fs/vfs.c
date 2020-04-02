@@ -85,6 +85,37 @@ static fs_node_t* vfs_seek(char* name,fs_node_t* par){
 	return par->entry->childs[par->entry->child_count-1]; 
 }
 
+fs_node_t* vfs_remove(fs_node_t* node){
+	if(node->fsid == 0 && node->inode){
+		kfree(node->inode);
+	}
+	if(node->entry->childs){
+		for(uint32_t i=0;i<node->entry->child_count;i++){
+			kremove(node->entry->childs[i]);
+		}
+		kfree(node->entry->childs);
+	}
+	if(node->entry->parent){
+		fs_node_t* par = node->entry->parent;
+		int zero_idx = -1;
+		for(uint32_t i=0;i<par->entry->child_count;i++){
+			if(!strcmp(par->entry->childs[i],node->name)){
+				par->entry->childs[i] = 0;
+				zero_idx = i;
+			}
+			if(zero_idx >= 0){
+				par->entry->childs[zero_idx] = par->entry->childs[zero_idx+1];
+				zero_idx++;
+			}
+		}
+		if(zero_idx){
+			par->entry->child_count--;
+		}
+	}
+	kfree(node->entry);
+	kfree(node);
+}
+
 void dump_node(fs_node_t* node,uint32_t tabs){
 	for(int i=0;i<tabs;i++){
 		printf("-");
@@ -214,6 +245,7 @@ fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 uint32_t kread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	fs_node_t* real_node = node;
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
+		//kinfo("LINK\n");
 		real_node = (fs_node_t*)node->inode;
 	}
 	if(validate(real_node) && fss[real_node->fsid]->read){
@@ -315,8 +347,32 @@ uint16_t ktypeid(char* name){
 	return 0;
 }
 
-void kaddwaiter(fs_node_t* node,void* waiter){
-	if(fss[node->fsid]->add_waiter){
-		fss[node->fsid]->add_waiter(node,waiter);
+uint8_t kremove(fs_node_t* node){
+	if(!node){
+		kerr("Failed to remove %s: no such node\n");
+		return 1;
 	}
+	if(vfs_check_flag(node->flags,VFS_MOUNTPOINT)){
+		kumount(node);
+	}
+	if(fss[node->fsid]->remove){
+		fss[node->fsid]->remove(node);
+	}
+	vfs_remove(node);
+	kfree(node);
+	return 0;
+}
+uint8_t kumount(fs_node_t* node){
+	if(!node){
+		kerr("Failed to umount %s: no such node\n");
+		return 1;
+	}
+	if(!vfs_check_flag(node->flags,VFS_MOUNTPOINT)){
+		kerr("Failed to umount %s: not mountpoint\n");
+		return 1;
+	}
+	vfs_clear_flag(node->flags,VFS_MOUNTPOINT);
+	if(fss[node->fsid]->umount){
+		fss[node->fsid]->umount(node);
+	}	
 }

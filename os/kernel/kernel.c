@@ -60,7 +60,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_pit();
 	init_rtc();
 	init_vfs(); 
-	
+	init_pipe();
 	init_signals();
 	
 	modules_load();
@@ -96,6 +96,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	mem_stat();
 	
+	kcreate("/proc",VFS_TYPE_VIRTUAL);
 	
 	fs_node_t* init = kopen("/usr/bin/init.smp");
 	if(init){

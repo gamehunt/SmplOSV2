@@ -31,6 +31,7 @@ dev/cmos.o\
 dev/rtc.o\
 fs/vfs.o\
 fs/tar.o\
+fs/pipe.o\
 $(ARCHDIR)/proc/proc_asm.o\
 $(ARCHDIR)/proc/proc.o\
 module/symtable.o\

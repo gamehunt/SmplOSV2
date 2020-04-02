@@ -111,4 +111,9 @@ static inline pid_t sys_getppid(){
 	return sys_call(SYS_GETPPID,0,0,0,0,0);
 }
 
+static inline uint8_t sys_pipe(char* path,uint32_t buff_size){
+	return sys_call(SYS_PIPE,path,buff_size,0,0,0);
+}
+
+
 #endif

@@ -7,6 +7,7 @@
 */
 
 #include <kernel/proc/proc.h>
+#include <kernel/fs/pipe.h>
 #include <kernel/memory/memory.h>
 
 static proc_t* processes[MAX_PROCESSES];
@@ -138,8 +139,23 @@ void wait_remove(proc_t* proc){
 }
 
 void killed_insert(proc_t* proc){
-	killed_procs[killed_procs_size] = proc;
-	killed_procs_size++;
+	proc->status = PROC_DEAD;
+	for(uint32_t i =0;i<killed_procs_size;i++){
+		if(!killed_procs[i]){
+			killed_procs[i]= proc;
+			proc->queue_idx = i;
+			return;
+		}
+	}
+	if(killed_procs_size < MAX_PROCESSES){
+		proc->queue_idx = killed_procs_size;
+		killed_procs[killed_procs_size] = proc;
+		killed_procs_size++;
+	}
+}
+
+void killed_remove(proc_t* proc){
+	killed_procs[proc->queue_idx] = 0;
 }
 
 //TODO optimize
@@ -258,6 +274,21 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	set_page_directory(cpdir);
 	
 	new_proc->pid = free_pid();
+	
+	
+	char path[64];
+	memset(path,0,64);
+	sprintf(path,"/proc/%d",new_proc->pid);
+	new_proc->node = kcreate(path,VFS_TYPE_VIRTUAL);
+	memset(path,0,64);
+	sprintf(path,"/proc/%d/stdout",new_proc->pid);
+	pipe_create(path,256);
+	memset(path,0,64);
+	sprintf(path,"/proc/%d/stderr",new_proc->pid);
+	pipe_create(path,128); 
+	memset(path,0,64);
+	sprintf(path,"/proc/%d/stdin",new_proc->pid);
+	pipe_create(path,256); 
 	
 	new_proc->priority = parent?parent->priority:PROC_PRIORITY_LOW;
 	
@@ -457,17 +488,46 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 }
 
 void clean_process(proc_t* proc){
-	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
+	killed_remove(proc);
+	return;
+	//kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 	if(proc->pwait){
 		if(proc->parent && proc->parent->status == PROC_WAIT){
 			wait_remove(proc->parent);
 			ready_insert(proc->parent);
+			proc->pwait = 0;
 		}
 	}
 	
 	uint32_t pid = proc->pid;
+	char path[64];
+	memset(path,0,64);
+	sprintf(path,"/proc/%d",proc->pid);
+	fs_node_t* proc_node = kopen(path);
+	if(proc_node){
+		fs_dir_t* dir = kreaddir(proc_node);
+		for(uint32_t i=0;i<dir->chld_cnt;i++){
+			char* buff = kmalloc(dir->chlds[i]->size);
+			memset(buff,0,dir->chlds[i]->size);
+			uint32_t sz = 0;
+			if(sz = kread(dir->chlds[i],0,dir->chlds[i]->size,buff)){
+				//Stream in proc directory not empty, we shouldn't clean this process yet
+				if(dir->chlds[i]->fsid == 1){
+					kwrite(dir->chlds[i],0,sz,buff); //Restore pipe values
+				}
+				kclose(proc_node);
+				kfree(dir);
+				kfree(buff);
+				return;
+			}
+			kfree(buff);
+			kremove(dir->chlds[i]);
+		}
+		kremove(proc_node);
+	}
+	kclose(proc_node);
 	total_prcs--;
-	#if 1  //TODO: fix the rest of it
+	#if 0  //TODO: fix the rest of it
 		uint32_t cpdir = current_page_directory;
 		set_page_directory(kernel_page_directory);
 		kpfree(processes[proc->pid]->state->cr3);
@@ -486,17 +546,22 @@ void clean_process(proc_t* proc){
 		if(processes[proc->pid]->f_descs_cnt && validate(processes[proc->pid]->f_descs)){
 			kfree(processes[proc->pid]->f_descs);
 		}
-		//kfree(processes[proc->pid]);
+		
 	#endif 
+	killed_remove(proc);
+	#if 0
+	kfree(processes[proc->pid]);
+	#endif
 	processes[pid] = 0;
+	//kinfo("Cleanup completed\n");
 }
 
 void clean_processes(){
 	for(uint32_t i=0;i<killed_procs_size;i++){
-		clean_process(killed_procs[i]);
+		if(killed_procs[i]){
+			clean_process(killed_procs[i]);
+		}
 	}
-	memset(killed_procs,0,killed_procs_size);
-	killed_procs_size = 0;
 }
 
 void schedule(regs_t reg,uint8_t save){
@@ -594,7 +659,7 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 		memcpy(proc->fswait_nodes,nodes,sizeof(fs_node_t*)*cnt);
 		proc->fswait_nodes_cnt = cnt;
 		for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
-			kaddwaiter(proc->fswait_nodes[i],proc);
+			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs
 		}
 		if(proc->status == PROC_READY){
 			
@@ -658,8 +723,8 @@ void send_signal(proc_t* proc,uint32_t sig){
 	}else{
 		proc->sig_stack = krealloc(proc->sig_stack,(proc->sig_stack_esp+1)*sizeof(uint32_t));
 	}
-	proc->sig_ret_state = proc->state;
 	if(proc->state == PROC_WAIT){
+		proc->sig_ret_state = PROC_WAIT;
 		if(proc_signals[sig]->block_behav == SIG_BLOCK_AWAKE){
 			proc->sig_stack[proc->sig_stack_esp] = sig;
 			wait_remove(proc);

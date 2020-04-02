@@ -20,14 +20,15 @@ FILE* stderr = &_stderr;
 
 //TODO SEEK SET
 
-size_t fwrite(const void* ptr, size_t sz, size_t block_size, FILE* f){
-	uint32_t real_size = sz * block_size;
+size_t fwrite(const void* ptr, size_t sz, size_t block_count, FILE* f){
+	uint32_t real_size = sz * block_count;
 	return sys_write(f->fd,0,real_size,ptr) / sz;
 }
 
-size_t fread(void* ptr, size_t sz, size_t block_size, FILE* f){
-	uint32_t real_size = sz * block_size;
-	return sys_read(f->fd,0,real_size,ptr) / sz;
+size_t fread(void* ptr, size_t sz, size_t block_count, FILE* f){
+	uint32_t real_size = sz * block_count;
+	uint32_t readen = sys_read(f->fd,0,real_size,ptr);
+	return  readen / sz;
 }
 
 //TODO more modes
