@@ -31,5 +31,7 @@ void libc_init(int argc, char** argv, char** envp){
 	memset(path,0,64);
 	sprintf(path,"/proc/%d/stdin",getpid());
 	sys_open(path,F_READ);
-	sys_exit(main(argc,argv,envp));
+	int resp = main(argc,argv,envp);
+	sys_sleep(2);
+	sys_exit(resp);
 }

@@ -18,6 +18,6 @@ int main(int argc,char** argv){
 			printf("%s ",argv[i]);
 		}
 	}
-	sys_sleep(10);
+	
 	return 0;
 }
