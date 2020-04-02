@@ -1,3 +1,6 @@
+extern disable_interrupts
+extern enable_interrupts
+
 %macro ISR_NOERR 1
 	global isr%1
 	isr%1:

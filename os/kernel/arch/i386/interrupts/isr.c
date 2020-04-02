@@ -56,6 +56,7 @@ void isr_unset_handler(uint16_t isr){
 }
 
 void fault_handler(regs_t r){
+	lock_interrupts();
 	irq_handler_t handler = isr_handlers[r->int_no];
 	if(handler){
 		handler(r);
@@ -70,5 +71,26 @@ void fault_handler(regs_t r){
 		sprintf(message,"kpanic() invoked via unhandled isr\n[E] Error code: %a\n",r->err_code);
 		crash.extra_info = message;
 		kpanic(crash);
+	}
+	unlock_interrupts();
+}
+
+volatile int interrupt_locker = 0;
+
+void lock_interrupts(){
+	interrupt_locker = 1;
+}
+void unlock_interrupts(){
+	interrupt_locker = 0;
+}
+
+void disable_interrupts(){
+	if(!interrupt_locker){
+		asm("cli");
+	}
+}
+void enable_interrupts(){
+	if(!interrupt_locker){
+		asm("sti");
 	}
 }

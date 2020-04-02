@@ -21,6 +21,9 @@ typedef uint32_t(* syscall_t)(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32
 static syscall_t syscalls[MAX_SYSCALL];
 
 void syscall_handler(regs_t r){
+	
+	lock_interrupts();
+	
 	if(r->eax > MAX_SYSCALL){
 		kerr("Invalid syscall: %a\n",r->eax);
 		return;
@@ -36,7 +39,7 @@ void syscall_handler(regs_t r){
 		kerr("Syscall %a has null handler\n",r->eax);
 	}
 	
-	
+	unlock_interrupts();
 
 	//kinfo("Syscall exit\n");
 }

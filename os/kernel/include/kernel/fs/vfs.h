@@ -8,6 +8,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <kernel/proc/sync.h>
 
 #define VFS_DIRECTORY  0x01
 #define VFS_MOUNTPOINT 0x02

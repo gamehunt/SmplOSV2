@@ -13,8 +13,6 @@
 
 typedef void(* irq_handler_t) (struct registers *);
 
-
-
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -54,3 +52,7 @@ void isr_unset_handler(uint16_t isr);
 
 void fault_handler(regs_t r);
 
+inline void lock_interrupts();
+inline void unlock_interrupts();
+inline void enable_interrupts();
+inline void disable_interrupts();

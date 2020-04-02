@@ -22,6 +22,7 @@ typedef struct{
 	uint32_t read_ptr;
 	proc_t** waiters;
 	uint32_t waiters_cnt;
+	spinlock_t* lock;
 }pipe_info_t;
 
 uint32_t idx;
@@ -88,6 +89,7 @@ fs_node_t* mount_pipe(fs_node_t* root,fs_node_t* device){
 
 uint32_t pipe_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
+	lock_spin(&inf->lock);
 	uint32_t read = 0;
 	for(uint32_t i = 0; i<size; i++){
 		if(pipe_unread(inf) == 0){
@@ -100,6 +102,7 @@ uint32_t pipe_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buff
 		}
 		read++;
 	}
+	unlock_spin(&inf->lock);
 	//kinfo("Pipe readen: %d\n",read);
 	return read;
 }
@@ -115,6 +118,7 @@ void pipe_notify_waiters(fs_node_t* pipe){
 uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	//kinfo("Pipe write: %d %d\n",size,buffer[0]);
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
+	lock_spin(&inf->lock);
 	uint32_t write = 0;
 	for(uint32_t i = 0; i<size; i++){
 		if(pipe_available(inf) == 0){
@@ -130,6 +134,7 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 	if(write){
 		pipe_notify_waiters(node);
 	}
+	unlock_spin(&inf->lock);
 	//kinfo("Pipe written: %d\n",write);
 	return write;
 }
@@ -153,11 +158,13 @@ fs_node_t* pipe_create(char* path,uint32_t buffer_size){
 		inf->buffer = krealloc(inf->buffer,buffer_size);
 		inf->size = buffer_size;
 		node->size = buffer_size;
+		inf->lock = 0;
 	}
 }
 
 void pipe_umount(fs_node_t* node){
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
+	unlock_spin(inf->lock);
 	kfree(inf->buffer);
 	kfree(inf);
 }

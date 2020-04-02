@@ -1,9 +1,7 @@
 /*	
-
     Copyright (C) 2020
      
     Author: gamehunt 
-
 */
 
 #include <kernel/fs/vfs.h>
@@ -94,7 +92,6 @@ void init_signals();
 void schedule(regs_t reg,uint8_t save);
 
 proc_t* create_child(proc_t* parent);
-uint32_t fork();
 
 void setup_ctx(context_t* ctx,regs_t r);
 

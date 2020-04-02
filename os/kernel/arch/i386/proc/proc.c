@@ -1,9 +1,7 @@
 /*	
-
     Copyright (C) 2020
      
     Author: gamehunt 
-
 */
 
 #include <kernel/proc/proc.h>
@@ -12,9 +10,8 @@
 
 static proc_t* processes[MAX_PROCESSES];
 
-static proc_t* ready_procs_high[MAX_PROCESSES];
+static proc_t* ready_procs_high[MAX_PROCESSES]; //Move this to separate type, really
 static proc_t* ready_procs_low[MAX_PROCESSES];
-static proc_t* wait_procs[MAX_PROCESSES];
 static proc_t* killed_procs[MAX_PROCESSES];
 static proc_t* sleep_procs[MAX_PROCESSES];
 
@@ -120,22 +117,6 @@ void ready_remove(proc_t* proc){
 
 void wait_insert(proc_t* proc){
 	proc->status = PROC_WAIT;
-	for(uint32_t i =0;i<wait_procs_size;i++){
-		if(!wait_procs[i]){
-			wait_procs[i]= proc;
-			proc->queue_idx = i;
-			return;
-		}
-	}
-	if(wait_procs_size < MAX_PROCESSES){
-		proc->queue_idx = wait_procs_size;
-		wait_procs[wait_procs_size] = proc;
-		wait_procs_size++;
-	}
-}
-
-void wait_remove(proc_t* proc){
-	wait_procs[proc->queue_idx] = 0;
 }
 
 void killed_insert(proc_t* proc){
@@ -358,7 +339,7 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 
 
 proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
-	asm("cli");
+	disable_interrupts();
 	if(!validate(node)){
 		kinfo("Tried to create process from invalid node %a!\n",node);
 		return 0;
@@ -493,7 +474,6 @@ void clean_process(proc_t* proc){
 	//kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 	if(proc->pwait){
 		if(proc->parent && proc->parent->status == PROC_WAIT){
-			wait_remove(proc->parent);
 			ready_insert(proc->parent);
 			proc->pwait = 0;
 		}
@@ -627,8 +607,6 @@ void proc_exit(proc_t* proc){
 	kinfo("Stopping process %s(%d)\n",proc->name,proc->pid);
 	if(proc->status == PROC_READY){
 		ready_remove(proc);
-	}else if(proc->status == PROC_WAIT){
-		wait_remove(proc);
 	}
 	proc->status = PROC_DEAD;
 	if(proc->parent){
@@ -675,7 +653,6 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 void process_fswait_awake(proc_t* proc){
 	proc->fswait_nodes_cnt = 0;
 	kfree(proc->fswait_nodes);
-	wait_remove(proc);
 	ready_insert(proc);
 }
 
@@ -727,7 +704,6 @@ void send_signal(proc_t* proc,uint32_t sig){
 		proc->sig_ret_state = PROC_WAIT;
 		if(proc_signals[sig]->block_behav == SIG_BLOCK_AWAKE){
 			proc->sig_stack[proc->sig_stack_esp] = sig;
-			wait_remove(proc);
 			ready_insert(proc);
 		}
 		else if(proc_signals[sig]->block_behav == SIG_BLOCK_KILL){
@@ -785,9 +761,6 @@ void process_sleep(proc_t* proc, uint32_t ticks){
 	if(proc->status == PROC_READY){
 		ready_remove(proc);
 	}
-	if(proc->status == PROC_WAIT){
-		wait_remove(proc);
-	}
 	proc->sleep_time = ticks;
 	sleep_insert(proc);
 	
@@ -800,3 +773,4 @@ void process_awake(proc_t* proc){
 	sleep_remove(proc);
 	ready_insert(proc);
 }
+

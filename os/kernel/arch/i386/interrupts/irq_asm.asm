@@ -25,6 +25,8 @@ IRQ 14, 46
 IRQ 15, 47
 
 extern irq_handler
+extern disable_interrupts
+extern enable_interrupts
 
 irq_stub:
   cli
