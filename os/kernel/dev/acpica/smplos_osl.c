@@ -155,17 +155,35 @@ void AcpiOsStall(UINT32 Microseconds){
 }
 
 ACPI_STATUS AcpiOsCreateSemaphore(UINT32 MaxUnits, UINT32 InitialUnits, ACPI_SEMAPHORE *OutHandle){
-	return AE_OK;
+	
+	return AcpiOsCreateLock(OutHandle);
 }
 
 ACPI_STATUS AcpiOsDeleteSemaphore(ACPI_SEMAPHORE Handle){
+	
+	AcpiOsDeleteLock(&Handle);
 	return AE_OK;
 }
 ACPI_STATUS AcpiOsWaitSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units, UINT16 Timeout){
-	return AE_OK;
+	if((*(spinlock_t*)Handle) && !Timeout){
+		return AE_OK;
+	} 
+	if((*(spinlock_t*)Handle) && Timeout < 0){
+		return AcpiOsAcquireLock(&Handle);
+	}
+	if((*(spinlock_t*)Handle) && Timeout > 0){
+		while(Timeout > 0){
+			if(!(*(spinlock_t*)Handle)){
+				return AcpiOsAcquireLock(&Handle);
+			}
+			Timeout--;
+		} 
+		return AE_OK;
+	}
 }
 ACPI_STATUS AcpiOsSignalSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units){
-	return AE_OK;
+	
+	AcpiOsReleaseLock(Handle,0);
 }
 ACPI_STATUS AcpiOsCreateLock(ACPI_SPINLOCK *OutHandle){
 	*OutHandle = kmalloc(sizeof(ACPI_SPINLOCK));
