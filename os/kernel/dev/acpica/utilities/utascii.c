@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Name: acenvex.h - Extra host and compiler configuration
+ * Module Name: utascii - Utility ascii functions
  *
  *****************************************************************************/
 
@@ -149,20 +149,121 @@
  *
  *****************************************************************************/
 
-#ifndef __ACENVEX_H__
-#define __ACENVEX_H__
+#include "acpi.h"
+#include "accommon.h"
 
-/*! [Begin] no source code translation */
 
-/******************************************************************************
+/*******************************************************************************
  *
- * Extra host configuration files. All ACPICA headers are included before
- * including these files.
+ * FUNCTION:    AcpiUtValidNameseg
  *
- *****************************************************************************/
-#include "acgccex.h"
+ * PARAMETERS:  Name            - The name or table signature to be examined.
+ *                                Four characters, does not have to be a
+ *                                NULL terminated string.
+ *
+ * RETURN:      TRUE if signature is has 4 valid ACPI characters
+ *
+ * DESCRIPTION: Validate an ACPI table signature.
+ *
+ ******************************************************************************/
+
+BOOLEAN
+AcpiUtValidNameseg (
+    char                    *Name)
+{
+    UINT32                  i;
 
 
-/*! [End] no source code translation !*/
+    /* Validate each character in the signature */
 
-#endif /* __ACENVEX_H__ */
+    for (i = 0; i < ACPI_NAMESEG_SIZE; i++)
+    {
+        if (!AcpiUtValidNameChar (Name[i], i))
+        {
+            return (FALSE);
+        }
+    }
+
+    return (TRUE);
+}
+
+
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiUtValidNameChar
+ *
+ * PARAMETERS:  Char            - The character to be examined
+ *              Position        - Byte position (0-3)
+ *
+ * RETURN:      TRUE if the character is valid, FALSE otherwise
+ *
+ * DESCRIPTION: Check for a valid ACPI character. Must be one of:
+ *              1) Upper case alpha
+ *              2) numeric
+ *              3) underscore
+ *
+ *              We allow a '!' as the last character because of the ASF! table
+ *
+ ******************************************************************************/
+
+BOOLEAN
+AcpiUtValidNameChar (
+    char                    Character,
+    UINT32                  Position)
+{
+
+    if (!((Character >= 'A' && Character <= 'Z') ||
+          (Character >= '0' && Character <= '9') ||
+          (Character == '_')))
+    {
+        /* Allow a '!' in the last position */
+
+        if (Character == '!' && Position == 3)
+        {
+            return (TRUE);
+        }
+
+        return (FALSE);
+    }
+
+    return (TRUE);
+}
+
+
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiUtCheckAndRepairAscii
+ *
+ * PARAMETERS:  Name                - Ascii string
+ *              Count               - Number of characters to check
+ *
+ * RETURN:      None
+ *
+ * DESCRIPTION: Ensure that the requested number of characters are printable
+ *              Ascii characters. Sets non-printable and null chars to <space>.
+ *
+ ******************************************************************************/
+
+void
+AcpiUtCheckAndRepairAscii (
+    UINT8                   *Name,
+    char                    *RepairedName,
+    UINT32                  Count)
+{
+    UINT32                  i;
+
+
+    for (i = 0; i < Count; i++)
+    {
+        RepairedName[i] = (char) Name[i];
+
+        if (!Name[i])
+        {
+            return;
+        }
+        if (!isprint (Name[i]))
+        {
+            RepairedName[i] = ' ';
+        }
+    }
+}

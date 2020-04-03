@@ -49,7 +49,15 @@ uint16_t pci_get_subclass(pci_device_t* dev){
 }
 
 
-void pci_write_value(pci_device_t* dev,int field,uint32_t val){
+void pci_write_value8(pci_device_t* dev,int field,uint8_t val){
+	outl(PCI_ADDRESS_PORT, pci_get_addr(dev, field));
+	outb(PCI_VALUE_PORT, val);
+}
+void pci_write_value16(pci_device_t* dev,int field,uint16_t val){
+	outl(PCI_ADDRESS_PORT, pci_get_addr(dev, field));
+	outw(PCI_VALUE_PORT, val);
+}
+void pci_write_value32(pci_device_t* dev,int field,uint32_t val){
 	outl(PCI_ADDRESS_PORT, pci_get_addr(dev, field));
 	outl(PCI_VALUE_PORT, val);
 }
@@ -99,7 +107,15 @@ pci_device_t* pci_seek_device(uint16_t vendor,uint16_t device){
 	}
 	return 0;
 }
-
+pci_device_t* pci_seek_device3(uint16_t bus,uint16_t slot,uint16_t func){
+	for(uint16_t i=0;i<__pci_dev;i++){
+		pci_device_t* dev = pci_get_deviceptr(i);
+		if(dev->bus == bus && dev->slot == slot && dev->func == func){
+			return dev;
+		}
+	}
+	return 0;
+}
 void init_pci(){
 	//while(1);
 	pci_probe();	

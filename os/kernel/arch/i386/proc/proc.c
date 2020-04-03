@@ -230,8 +230,10 @@ void save_ctx(context_t* ctx,regs_t r){
 	//kinfo("EIP <- %a\n",r->eip);
 }
 
+
+//Pid 0 fucks up ACPI
 uint32_t free_pid(){
-	for(uint32_t i = 0;i<MAX_PROCESSES;i++){
+	for(uint32_t i = 1;i<MAX_PROCESSES;i++){
 		if(!processes[i]){
 			return i;
 		}

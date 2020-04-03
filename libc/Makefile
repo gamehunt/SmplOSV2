@@ -6,6 +6,9 @@ string/memmove.o \
 string/memcmp.o \
 string/strcat.o \
 string/strcmp.o \
+string/strncmp.o \
+string/strncat.o \
+string/strncpy.o \
 string/substr.o \
 string/strcpy.o \
 string/strchr.o \
@@ -17,6 +20,11 @@ stdio/printf.o \
 stdio/vsprintf.o \
 stdio/sprintf.o \
 ctype/isdigit.o \
+ctype/isxdigit.o \
+ctype/isprint.o \
+ctype/isspace.o \
+ctype/tolower.o \
+ctype/toupper.o \
 stdlib/abort.o \
 stdlib/alloc.o \
 stdlib/atoi.o \

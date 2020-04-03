@@ -81,7 +81,7 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
-		kwarn("Trying to remap %a...\n",v_addr);
+		//kwarn("Trying to remap %a...\n",v_addr);
 	}
 	k_pt[pte] = pt_entry(p_addr, _flags );
 	if(paging_flag){
@@ -176,7 +176,36 @@ void kpfree(uint32_t v_addr){
 	if(paging_flag){
 		flush_tlb(v_addr);
 	}
-	
+}
+//Free only mapping, not frame
+void kpfree_virtual(uint32_t v_addr){
+	uint32_t pde = v_addr_to_pde(v_addr);
+	uint32_t pte = v_addr_to_pte(v_addr);
+	uint32_t i_pd_entry = current_page_directory[pde];
+	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
+		return;
+	}
+	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
+	uint32_t i_pt_entry = k_pt[pte];
+	if(flags(i_pt_entry) & PAGE_PRESENT){
+		uint32_t addr = address(k_pt[pte]);
+		k_pt[pte] = 0x0;
+		if(pde != 1023){
+			uint8_t flag = 1;
+			for(int i=0;i<1024;i++){
+				if(k_pt[i]){
+					flag = 0;
+				}
+			}
+			if(flag){
+				current_page_directory[pde] = 0x0;
+				kpfree(KERNEL_PT_MAP + pde*4096);
+			}
+		}
+	}
+	if(paging_flag){
+		flush_tlb(v_addr);
+	}
 }
 
 void pagefault_handler(regs_t r){

@@ -13,7 +13,7 @@
 
 static uint16_t last_id = 0;
 static uint16_t max_id = 0;
-static uint32_t __sys_ticks = 0;
+static uint64_t __sys_ticks = 0;
 pit_listener_t* pit_listeners[MAX_PIT_LISTENERS];
 
 

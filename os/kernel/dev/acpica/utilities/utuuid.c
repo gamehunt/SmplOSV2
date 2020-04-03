@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Name: acenvex.h - Extra host and compiler configuration
+ * Module Name: utuuid -- UUID support functions
  *
  *****************************************************************************/
 
@@ -149,20 +149,63 @@
  *
  *****************************************************************************/
 
-#ifndef __ACENVEX_H__
-#define __ACENVEX_H__
+#include "acpi.h"
+#include "accommon.h"
 
-/*! [Begin] no source code translation */
+#define _COMPONENT          ACPI_COMPILER
+        ACPI_MODULE_NAME    ("utuuid")
 
-/******************************************************************************
+
+#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_HELP_APP)
+/*
+ * UUID support functions.
  *
- * Extra host configuration files. All ACPICA headers are included before
- * including these files.
+ * This table is used to convert an input UUID ascii string to a 16 byte
+ * buffer and the reverse. The table maps a UUID buffer index 0-15 to
+ * the index within the 36-byte UUID string where the associated 2-byte
+ * hex value can be found.
  *
- *****************************************************************************/
-#include "acgccex.h"
+ * 36-byte UUID strings are of the form:
+ *     aabbccdd-eeff-gghh-iijj-kkllmmnnoopp
+ * Where aa-pp are one byte hex numbers, made up of two hex digits
+ *
+ * Note: This table is basically the inverse of the string-to-offset table
+ * found in the ACPI spec in the description of the ToUUID macro.
+ */
+const UINT8    AcpiGbl_MapToUuidOffset[UUID_BUFFER_LENGTH] =
+{
+    6,4,2,0,11,9,16,14,19,21,24,26,28,30,32,34
+};
 
 
-/*! [End] no source code translation !*/
+/*******************************************************************************
+ *
+ * FUNCTION:    AcpiUtConvertStringToUuid
+ *
+ * PARAMETERS:  InString            - 36-byte formatted UUID string
+ *              UuidBuffer          - Where the 16-byte UUID buffer is returned
+ *
+ * RETURN:      None. Output data is returned in the UuidBuffer
+ *
+ * DESCRIPTION: Convert a 36-byte formatted UUID string to 16-byte UUID buffer
+ *
+ ******************************************************************************/
 
-#endif /* __ACENVEX_H__ */
+void
+AcpiUtConvertStringToUuid (
+    char                    *InString,
+    UINT8                   *UuidBuffer)
+{
+    UINT32                  i;
+
+
+    for (i = 0; i < UUID_BUFFER_LENGTH; i++)
+    {
+        UuidBuffer[i] = (AcpiUtAsciiCharToHex (
+            InString[AcpiGbl_MapToUuidOffset[i]]) << 4);
+
+        UuidBuffer[i] |= AcpiUtAsciiCharToHex (
+            InString[AcpiGbl_MapToUuidOffset[i] + 1]);
+    }
+}
+#endif

@@ -35,6 +35,7 @@
 #define USER_HEAP_SIZE 64*1024 //base 64 kib heap per process
 
 #define KERNEL_PT_MAP 0xFFC00000
+#define ACPICA_BASE_ADDRESS 0x50000000
 
 struct gdt_entry {
   uint16_t limit;
@@ -124,6 +125,10 @@ uint32_t* knpalloc(uint32_t vaddr);
 uint32_t* kcpalloc(uint32_t n);
 
 uint32_t* kmalloc(uint32_t size);
+//frees page and frame, also clears pt if needed
+void kpfree(uint32_t v_addr);
+//Free only mapping, not frame
+void kpfree_virtual(uint32_t v_addr);
 //frees memory. 
 void kfree(uint32_t* addr);
 //frees aligned memory.

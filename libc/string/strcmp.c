@@ -8,7 +8,7 @@
 
 #include <string.h>
 
-uint32_t strcmp(const char *X, const char *Y)
+int strcmp(const char *X, const char *Y)
 {
 	while(*X)
 	{

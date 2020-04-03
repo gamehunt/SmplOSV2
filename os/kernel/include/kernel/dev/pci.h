@@ -48,7 +48,9 @@ void init_pci();
 void add_pci_dev(pci_device_t* dev);
 
 uint32_t pci_read_value(pci_device_t* dev, int field, int size);
-void pci_write_value(pci_device_t* dev, int field, uint32_t value);
+void pci_write_value8(pci_device_t* dev,int field,uint8_t val);
+void pci_write_value16(pci_device_t* dev,int field,uint16_t val);
+void pci_write_value32(pci_device_t* dev,int field,uint32_t val);
 
 uint16_t pci_get_vendor(pci_device_t* dev);
 uint16_t pci_get_device(pci_device_t* dev);
@@ -58,4 +60,5 @@ uint16_t pci_get_subclass(pci_device_t* dev);
 uint16_t pci_last_device(); 
 pci_device_t* pci_get_deviceptr(uint16_t i); 
 pci_device_t* pci_seek_device(uint16_t vendor,uint16_t device);
+pci_device_t* pci_seek_device3(uint16_t bus,uint16_t slot,uint16_t func);
 #endif

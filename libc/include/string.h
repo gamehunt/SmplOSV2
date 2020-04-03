@@ -22,9 +22,12 @@ void* memset(void*, int, size_t);
 
 int strlen(const char* str);
 char * strcat(char *dest, const char *src);
-uint32_t strcmp(const char *X, const char *Y);
+int strcmp(const char *X, const char *Y);
 char* substr(const char *src, int m, int n);
 void strcpy(char dest[], const char source[]);
 char* strtok(char* str,const char* delimiter);
 const char* strchr(const char* str,int sym);
+int strncmp( const char * string1, const char * string2, size_t num );
+int strncat( char * string1, const char * string2, size_t num );
+int strncpy( char * destination, const char * source, size_t num );
 CH_END

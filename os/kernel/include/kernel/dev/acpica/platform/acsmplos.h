@@ -152,126 +152,59 @@
 #ifndef __ACSMPLOS_H__
 #define __ACSMPLOS_H__
 
-/* ACPICA external files should not include ACPICA headers directly. */
-
-#if !defined(BUILDING_ACPICA) && !defined(_LINUX_ACPI_H)
-#error "Please don't include <acpi/acpi.h> directly, include <linux/acpi.h> instead."
-#endif
-
 /* Common (in-kernel/user-space) ACPICA configuration */
 
 #define ACPI_USE_SYSTEM_CLIBRARY
 #define ACPI_USE_DO_WHILE_0
 #define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
 
-//#define ACPI_USE_SYSTEM_INTTYPES
 #define ACPI_USE_GPE_POLLING
 
-/* Kernel specific ACPICA configuration */
-
-#ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
-#define ACPI_REDUCED_HARDWARE 1
-#endif
-
-#ifdef CONFIG_ACPI_DEBUGGER
-#define ACPI_DEBUGGER
-#endif
-
-#ifdef CONFIG_ACPI_DEBUG
-#define ACPI_MUTEX_DEBUG
-#endif
-
-
-#ifdef CONFIG_ACPI
-#include <asm/acenv.h>
-#endif
-/* Use a specific bugging default separate from ACPICA */
-
-#undef ACPI_DEBUG_DEFAULT
-#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INFO | ACPI_LV_REPAIR)
-
-#ifndef CONFIG_ACPI
-
-/* External globals for __KERNEL__, stubs is needed */
-
-#define ACPI_GLOBAL(t,a)
-#define ACPI_INIT_GLOBAL(t,a,b)
-
-/* Generating stubs for configurable ACPICA macros */
-
-//#define ACPI_NO_MEM_ALLOCATIONS
-
-/* Generating stubs for configurable ACPICA functions */
-
-#define ACPI_NO_ERROR_MESSAGES
-#undef ACPI_DEBUG_OUTPUT
-
-/* External interface for __KERNEL__, stub is needed */
-
-#define ACPI_EXTERNAL_RETURN_STATUS(Prototype) \
-    static ACPI_INLINE Prototype {return(AE_NOT_CONFIGURED);}
-#define ACPI_EXTERNAL_RETURN_OK(Prototype) \
-    static ACPI_INLINE Prototype {return(AE_OK);}
-#define ACPI_EXTERNAL_RETURN_VOID(Prototype) \
-    static ACPI_INLINE Prototype {return;}
-#define ACPI_EXTERNAL_RETURN_UINT32(Prototype) \
-    static ACPI_INLINE Prototype {return(0);}
-#define ACPI_EXTERNAL_RETURN_PTR(Prototype) \
-    static ACPI_INLINE Prototype {return(NULL);}
-
-#endif /* CONFIG_ACPI */
-
 /* Host-dependent types and defines for in-kernel ACPICA */
+#include <kernel/proc/sync.h>
 
-#define ACPI_MACHINE_WIDTH          BITS_PER_LONG
-#define ACPI_USE_NATIVE_MATH64
-#define ACPI_EXPORT_SYMBOL(symbol)  symbol_export(symbol);
-#define strtoul                     simple_strtoul
+#define ACPI_DEBUG_OUTPUT
+//#define ACPI_DEBUGGER
+
+#define ACPI_MACHINE_WIDTH          32
 
 #define ACPI_CACHE_T                ACPI_MEMORY_LIST
 #define ACPI_USE_LOCAL_CACHE        1
 #define ACPI_SPINLOCK               spinlock_t *
 #define ACPI_CPU_FLAGS              unsigned long
 
-/*
- * Overrides for in-kernel ACPICA
- */
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsInitialize
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsTerminate
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsAllocate
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsAllocateZeroed
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsFree
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsAcquireObject
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsGetThreadId
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsCreateLock
+#define ACPI_DIV_64_BY_32(n_hi, n_lo, d32, q32, r32) \
+    do { \
+        UINT64 (__n) = ((UINT64) n_hi) << 32 | (n_lo); \
+        (r32) = do_div ((__n), (d32)); \
+        (q32) = (UINT32) (__n); \
+    } while (0)
+    
+#define ACPI_SHIFT_RIGHT_64(n_hi, n_lo) \
+    do { \
+        (n_lo) >>= 1; \
+        (n_lo) |= (((n_hi) & 1) << 31); \
+        (n_hi) >>= 1; \
+    } while (0)
 
-/*
- * OSL interfaces used by debugger/disassembler
- */
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsReadable
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsWritable
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsInitializeDebugger
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsTerminateDebugger
+#ifndef do_div
+# define do_div(n,base) ({				\
+	uint32_t __base = (base);			\
+	uint32_t __rem;					\
+	(void)(((typeof((n)) *)0) == ((uint64_t *)0));	\
+	if (likely(((n) >> 32) == 0)) {			\
+		__rem = (uint32_t)(n) % __base;		\
+		(n) = (uint32_t)(n) / __base;		\
+	} else 						\
+		__rem = __div64_32(&(n), __base);	\
+	__rem;						\
+ })
+#if ACPI_MACHINE_WIDTH == 32 && !defined(__div64_32)
+	extern uint32_t __div64_32(uint64_t *dividend, uint32_t divisor);
+#endif
+#endif
 
-/*
- * OSL interfaces used by utilities
- */
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsRedirectOutput
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsGetTableByName
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsGetTableByIndex
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsGetTableByAddress
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsOpenDirectory
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsGetNextFilename
-#define ACPI_USE_ALTERNATE_PROTOTYPE_AcpiOsCloseDirectory
-
-#define ACPI_MSG_ERROR          KERN_ERR "ACPI Error: "
-#define ACPI_MSG_EXCEPTION      KERN_ERR "ACPI Exception: "
-#define ACPI_MSG_WARNING        KERN_WARNING "ACPI Warning: "
-#define ACPI_MSG_INFO           KERN_INFO "ACPI: "
-
-#define ACPI_MSG_BIOS_ERROR     KERN_ERR "ACPI BIOS Error (bug): "
-#define ACPI_MSG_BIOS_WARNING   KERN_WARNING "ACPI BIOS Warning (bug): "
-
-#define ACPI_STRUCT_INIT(field, value)  .field = value
+# define likely(x)      __builtin_expect(!!(x), 1)
+# define unlikely(x)    __builtin_expect(!!(x), 0)
 
 #endif /* __ACSMPLOS_H__ */

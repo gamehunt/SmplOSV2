@@ -113,7 +113,9 @@ void init_symtable(){
 	symbol_export("pci_get_subclass",&pci_get_subclass);
 	symbol_export("pci_get_vendor",&pci_get_vendor);
 	symbol_export("pci_read_value",&pci_read_value);
-	symbol_export("pci_write_value",&pci_write_value);
+	symbol_export("pci_write_value8",&pci_write_value8);
+	symbol_export("pci_write_value16",&pci_write_value16);
+	symbol_export("pci_write_value32",&pci_write_value32);
 	
 	symbol_export("irq_set_handler",&irq_set_handler);
 	symbol_export("irq_end",&irq_end);

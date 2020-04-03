@@ -5,9 +5,6 @@
     Author: gamehunt 
 
 */
-
-
-
 #include <kernel/multiboot.h>
 #include <kernel/global.h>
 #include <kernel/memory/memory.h>
@@ -16,13 +13,68 @@
 #include <kernel/fs/tar.h>
 #include <kernel/misc/debug.h>
 #include <kernel/module/symtable.h>
-
+#include <kernel/dev/acpica/acpi.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 //TODO Make all thread-safe
 
 extern uint32_t* k_frame_stack;  
+
+void init_acpi(){
+	kinfo("Started ACPI initialization\n");
+	
+	if(AcpiInitializeTables(0,0,0) != AE_OK){
+		kerr("Failed to initialize acpi tables!\n");
+		while(1){
+			asm("cli");
+			asm("hlt");
+		}
+	}else{
+		kinfo("ACPI tables initialized\n");
+	}
+	
+	if(AcpiInitializeSubsystem() != AE_OK){
+		kerr("Failed to initialize acpi subsystem!\n");
+		while(1){
+			asm("cli");
+			asm("hlt");
+		}
+	}else{
+		kinfo("ACPI subsystem initialized\n");
+	}
+	
+	if(AcpiLoadTables() != AE_OK){
+		kerr("Failed to load acpi tables!\n");
+		while(1){
+			asm("cli");
+			asm("hlt");
+		}
+	}else{
+		kinfo("ACPI tables loaded\n");
+	}
+	
+	if(AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION) != AE_OK){
+		kerr("Failed to enable acpi subsystem!\n");
+		while(1){
+			asm("cli");
+			asm("hlt");
+		}
+	}else{
+		kinfo("ACPI subsystem enabled\n");
+	}
+	if(AcpiInitializeObjects(ACPI_FULL_INITIALIZATION)!= AE_OK){
+		kerr("Failed to initialize acpi objects!\n");
+		while(1){
+			asm("cli");
+			asm("hlt");
+		}
+	}else{
+		kinfo("ACPI objects initialized\n");
+	}
+	AcpiEnable();
+	kinfo("ACPI initialized\n");
+}
 
 void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	eld_init();	
@@ -62,6 +114,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_vfs(); 
 	init_pipe();
 	init_signals();
+	init_acpi();
 	
 	modules_load();
 	
@@ -103,6 +156,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 		execute(init,0,0,1);
 	}
 	
+	asm("cli");
 	for(;;) {
 		asm("hlt");
     }
