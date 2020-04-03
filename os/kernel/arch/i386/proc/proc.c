@@ -509,7 +509,7 @@ void clean_process(proc_t* proc){
 	}
 	kclose(proc_node);
 	total_prcs--;
-	#if 0  //TODO: fix the rest of it
+	#if 1  //TODO: fix the rest of it
 		uint32_t cpdir = current_page_directory;
 		set_page_directory(kernel_page_directory);
 		kpfree(processes[proc->pid]->state->cr3);
@@ -531,9 +531,7 @@ void clean_process(proc_t* proc){
 		
 	#endif 
 	killed_remove(proc);
-	#if 0
 	kfree(processes[proc->pid]);
-	#endif
 	processes[pid] = 0;
 	//kinfo("Cleanup completed\n");
 }

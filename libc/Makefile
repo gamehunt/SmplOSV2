@@ -58,13 +58,13 @@ crtn.o\
 all: libk.a libc.a crt
 
 clean:
-	rm -f libc.a
-	rm -f libk.a
-	rm $(SYSROOT)$(SYSLIB)/libk.a
-	rm $(SYSROOT)$(SYSLIB)/libc.a
-	rm -f $(LIBC_OBJS) $(LIBK_OBJS) *.o */*.o */*/*.o
-	rm -f $(LIBC_OBJS:.o=.d) $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
-	rm -f $(CRT_OBJS)
+	-rm -f libc.a
+	-rm -f libk.a
+	-rm $(SYSROOT)$(SYSLIB)/libk.a
+	-rm $(SYSROOT)$(SYSLIB)/libc.a
+	-rm -f $(LIBC_OBJS) $(LIBK_OBJS) *.o */*.o */*/*.o
+	-rm -f $(LIBC_OBJS:.o=.d) $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
+	-rm -f $(CRT_OBJS)
 install:
 	cp libk.a $(SYSROOT)$(SYSLIB)/libk.a
 	cp libc.a $(SYSROOT)$(SYSLIB)/libc.a

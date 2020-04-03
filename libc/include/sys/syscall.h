@@ -6,6 +6,9 @@
 
 #if !defined(__smplos_libk) && !defined(__smplos_kernel) 
 
+#define SYS_PWREQ_SHUTDOWN 0
+#define SYS_PWREQ_REBOOT   1
+
 extern uint32_t sys_call(uint32_t n,uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e);
 
 static inline uint32_t sys_echo(char* str,uint32_t opt){
@@ -114,6 +117,8 @@ static inline pid_t sys_getppid(){
 static inline uint8_t sys_pipe(char* path,uint32_t buff_size){
 	return sys_call(SYS_PIPE,path,buff_size,0,0,0);
 }
-
+static inline uint8_t sys_pwreq(uint32_t req){
+	return sys_call(SYS_PWREQ,req,0,0,0,0);
+}
 
 #endif

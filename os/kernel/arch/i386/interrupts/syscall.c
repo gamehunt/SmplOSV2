@@ -11,6 +11,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/proc/proc.h>
 #include <kernel/misc/pathutils.h>
+#include <kernel/dev/acpica/acpi.h>
 #include <dirent.h>
 
 #define MAX_SYSCALL 128
@@ -282,6 +283,35 @@ uint32_t sys_pipe(uint32_t path, uint32_t size,uint32_t ___,uint32_t ____,uint32
 	fs_node_t* node = pipe_create(path,size);
 	return node?0:1;
 }
+uint32_t sys_pwreq(uint32_t req, uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+	if(req == 0){
+		kinfo("Shooting down\n");
+		//TODO move to separate kernel function and unload all shit in it
+		AcpiEnterSleepStatePrep(5);
+		AcpiEnterSleepState(5);
+		while(1){
+			asm("hlt");
+		}
+	}
+	if(req == 1){
+		kinfo("Rebooting\n");
+		//TODO move to separate kernel function and unload all shit in it
+		if(AcpiGbl_FADT.Flags & ACPI_FADT_RESET_REGISTER){
+			kmpalloc(0x40000000,AcpiGbl_FADT.ResetRegister.Address,0);//Figure out where is AcpiGbl_FADT.ResetRegister.Address?
+			*((uint8_t*)0x40000000) = AcpiGbl_FADT.ResetValue;
+			outb(AcpiGbl_FADT.ResetRegister.Address, AcpiGbl_FADT.ResetValue);
+		}else{
+			//Hack code for 8042 processor
+			uint8_t good = 0x02;
+			while (good & 0x02)
+				good = inb(0x64);
+			outb(0x64, 0xFE);
+		}
+		while(1){
+			asm("hlt");
+		}
+	}
+}
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -314,4 +344,5 @@ void init_syscalls(){
 	register_syscall(SYS_SLEEP,&sys_sleep);
 	register_syscall(SYS_GETPPID,&sys_getppid);
 	register_syscall(SYS_PIPE,&sys_pipe);
+	register_syscall(SYS_PWREQ,&sys_pwreq);
 }

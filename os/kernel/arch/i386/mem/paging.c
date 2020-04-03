@@ -226,7 +226,6 @@ void pagefault_handler(regs_t r){
 	crash.description = "Page Fault";
 	char message[60];
 	memset(message,0,60);
-
 	sprintf(message,"Fault address: %a, error code = %a",cr2,r->err_code);
 	crash.extra_info = message;
 	kpanic(crash);

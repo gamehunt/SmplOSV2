@@ -78,7 +78,7 @@ clean:
 	rm -f $(KERNEL_OBJS) *.o */*.o */*/*.o
 	rm -f $(KERNEL_OBJS:.o=.d) *.d */*.d */*/*.d
 	rm -f $(ACPICA_OBJS) *.acpica.o */*.acpica.o
-	rm -f $(ACPICA_OBJS:.acpica.o=.d) *.d */*.d
+	rm -f $(ACPICA_OBJS:.acpica.o=.acpica.d) *.acpica.d */*.acpica.d
 install:
 	cp smplos.kernel $(SYSROOT)/boot/kernel.bin
 

@@ -12,7 +12,6 @@
 #include <time.h>
 #include <kernel/interrupts/syscalls.h>
 #include <sys/syscall.h>
-#include <kernel/fs/vfs.h>
 #include <kbd.h>
 
 char cwdbuffer[256];
@@ -125,7 +124,7 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 				}
 			}
 		}
-		if(!strcmp("cd",exec)){
+		if(!strcmp("cd",exec)){ //TODO make proper system for builtin shell cmds
 			if(argc){
 				if(chdir(argv[0]) < 0){
 					printf("No such directory\n");
