@@ -238,7 +238,7 @@ uint32_t free_pid(){
 			return i;
 		}
 	}
-	return -1;
+	return 0;
 }
 
 
@@ -256,7 +256,15 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
 	set_page_directory(cpdir);
 	
-	new_proc->pid = free_pid();
+	uint32_t pid = free_pid();
+	
+	if(!pid){
+			crash_info_t crash;
+			crash.description = "Failed to allocate pid";
+			kpanic(crash);
+	}
+	
+	new_proc->pid = pid;
 	
 	
 	char path[64];
@@ -471,68 +479,70 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 }
 
 void clean_process(proc_t* proc){
-	killed_remove(proc);
-	return;
 	//kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 	if(proc->pwait){
-		if(proc->parent && proc->parent->status == PROC_WAIT){
+		if(validate(proc->parent) && proc->parent->status == PROC_WAIT){
 			ready_insert(proc->parent);
 			proc->pwait = 0;
 		}
 	}
 	
 	uint32_t pid = proc->pid;
+
 	char path[64];
 	memset(path,0,64);
 	sprintf(path,"/proc/%d",proc->pid);
 	fs_node_t* proc_node = kopen(path);
 	if(proc_node){
-		fs_dir_t* dir = kreaddir(proc_node);
-		for(uint32_t i=0;i<dir->chld_cnt;i++){
-			char* buff = kmalloc(dir->chlds[i]->size);
-			memset(buff,0,dir->chlds[i]->size);
-			uint32_t sz = 0;
-			if(sz = kread(dir->chlds[i],0,dir->chlds[i]->size,buff)){
+		#if 1
+			fs_dir_t* dir = kreaddir(proc_node);
+			for(uint32_t i=0;i<dir->chld_cnt;i++){
+				char* buff = kmalloc(dir->chlds[i]->size);
+				memset(buff,0,dir->chlds[i]->size);
+				uint32_t sz = 0;
+				if(sz = kread(dir->chlds[i],0,dir->chlds[i]->size,buff)){
 				//Stream in proc directory not empty, we shouldn't clean this process yet
-				if(dir->chlds[i]->fsid == 1){
-					kwrite(dir->chlds[i],0,sz,buff); //Restore pipe values
+					if(dir->chlds[i]->fsid == 1){
+						kwrite(dir->chlds[i],0,sz,buff); //Restore pipe values
+					}
+					kclose(proc_node);
+					kfree(dir);
+					kfree(buff);
+					return;
 				}
-				kclose(proc_node);
-				kfree(dir);
 				kfree(buff);
-				return;
+				kremove(dir->chlds[i]);
 			}
-			kfree(buff);
-			kremove(dir->chlds[i]);
-		}
-		kremove(proc_node);
-	}
-	kclose(proc_node);
-	total_prcs--;
-	#if 1  //TODO: fix the rest of it
-		uint32_t cpdir = current_page_directory;
-		set_page_directory(kernel_page_directory);
-		kpfree(processes[proc->pid]->state->cr3);
-		set_page_directory(cpdir);
-		kvfree(processes[proc->pid]->state->k_esp);
-		kfree(processes[proc->pid]->state);
-		kfree(processes[proc->pid]->signal_state);
-		if(processes[proc->pid]->sig_stack_esp >= 0){
-			kfree(processes[proc->pid]->sig_stack);
-		}
-		for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
-			if(validate(processes[proc->pid]->f_descs[i])){
-				kclose(processes[proc->pid]->f_descs[i]);
-			}
-		}
-		if(processes[proc->pid]->f_descs_cnt && validate(processes[proc->pid]->f_descs)){
-			kfree(processes[proc->pid]->f_descs);
-		}
 		
-	#endif 
+		kremove(proc_node);
+		#endif
+		kclose(proc_node);
+	}
+	
+
+	//kffree(processes[proc->pid]->state->cr3);
+	kvfree(processes[proc->pid]->state->k_esp);
+	kfree(processes[proc->pid]->state);
+	kfree(processes[proc->pid]->signal_state);
+	if(processes[proc->pid]->sig_stack_esp >= 0){
+		kfree(processes[proc->pid]->sig_stack);
+	}
+	for(uint32_t i = 0;i<processes[proc->pid]->f_descs_cnt;i++){
+		if(validate(processes[proc->pid]->f_descs[i])){
+			kclose(processes[proc->pid]->f_descs[i]);
+		}
+	}
+	if(processes[proc->pid]->f_descs_cnt && validate(processes[proc->pid]->f_descs)){
+		kfree(processes[proc->pid]->f_descs);
+	}
+		
+	
 	killed_remove(proc);
+	
+#if 1
 	kfree(processes[proc->pid]);
 	processes[pid] = 0;
+#endif
 	//kinfo("Cleanup completed\n");
 }
 

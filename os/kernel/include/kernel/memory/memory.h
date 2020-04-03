@@ -28,7 +28,9 @@
 #define PAGE_DIRTY     0x40
 #define PAGE_SIZE      0x80
 
-#define KHEAP_SIZE 64*1024*1024 //64 mib heap
+#define KHEAP_START 0x02000000
+#define KHEAP_END   0x20000000
+#define KHEAP_SIZE  (KHEAP_END-KHEAP_START)
 
 #define USER_STACK   0xC0000000
 #define USER_HEAP    0xD0000000
@@ -144,5 +146,3 @@ void mem_stat();
 
 uint8_t validate(uint32_t addr);
 uint32_t virtual2physical(uint32_t v_addr);
-
-void clean_page_directory(uint32_t* pd); //Makes current page directory as kernel page directory

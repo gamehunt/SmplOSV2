@@ -22,7 +22,12 @@ static mem_t* free = 0;
 static uint32_t stat_alloc,stat_free,stat_merges,stat_alloc_total,stat_freed_total,stat_max_load;
 
 void init_kheap(){
-	heap_start = kcpalloc(KHEAP_SIZE/4096);
+	kinfo("Allocating kernel heap...\n");
+	for(uint32_t i=KHEAP_START;i<KHEAP_END;i+=4096){
+		//kinfo("Allocating block %a-%a...\n",i,i+4096);
+		knpalloc(i);
+	}
+	heap_start = KHEAP_START;
 	heap_start_static = heap_start;
 	stat_alloc = create_stat("kheap_alloc_times",0);
 	stat_free = create_stat("kheap_free_times",0);
@@ -30,6 +35,7 @@ void init_kheap(){
 	stat_alloc_total = create_stat("kheap_alloc_total",0);
 	stat_freed_total = create_stat("kheap_freed_total",0);
 	stat_max_load = create_stat("kheap_max_load",0);
+	kinfo("Kernel heap size: %d MB\n",KHEAP_SIZE/1024/1024);
 }
 
 static inline mem_t* header(void* alloc){
@@ -193,7 +199,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 	
-	//return; //TODO find another bug in kfree
+	return; //TODO find another bug in kfree
 	
 	mem_t* block = header(addr);
 	
