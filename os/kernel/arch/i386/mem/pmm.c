@@ -10,6 +10,9 @@
 #include <kernel/global.h>
 #include <kernel/misc/panic.h>
 #include <kernel/misc/stat.h>
+
+#define  MAX_PROTECTED_REGIONS 32
+
 extern uint32_t k_end;
 
 uint32_t* k_frame_stack = &k_end;
@@ -19,6 +22,14 @@ static uint32_t k_frame_stack_esp = 0;
 static uint32_t k_frame_stack_size = 0;
 
 static uint16_t stat,stat1,stat2;
+
+typedef struct{
+	uint32_t size;
+	uint32_t start;
+}memory_region_t;
+
+static memory_region_t protected_regions[MAX_PROTECTED_REGIONS];
+static uint32_t prot_regions_counter = 0;
 
 uint32_t k_frame_stack_pop(){
 	if(k_frame_stack_esp >= k_frame_stack_size){	
@@ -46,6 +57,14 @@ void k_frame_stack_push(uint32_t frame){
 	
 }
 
+static uint8_t pmm_check_frame(uint32_t frame){
+	for(uint32_t i=0;i<prot_regions_counter;i++){
+		if(frame >= protected_regions[i].start && frame <= protected_regions[i].start + protected_regions[i].size){
+			return 0;
+		}
+	}
+	return 1;
+}
 
 void init_pmm(multiboot_info_t *mbt){
 	kinfo("Kernel frame stack at %a\n",k_frame_stack);
@@ -57,7 +76,7 @@ void init_pmm(multiboot_info_t *mbt){
 		kinfo("0x%e - 0x%e - 0x%x\n",mmap->addr,mmap->addr+mmap->len,mmap->type);
 		if(mmap->type == 1){
 			for(int i = 0; i< mmap->len; i+= 4096){
-				if(mmap->addr+i > 0x300000){
+				if(pmm_check_frame(mmap->addr+i)){
 					memset(&k_frame_stack[k_frame_stack_size],0,4);
 					k_frame_stack[k_frame_stack_size] = mmap->addr+i;
 					k_frame_stack_size++;
@@ -85,6 +104,17 @@ void kffree(uint32_t addr){
 	i_update_stat(stat,1);
 	i_update_stat(stat2,-1);
 	k_frame_stack_push(addr);
+}
+
+void pmm_protect_region(uint32_t region_start,uint32_t size){
+	if(prot_regions_counter >= MAX_PROTECTED_REGIONS){
+		kerr("Failed to protect region %a-%a\n",region_start,region_start+size);
+	}else{
+		kinfo("Protected region %a-%a\n",region_start,region_start+size);
+	}
+	protected_regions[prot_regions_counter].size = size;
+	protected_regions[prot_regions_counter].start = region_start;
+	prot_regions_counter++;
 }
 
 

@@ -103,6 +103,10 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	idt_install();	
 	
 	init_syscalls();
+	
+	pmm_protect_region(0x0,0x400000); //Some space for kernel
+	pmm_protect_region(0x30000000,0x10000*10);//DMA regions
+	
 	init_pmm(mbt);
 	init_paging();
 	init_kheap();

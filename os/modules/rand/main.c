@@ -55,6 +55,7 @@ uint8_t load(){
 		next = rtc_current_time();
 	}
 	fs_t* randfs = kmalloc(sizeof(fs_t));
+	memset(randfs,0,sizeof(fs_t));
 	randfs->read = rand_read;
 	randfs->name = "random";
 	uint32_t idx = register_fs(randfs);

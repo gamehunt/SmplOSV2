@@ -89,17 +89,18 @@ fs_node_t* vfs_remove(fs_node_t* node){
 	if(node->fsid == 0 && node->inode){
 		kfree(node->inode);
 	}
-	if(node->entry->childs){
+	if(node->entry->child_count && validate(node->entry->childs)){
 		for(uint32_t i=0;i<node->entry->child_count;i++){
 			kremove(node->entry->childs[i]);
 		}
 		kfree(node->entry->childs);
 	}
-	if(node->entry->parent){
+	
+	if(validate(node->entry->parent)){
 		fs_node_t* par = node->entry->parent;
 		int zero_idx = -1;
 		for(uint32_t i=0;i<par->entry->child_count;i++){
-			if(!strcmp(par->entry->childs[i],node->name)){
+			if(!strcmp(par->entry->childs[i]->name,node->name)){
 				par->entry->childs[i] = 0;
 				zero_idx = i;
 			}
@@ -160,7 +161,7 @@ fs_node_t* kseek(char* path){
 			rnode = vc;
 			continue;
 		}
-		if(!rnode || !rnode->fsid || !fss[rnode->fsid]->seek){
+		if(!rnode || !rnode->fsid || !validate(fss[rnode->fsid]->seek)){
 			kfree(npath);
 			return 0;
 		}
@@ -184,7 +185,7 @@ fs_node_t* kcreate(char* path, uint8_t type){
 	if(!par){
 		kerr("Failed to create parent node!\n");
 	}
-	if(type == VFS_TYPE_VIRTUAL){
+	if(type == VFS_TYPE_VIRTUAL || !validate(fss[par->fsid]->create)){
 		node = vfs_create(name,par,type);
 	}else{
 		node = fss[par->fsid]->create(name,par,type);
@@ -235,7 +236,7 @@ fs_node_t* kmount(char* path, char* devicep,uint16_t fsid){
 	}
 	
 	
-	if(fs->mount){
+	if(validate(fs->mount)){
 		return fs->mount(mountpoint,device);
 	}
 	return mountpoint;
@@ -248,7 +249,7 @@ uint32_t kread(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 		//kinfo("LINK\n");
 		real_node = (fs_node_t*)node->inode;
 	}
-	if(validate(real_node) && fss[real_node->fsid]->read){
+	if(validate(real_node) && validate(fss[real_node->fsid]->read)){
 		return  fss[real_node->fsid]->read(real_node,offset,size,buffer);
 	}
 	return 0;
@@ -258,7 +259,7 @@ uint32_t kwrite(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer)
 	if(vfs_check_flag(real_node->flags,VFS_LINK)){
 		real_node = (fs_node_t*)node->inode;
 	}
-	if(validate(real_node) && fss[real_node->fsid]->write){
+	if(validate(real_node) && validate(fss[real_node->fsid]->write)){
 		return  fss[real_node->fsid]->write(real_node,offset,size,buffer);
 	}
 	return 0;
@@ -277,8 +278,7 @@ fs_dir_t* kreaddir(fs_node_t* node){
 		dir->chlds = krealloc(dir->chlds,dir->chld_cnt*sizeof(fs_node_t*));
 		memcpy(dir->chlds,node->entry->childs,node->entry->child_count*sizeof(fs_node_t*));
 	}
-	if(fss[node->fsid]->readdir){
-		//kinfo("In custom code\n");				
+	if(validate(fss[node->fsid]->readdir)){			
 		fs_dir_t* new = fss[node->fsid]->readdir(node);
 		if(new){
 			dir->chld_cnt += new->chld_cnt;
@@ -318,7 +318,7 @@ uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp){
 	if(node->ioctl){
 		return node->ioctl(node,req,argp); 
 	}
-	if(fss[node->fsid]->ioctl){
+	if(validate(fss[node->fsid]->ioctl)){
 		return fss[node->fsid]->ioctl(node,req,argp);
 	}
 	return 0;
@@ -349,16 +349,17 @@ uint16_t ktypeid(char* name){
 
 uint8_t kremove(fs_node_t* node){
 	if(!node){
-		kerr("Failed to remove %s: no such node\n");
 		return 1;
 	}
 	if(vfs_check_flag(node->flags,VFS_MOUNTPOINT)){
 		kumount(node);
 	}
-	if(fss[node->fsid]->remove){
+	if(validate(fss[node->fsid]->remove)){
 		fss[node->fsid]->remove(node);
 	}
-	vfs_remove(node);
+	if(node->fsid){
+		vfs_remove(node);
+	}
 	kfree(node);
 	return 0;
 }
@@ -372,7 +373,7 @@ uint8_t kumount(fs_node_t* node){
 		return 1;
 	}
 	vfs_clear_flag(node->flags,VFS_MOUNTPOINT);
-	if(fss[node->fsid]->umount){
+	if(validate(fss[node->fsid]->umount)){
 		fss[node->fsid]->umount(node);
 	}	
 }

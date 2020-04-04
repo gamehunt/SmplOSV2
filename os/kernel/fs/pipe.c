@@ -171,6 +171,7 @@ void pipe_umount(fs_node_t* node){
 
 void init_pipe(){
 	fs_t* pipefs = kmalloc(sizeof(fs_t));
+	memset(pipefs,0,sizeof(fs_t));
 	pipefs->mount = mount_pipe;
 	pipefs->umount = pipe_umount;
 	pipefs->ioctl = pipe_ioctl;

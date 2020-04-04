@@ -479,7 +479,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 }
 
 void clean_process(proc_t* proc){
-	//kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
+	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 	if(proc->pwait){
 		if(validate(proc->parent) && proc->parent->status == PROC_WAIT){
 			ready_insert(proc->parent);
@@ -492,31 +492,26 @@ void clean_process(proc_t* proc){
 	char path[64];
 	memset(path,0,64);
 	sprintf(path,"/proc/%d",proc->pid);
-	fs_node_t* proc_node = kopen(path);
+	fs_node_t* proc_node = kseek(path);
 	if(proc_node){
-		#if 1
-			fs_dir_t* dir = kreaddir(proc_node);
-			for(uint32_t i=0;i<dir->chld_cnt;i++){
-				char* buff = kmalloc(dir->chlds[i]->size);
-				memset(buff,0,dir->chlds[i]->size);
-				uint32_t sz = 0;
-				if(sz = kread(dir->chlds[i],0,dir->chlds[i]->size,buff)){
+		fs_dir_t* dir = kreaddir(proc_node);
+		for(uint32_t i=0;i<dir->chld_cnt;i++){
+			char* buff = kmalloc(dir->chlds[i]->size);
+			memset(buff,0,dir->chlds[i]->size);
+			uint32_t sz = 0;
+			if(sz = kread(dir->chlds[i],0,dir->chlds[i]->size,buff)){
 				//Stream in proc directory not empty, we shouldn't clean this process yet
-					if(dir->chlds[i]->fsid == 1){
-						kwrite(dir->chlds[i],0,sz,buff); //Restore pipe values
-					}
-					kclose(proc_node);
-					kfree(dir);
-					kfree(buff);
-					return;
+				if(dir->chlds[i]->fsid == 1){
+					kwrite(dir->chlds[i],0,sz,buff); //Restore pipe values
 				}
+				kfree(dir);
 				kfree(buff);
-				kremove(dir->chlds[i]);
+				return;
 			}
-		
+			kfree(buff);
+			kremove(dir->chlds[i]);
+		}
 		kremove(proc_node);
-		#endif
-		kclose(proc_node);
 	}
 	
 
@@ -538,12 +533,9 @@ void clean_process(proc_t* proc){
 		
 	
 	killed_remove(proc);
-	
-#if 1
-	kfree(processes[proc->pid]);
+	//kfree(processes[proc->pid]); This crashes
 	processes[pid] = 0;
-#endif
-	//kinfo("Cleanup completed\n");
+	kinfo("Cleanup completed\n");
 }
 
 void clean_processes(){

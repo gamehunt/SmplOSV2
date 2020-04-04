@@ -24,6 +24,7 @@ uint32_t null_write(fs_node_t* node, uint64_t offs, uint32_t size, uint8_t* buff
 	
 uint8_t load(){
 	fs_t* nullfs = kmalloc(sizeof(fs_t));
+	memset(nullfs,0,sizeof(fs_t));
 	nullfs->mount = null_mount;
 	nullfs->read = null_read;
 	nullfs->write = null_write;

@@ -146,3 +146,5 @@ void mem_stat();
 
 uint8_t validate(uint32_t addr);
 uint32_t virtual2physical(uint32_t v_addr);
+
+void pmm_protect_region(uint32_t region_start,uint32_t size);

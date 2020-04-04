@@ -411,6 +411,7 @@ fs_dir_t* fat_readdir(fs_node_t* node){
 uint8_t load(){
 	
 	fs_t* fatfs = kmalloc(sizeof(fs_t));
+	memset(fatfs,0,sizeof(fs_t));
 	fatfs->mount = fat_mount;
 	fatfs->read = fat_read;
 	fatfs->seek = fat_seek;

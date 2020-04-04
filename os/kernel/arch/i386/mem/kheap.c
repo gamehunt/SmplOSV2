@@ -12,14 +12,19 @@
 #include <kernel/global.h>
 #include <string.h>
 //Simple allocator, alloc: O(n), free: O(n)
-static uint32_t allocated;
+static uint32_t  max_allocation;
 static uint32_t* heap_start;
 static uint32_t* heap_start_static;
 //static uint32_t* heap_end;
 
 static mem_t* free = 0;
 
+
 static uint32_t stat_alloc,stat_free,stat_merges,stat_alloc_total,stat_freed_total,stat_max_load;
+
+
+#define VALIDATE(x) (validate(x) && x <= KHEAP_END && x>= KHEAP_START)
+
 
 void init_kheap(){
 	kinfo("Allocating kernel heap...\n");
@@ -36,6 +41,7 @@ void init_kheap(){
 	stat_freed_total = create_stat("kheap_freed_total",0);
 	stat_max_load = create_stat("kheap_max_load",0);
 	kinfo("Kernel heap size: %d MB\n",KHEAP_SIZE/1024/1024);
+	max_allocation = 0;
 }
 
 static inline mem_t* header(void* alloc){
@@ -65,21 +71,20 @@ static mem_t* split(mem_t* orig,uint32_t size){
 void free_insert(mem_t* b){
 	b->prev = 0;
 	b->next = 0;
-	if (!validate(free) || (unsigned long)free> (unsigned long)b) {
-		if (validate(free)) {
+	if (!VALIDATE(free) || (unsigned long)free> (unsigned long)b) {
+		if (VALIDATE(free)) {
 			free->prev = b;
+			b->next = free;
 		}
-		b->next = free;
 		free = b;
-		b->prev = 0;
-	} else if(validate(free)){
+	} else if(VALIDATE(free)){
 		mem_t *curr = free;
-		while (validate(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
+		while (VALIDATE(curr->next) && (unsigned long)curr->next < (unsigned long)b) {
 			curr = curr->next;
 		}
-		if(validate(curr->next)){
+		if(VALIDATE(curr->next)){
 			b->next = curr->next;
-			curr->next->prev = b;
+			b->next->prev = b;
 		}
 		b->prev = curr;
 		curr->next = b;
@@ -87,14 +92,14 @@ void free_insert(mem_t* b){
 }
 
 void free_remove(mem_t* b){
-	if (!validate(b->prev)) {
-		if (validate(b->next)) {
+	if (!VALIDATE(b->prev)) {
+		if (VALIDATE(b->next)) {
 			free = b->next;
 			free->prev = 0;
 		} else {
 			free = 0;
 		}
-	} else if(validate(b->next)){
+	} else if(VALIDATE(b->next)){
 		b->prev->next = b->next;
 		b->next->prev = b->prev;
 	} else{
@@ -107,10 +112,10 @@ mem_t* free_block(uint32_t size){
 		return 0;
 	}
 	mem_t* freeb = free;
-	if(!validate(freeb)){
+	if(!VALIDATE(freeb)){
 		return 0;
 	}
-	while(validate(freeb)){
+	while(VALIDATE(freeb)){
 		if(freeb->size == size){
 			free_remove(freeb);
 			return freeb;
@@ -118,7 +123,7 @@ mem_t* free_block(uint32_t size){
 		if(freeb->size > size + sizeof(mem_t)){
 			//continue;
 			mem_t* new_b = split(freeb,size);
-			if(validate(new_b)){
+			if(VALIDATE(new_b)){
 				free_insert(new_b);
 			}
 			//kinfo("After split: %d when req %d\n",freeb->size,size);
@@ -163,9 +168,12 @@ uint32_t* kmalloc(uint32_t size){
 		crash.regs = 0;
 		kpanic(crash);
 	}
+	if(size > max_allocation){
+		max_allocation = size;
+	}
 	i_update_stat(stat_alloc,1);
 	mem_t* block = free_block(size);
-	if(validate(block)){
+	if(VALIDATE(block)){
 		//kinfo("FREE\n");
 		i_update_stat(stat_alloc_total,size);
 		i_update_stat(stat_max_load,size);
@@ -198,12 +206,14 @@ uint32_t* kmalloc(uint32_t size){
 
 //frees memory. 
 void kfree(uint32_t* addr){
-	
-	return; //TODO find another bug in kfree
+
+	if(!VALIDATE(addr)){
+		return;
+	}
 	
 	mem_t* block = header(addr);
 	
-	if(block->size >= KHEAP_SIZE || block->next != 0xAABBCCDD || block->prev != 0xAABBCCDD){
+	if(block->size > max_allocation || block->next != 0xAABBCCDD || block->prev != 0xAABBCCDD){
 		return;
 		
 	}
@@ -240,6 +250,9 @@ void kvfree(uint32_t* aligned_ptr) {
 
 //reallocates memory, currently just do new allocation and copy contents of old pointer to it !!!
 uint32_t* krealloc(uint32_t* ptr,uint32_t newsize){
+	if(!VALIDATE(ptr)){
+		return kmalloc(newsize);
+	}
 	uint32_t* new_alloc = kmalloc(newsize);
 	memmove(new_alloc,ptr,header(ptr)->size >= newsize?newsize:header(ptr)->size);
 	kfree(ptr);

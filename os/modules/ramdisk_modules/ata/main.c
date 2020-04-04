@@ -403,6 +403,7 @@ uint8_t ata_check_gpt(uint8_t buffer[512]){
 
 uint8_t load(){
 	fs_t* atafs = kmalloc(sizeof(fs_t));
+	memset(atafs,0,sizeof(fs_t));
 	atafs->mount = &ata_mount;
 	atafs->read = &ata_read;
 	atafs->write = &ata_write;

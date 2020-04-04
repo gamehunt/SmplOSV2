@@ -114,6 +114,7 @@ fs_node_t* tar_seek(char* s,fs_node_t* root){
 }
 uint32_t init_tar(){
 	fs_t* fs = kmalloc(sizeof(fs_t));
+	memset(fs,0,sizeof(fs_t));
 	fs->name = "tar";
 	fs->mount = &tar_mount;
 	fs->read = &tar_read;
