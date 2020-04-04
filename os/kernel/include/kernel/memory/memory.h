@@ -15,9 +15,6 @@
 
 #include <kernel/misc/stat.h>
 
-#define PMM_STATE_FREE 0
-#define PMM_STATE_OCCUPIED 1
-
 #define PAGE_PRESENT   0x1
 #define PAGE_RW        0x2
 #define PAGE_USER      0x4
@@ -38,6 +35,9 @@
 
 #define KERNEL_PT_MAP 0xFFC00000
 #define ACPICA_BASE_ADDRESS 0x50000000
+#define DMA_REGION_START    0x30000000 //Physical frame
+#define DMA_REGION_SIZE     1024*1024  //1MB
+#define DMA_REGION_BLOCK    64*1024
 
 struct gdt_entry {
   uint16_t limit;
@@ -148,3 +148,5 @@ uint8_t validate(uint32_t addr);
 uint32_t virtual2physical(uint32_t v_addr);
 
 void pmm_protect_region(uint32_t region_start,uint32_t size);
+uint32_t pmm_allocate_dma();
+void pmm_free_dma(uint32_t frame);

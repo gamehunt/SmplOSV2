@@ -105,8 +105,10 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_syscalls();
 	
 	pmm_protect_region(0x0,0x400000); //Some space for kernel
-	pmm_protect_region(0x30000000,0x10000*10);//DMA regions
-	
+	pmm_protect_region(DMA_REGION_START,DMA_REGION_SIZE);//1MB DMA region. PMM can allocate contigous 64kb DMA blocks from it
+	for(uint32_t i=DMA_REGION_START;i<DMA_REGION_START+DMA_REGION_SIZE;i+=DMA_REGION_BLOCK){
+		pmm_free_dma(i);
+	}
 	init_pmm(mbt);
 	init_paging();
 	init_kheap();

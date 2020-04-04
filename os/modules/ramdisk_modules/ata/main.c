@@ -5,7 +5,9 @@
     Author: gamehunt 
 
 */
+#include <kernel/global.h>
 #include <kernel/module/module.h>
+#include <kernel/memory/memory.h>
 #include <kernel/misc/log.h>
 #include <kernel/io/io.h>
 #include <kernel/misc/bits.h>
@@ -88,10 +90,7 @@
 #define PCI_BUSMASTER_SECONDARY_STATUS 0xA
 #define PCI_BUSMASTER_SECONDARY_PRDT   0xC
 
-#define ATA_NODMA        1
-
-#define ATA_DMA_PRDT_PRIMARY       0x20001000
-#define ATA_DMA_PRDT_SECONDARY     0x20002000
+#define ATA_NODMA        1 //TODO working DMA, it doesnt work, but PIO if fine for now
 
 typedef struct{
 	uint16_t flags;
@@ -128,14 +127,16 @@ typedef struct{
 	ata_device_info_t* info;
 	ata_patrition_t* patrition_info;
 	uint32_t busmaster;
+	uint32_t dma;
+	uint32_t buffer;
 }ata_device_t;
-
 
 
 static ata_device_t* devices[256];
 static uint16_t device_idx = 0;
 static uint8_t letter_idx = 0;
 static uint8_t selected_drive = 0;
+static uint8_t dma_setup = 0;
 
 uint8_t ata_index(uint8_t bus,uint8_t drive){
 	if(bus){
@@ -247,15 +248,40 @@ uint8_t ata_poll(ata_device_t* device){
 	}
 }
 
+//mode = 0 = read;mode = 1 = write
+void dma_init(ata_device_t* device,uint8_t mode){
+	outb(device->busmaster +  device->bus?PCI_BUSMASTER_CMD:PCI_BUSMASTER_SECONDARY_CMD,0);
+	if(device->bus){
+		outl(device->busmaster + PCI_BUSMASTER_PRDT,(uint32_t)device->dma);
+	}else{
+		outl(device->busmaster + PCI_BUSMASTER_SECONDARY_PRDT,(uint32_t)device->dma);
+	}
+	outb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS,inb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS) | 0x04 | 0x02);
+	outb(device->busmaster + device->bus?PCI_BUSMASTER_CMD:PCI_BUSMASTER_SECONDARY_CMD,mode?0x0:0x8);
+}
+
+void dma_start(ata_device_t* device,uint8_t mode){
+	outb(device->busmaster + device->bus?PCI_BUSMASTER_CMD:PCI_BUSMASTER_SECONDARY_CMD,(mode?0x0:0x8)|1);
+}
+
+void dma_end(ata_device_t* device){
+	outb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS,inb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS) | 0x04 | 0x02);
+}
+
 uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 	if(dev->patrition_info){
 		lba += dev->patrition_info->start;
+	}
+	if(!ATA_NODMA && dma_setup){
+		dma_init(dev,0);
+		asm("sti");
 	}
 	
 	uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
 	if(selected_drive != ata_index(dev->bus,dev->drive)){
 		ata_seldrive(dev->bus,dev->drive);
 	}
+	
 	if(dev->info->lba48_sectors > 0){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
@@ -266,12 +292,15 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba);
 		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(lba>>8));
 		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(lba>>16));
-		#ifdef ATA_NODMA
+		if(ATA_NODMA || !dma_setup){
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_READ_EXT);
-		#else
+			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+		}else{
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_DMA_READ_EXT);
-		#endif
-		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+			dma_start(dev,0);
+		}
+		
 	}else{
 		uint32_t slba = (uint32_t)lba;
 
@@ -280,15 +309,18 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)slba);
 		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(slba>>8));
 		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(slba>>16));
-		#ifdef ATA_NODMA
+		if(ATA_NODMA || !dma_setup){
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_READ);
-		#else
+			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+		}else{
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_DMA_READ);
-		#endif
-		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+			dma_start(dev,0);
+		}
+		
 	}
 	ata_delay(dev);
-	#ifdef ATA_NODMA
+	if(ATA_NODMA || !dma_setup){
 		ata_delay(dev);
 		if(ata_poll(dev)){	
 			for(uint16_t i=0;i<256;i++){		
@@ -298,7 +330,12 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		}else{
 			return 0;
 		}
-	#endif
+	}else{
+		asm("cli");
+		memcpy(buffer,dev->buffer,512);
+		dma_end(dev);
+		return 512;
+	}
 }
 
 uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
@@ -310,7 +347,9 @@ uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 	if(selected_drive != ata_index(dev->bus,dev->drive)){
 		ata_seldrive(dev->bus,dev->drive);
 	}
-	
+	if(!ATA_NODMA && dma_setup){
+		dma_init(dev,1);
+	}
 	if(dev->info->lba48_sectors > 0){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
@@ -321,11 +360,12 @@ uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)lba);
 		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(lba>>8));
 		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(lba>>16));
-		#ifdef ATA_NODMA
+		if(ATA_NODMA || !dma_setup){
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_WRITE_EXT);
-		#else
+		}else{
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_DMA_WRITE_EXT);
-		#endif
+			dma_start(dev,1);
+		}
 		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
 	}else{
 		uint32_t slba = (uint32_t)lba;
@@ -335,15 +375,18 @@ uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		outb(base + ATA_IOBASE_RW_LBALOW, (unsigned char)slba);
 		outb(base + ATA_IOBASE_RW_LBAMID, (unsigned char)(slba>>8));
 		outb(base + ATA_IOBASE_RW_LBAHIGH, (unsigned char)(slba>>16));
-		#ifdef ATA_NODMA
+		if(ATA_NODMA || !dma_setup){
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_PIO_WRITE);
-		#else
+			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+		}else{
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_DMA_WRITE);
-		#endif
-		outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
+			dma_start(dev,1);
+		}
+		
 	}
 	ata_delay(dev);
-	#ifdef ATA_NODMA
+	if(ATA_NODMA || !dma_setup){
 		if(ata_poll(dev)){
 			for(uint16_t i=0;i<256;i++){
 				outb(base + ATA_IOBASE_RW_DATA,buffer[i]);
@@ -352,7 +395,9 @@ uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		}else{
 			return 0;
 		}
-	#endif
+	}else{
+		
+	}
 }
 
 uint32_t ata_read_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* buffer){
@@ -379,7 +424,7 @@ uint32_t ata_write_device(ata_device_t* dev,uint64_t lba,uint32_t size,uint8_t* 
 	return writen;
 }
 
-fs_node_t* ata_mount(fs_node_t* node){
+fs_node_t* ata_mount(fs_node_t* node,fs_node_t* dev){
 	node->inode = (uint32_t)devices[device_idx];
 	return node;
 }
@@ -401,6 +446,22 @@ uint8_t ata_check_gpt(uint8_t buffer[512]){
 	return 1;
 }
 
+static uint32_t master_port;
+static uint32_t slave_port;
+
+static void ata_master_irq(regs_t* reg){
+	outb(master_port +  PCI_BUSMASTER_CMD,0);
+	inb(master_port + PCI_BUSMASTER_STATUS);
+	kinfo("ATA IRQ MASTER\n");
+	irq_end(14);
+}
+static void ata_slave_irq(regs_t* reg){
+	outb(slave_port +  PCI_BUSMASTER_SECONDARY_CMD,0);
+	inb(slave_port + PCI_BUSMASTER_SECONDARY_STATUS);
+	irq_end(15);
+}
+
+
 uint8_t load(){
 	fs_t* atafs = kmalloc(sizeof(fs_t));
 	memset(atafs,0,sizeof(fs_t));
@@ -409,11 +470,21 @@ uint8_t load(){
 	atafs->write = &ata_write;
 	atafs->name = "ata";
 	uint32_t id = register_fs(atafs);
-	#ifdef ATA_NODMA
+	if(ATA_NODMA){
 		kwarn("ATA module compiled without DMA support. Using PIO\n");
-	#endif
+	}else{
+		irq_set_handler(14,&ata_master_irq);
+		irq_set_handler(15,&ata_slave_irq);
+	}
 	kinfo("Searching for ATA devices\n");
 	for(uint8_t i = 0;i<=1;i++){
+		if(!ATA_NODMA){
+			if(i){
+				outb(ATA_PORT_CTRL_PRIMARY + ATA_CTRL_W_DEVICECTRL,0);
+			}else{
+				outb(ATA_PORT_CTRL_SECONDARY + ATA_CTRL_W_DEVICECTRL,0);
+			}
+		}
 		for(uint8_t j = 0;j<=1;j++){
 			uint16_t* buffer = ata_ident(i,j);
 			if(buffer){
@@ -425,15 +496,41 @@ uint8_t load(){
 				}else{
 					kinfo("%d sectors(0=128kb)\n",device->info->lba28_sectors);
 				}
-				#ifndef ATA_NODMA
+				if(!ATA_NODMA){
 					pci_device_t* pcidev = pci_seek_device(0x8086,0x7010);
+					
 					if(pcidev){
+						uint16_t command_reg = pci_read_value(pcidev, PCI_COMMAND,4);
+						if(!(command_reg & (1 << 2))){
+							kinfo("Enabled bus mastering\n");
+							command_reg |= (1 << 2);
+							pci_write_value32(pcidev, PCI_COMMAND, command_reg);
+						}
 						device->busmaster = pci_read_value(pcidev,PCI_BAR4,4);
+						if(device->bus){
+							master_port = device->busmaster;
+						}else{
+							slave_port = device->busmaster;
+						}
+						uint64_t* prdt = pmm_allocate_dma();
+						for(uint32_t i=0;i<DMA_REGION_BLOCK;i+=4096){
+							kmpalloc((uint32_t)prdt+i,(uint32_t)prdt+i,0);
+						}
+						memset(prdt,0,DMA_REGION_BLOCK);
+						device->dma = (uint32_t)prdt;
+						device->buffer = pmm_allocate_dma();
+						for(uint32_t i=0;i<DMA_REGION_BLOCK;i+=4096){
+							kmpalloc(device->buffer+i,device->buffer+i,0);
+						}
+						memset(device->buffer,0,DMA_REGION_BLOCK);
+						prdt[0] = 	((uint64_t)0x8000 << 48UL) | ((uint64_t)512 << 32UL) | device->buffer;
 						kinfo("Device busmaster: %a\n",device->busmaster);
+						kinfo("Device DMA prdt: %a\n",device->dma);
+						kinfo("Device PRD entry: %e\n",((uint64_t*)device->dma)[0]);
 					}else{
 						kerr("Failed to find PCI IDE controller\n");
 					}
-				#endif
+				}
 				devices[device_idx] = device;
 				char path[11] = "/dev/sd";
 				char sec = 'a'+letter_idx;
@@ -455,9 +552,11 @@ uint8_t load(){
 						if(patrition->size > 0){
 							kinfo("Patrition found: %a - %a\n",patrition->start,patrition->start+patrition->size);
 							ata_device_t* device_patr = ata_create_device(i,j,buffer);
-							#ifndef ATA_NODMA
+							if(!ATA_NODMA){
 								device_patr->busmaster = device->busmaster;
-							#endif
+								device_patr->dma = device->dma;
+								device_patr->buffer = device->buffer;
+							}
 							device_patr->patrition_info = patrition;
 							devices[device_idx] = device_patr;
 							path[8] = '1' + z;
@@ -470,7 +569,9 @@ uint8_t load(){
 			}
 		}
 	}
-	
+	if(!ATA_NODMA){
+		dma_setup = 1;
+	}
 	return 0;
 }
 

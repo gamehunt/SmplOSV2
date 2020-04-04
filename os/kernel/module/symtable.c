@@ -72,6 +72,9 @@ void init_symtable(){
 	symbol_export("kfree",&kfree);
 	symbol_export("krealloc",&krealloc);
 	
+	symbol_export("pmm_allocate_dma",&pmm_allocate_dma);
+	symbol_export("pmm_free_dma",&pmm_free_dma);
+	
 	symbol_export("validate",&validate);
 	symbol_export("virtual2physical",&virtual2physical);
 	

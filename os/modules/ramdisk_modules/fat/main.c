@@ -255,6 +255,7 @@ fs_node_t* fat_mount(fs_node_t* root,fs_node_t* device){
 	kread(device,0,1,bpb);
 	if(((fat32_bpb_t*)&bpb->ebpb[0])->signature != 0x28 && ((fat32_bpb_t*)&bpb->ebpb[0])->signature != 0x29 && ((fat16_bpb_t*)&bpb->ebpb[0])->signature != 0x28 && ((fat16_bpb_t*)&bpb->ebpb[0])->signature != 0x29){
 		kerr("Can't verify FAT signature!\n");
+		kerr("Got: %a\n",((fat32_bpb_t*)&bpb->ebpb[0])->signature);
 		kfree(bpb);
 		return root;
 	}

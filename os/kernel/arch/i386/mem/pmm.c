@@ -12,7 +12,7 @@
 #include <kernel/misc/stat.h>
 
 #define  MAX_PROTECTED_REGIONS 32
-
+#define  DMA_STACK_SIZE        1024 / 64
 extern uint32_t k_end;
 
 uint32_t* k_frame_stack = &k_end;
@@ -22,6 +22,9 @@ static uint32_t k_frame_stack_esp = 0;
 static uint32_t k_frame_stack_size = 0;
 
 static uint16_t stat,stat1,stat2;
+
+static uint32_t dma_stack[DMA_STACK_SIZE];
+static uint32_t dma_esp = 0;
 
 typedef struct{
 	uint32_t size;
@@ -86,7 +89,7 @@ void init_pmm(multiboot_info_t *mbt){
 		}
 		mmap = (multiboot_memory_map_t*) ( (unsigned int)mmap + mmap->size + sizeof(mmap->size) );
 	}
-	kinfo("Frame stack size: %d\n",k_frame_stack_size);
+	kinfo("Frame stack size: %d; DMA: %d\n",k_frame_stack_size,dma_esp);
 }
 
 //Allocates frame
@@ -117,6 +120,23 @@ void pmm_protect_region(uint32_t region_start,uint32_t size){
 	prot_regions_counter++;
 }
 
+uint32_t pmm_allocate_dma(){
+	if(!dma_esp){
+		crash_info_t crash;
+		crash.description = "PMM: DMA Out of memory";	
+		kpanic(crash);
+		return 0;
+	}
+	dma_esp--;
+	return dma_stack[dma_esp];
+}
 
+void pmm_free_dma(uint32_t frame){
+	if(dma_esp >= DMA_STACK_SIZE){
+		kwarn("DMA: tried push frame in a full stack\n");
+	}
+	dma_stack[dma_esp] = frame;
+	dma_esp++;
+}
 
 
