@@ -33,15 +33,11 @@ FILE* second_in;
 char input_buffer[256];
 uint32_t input_size = 0;
 
-FILE* fb;
 
-int sig_child(){
-	exit(0);
-}
 
 void term_scroll(){
 	uint32_t offs = CELL_SZ_Y;
-	sys_ioctl(fb->fd,0x20,&offs); //This should be in compositor
+	//Call some function from compositor to scroll down our context
 }
 
 void term_putchar(char c){
@@ -69,14 +65,24 @@ void term_putchar(char c){
 	}
 }
 
+int sig_child(){
+	fread(input_buffer,1,256,second_out);
+	if(fread(input_buffer,1,256,second_in)){
+		for(uint32_t i=0;i<256;i++){
+			if(!input_buffer[i]){
+				break;
+			}
+			term_putchar(input_buffer[i]);
+		}
+	}
+	
+	exit(0);
+}
+
 int term_init(int argc,char** argv){
 	tx = 0;
 	ty = 1;
-	fb = fopen("/dev/fb0","w");
-	if(!fb){
-		return 1;
-	}
-	gdi_init("/dev/fb0",XRES,YRES);
+	gdi_init("/dev/fb0",1024,768); //TODO this should be called once somewhere and written to env
 	term_col_bg = gdi_rgb2linear(0,0,0);
 	term_col_fg = gdi_rgb2linear(255,255,255);
 	sys_signal(SIG_CHILD,sig_child);
@@ -88,10 +94,10 @@ int term_init(int argc,char** argv){
 		memset(buffer1,0,64);
 		sprintf(buffer,"/proc/%d/stdin",shell_exec);
 		sprintf(buffer1,"/proc/%d/stdout",shell_exec);
-		while(!(second_out = fopen(buffer,"w")));
+		while(!(second_out = fopen(buffer,"r+")));
 		while(!(second_in  = fopen(buffer1,"r")));
 	}
-	return 0;
+	return !shell_exec;
 	
 }
 
@@ -124,10 +130,12 @@ int main(int argc, char** argv){
 	}
 	char* buffer = malloc(256);
 	while(1){
+		memset(buffer,0,256);
 		uint32_t readen = fread(buffer,1,256,stdin);
 		for(uint32_t i=0;i<readen;i++){
 				term_handle_input(buffer[i]);
 		}
+		memset(buffer,0,256);
 		readen = fread(buffer,1,256,second_in);
 		for(uint32_t i=0;i<readen;i++){
 			term_putchar(buffer[i]);

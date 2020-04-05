@@ -14,9 +14,9 @@
 
 int main(int argc,char** argv){
 
-	gdi_init("/dev/fb0",1024,768);
-
-	char* arg[] = {"/usr/bin/shell.smp"};
+	
+	
+	char* arg[] = {"/usr/bin/shell.smp",0};
 	
 	execv("/usr/bin/term.smp",arg);
 	

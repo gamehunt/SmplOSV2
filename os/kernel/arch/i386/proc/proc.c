@@ -475,7 +475,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 }
 
 void clean_process(proc_t* proc){
-	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
+	
 	if(proc->pwait){
 		if(validate(proc->parent) && proc->parent->status == PROC_WAIT){
 			ready_insert(proc->parent);
@@ -509,7 +509,7 @@ void clean_process(proc_t* proc){
 		}
 		kremove(proc_node);
 	}
-	
+	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 
 	//kffree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->state->k_esp);
