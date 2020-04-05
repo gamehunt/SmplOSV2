@@ -8,18 +8,19 @@ void libc_init(int argc, char** argv, char** envp){
 	
 	fix_user_heap();
 	
-	if(!environ){
-		environ = malloc(sizeof(char*));
-		environ[0] = 0;
+	environ = malloc(sizeof(char*));
+	environ[0] = 0;
+	env_size = 0;
+	if(envp && getpid() != 1){
+		uint32_t i = 0;
+		while(envp[i]){
+			environ[i] = envp[i];
+			environ = realloc(environ,(i+1)*sizeof(char*));
+			i++;
+		}
+		environ[i] = 0;
+		env_size = i;
 	}
-	uint32_t i = 0;
-	while(envp[i]){
-		environ[i] = envp[i];
-		environ = realloc(environ,(i+1)*sizeof(char*));
-		i++;
-	}
-	environ[i] = 0;
-	env_size = i;
 	
 	char path[64];
 	memset(path,0,64);

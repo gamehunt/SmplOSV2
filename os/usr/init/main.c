@@ -15,8 +15,9 @@ int main(){
 	//*((uint8_t*)0xFFFFFFFF) = 0;
 	sys_echo("Init start",0);
 	
+	setenv("PATH","/usr/bin",1);
 	//TODO this should be readen from some file
-	execv("/usr/bin/sterm.smp",0);
+	execv("/usr/bin/cserv.smp",0);
 	while(1);
 	return 0;
 }

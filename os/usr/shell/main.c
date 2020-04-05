@@ -4,6 +4,8 @@
      
     Author: gamehunt 
 
+
+	Simple interactive shell TODO: launch child process in another way. We should use compositor
 */
 
 #include <stdio.h>
@@ -26,8 +28,6 @@ FILE* exec_stdin  = 0;
 
 
 static volatile uint8_t in_exec = 0;
-static uint8_t login_only = 0; //Launch login and exit
-static uint8_t standalone_mode = 0;//Standalone mode(without compositor)
 
 int sig_child(){
 	char proc_out[256];
@@ -185,12 +185,14 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 
 int main(int argc,char** argv,char** envp){
 	uint8_t* cmd_buffer  = malloc(2048);
-
+	char cwd[256];
 	sys_signal(SIG_CHILD,sig_child);
 	
-	printf("SHELL START\n");
+	printf("Launched interactive shell session\n");
+	printf("[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
 	
 	while(1){
+		
 		uint32_t readen = 0;
 		char proc_stdout[256];
 		memset(proc_stdout,0,256);
@@ -203,13 +205,20 @@ int main(int argc,char** argv,char** envp){
 			putchar(proc_stdout[i]);
 		}
 				
-		readen = fread(cmdbuffer,1,2048,cmd_buffer);
+		readen = fread(cmd_buffer,1,2048,stdin);
 		if(readen){				
 			if(in_exec){
 				fwrite(cmd_buffer,1,1,exec_stdin);
 			}else{
-				process_input(cmd_buffer,readen);
+				if(cmd_buffer[0] != '\n'){
+					putchar('\n');
+					cmd_buffer[readen-1] = '\0';
+					process_input(cmd_buffer,readen);
+				}
 				memset(cmd_buffer,0,2048);
+				if(!in_exec){
+					printf("[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
+				}
 			}
 		}
 	}

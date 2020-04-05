@@ -444,10 +444,6 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	}
 	
 	uint32_t entry = elf_load_file(buffer);
-	
-	
-	
-	kinfo("ELF loaded\n");
 	kfree(buffer);
 	proc->state->eip = entry;
 	kinfo("ENTRY: %a\n",entry);

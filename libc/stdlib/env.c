@@ -47,8 +47,10 @@ char* getenv(const char* a){
 	return 0;
 }
 int setenv(const char *name, const char *value, int overwrite){
+	
 	int zero = -1;
 	for(int i=0;i<env_size;i++){
+		while(1);
 		if(environ[i] == 1){
 			zero = i;
 			continue;
@@ -65,12 +67,13 @@ int setenv(const char *name, const char *value, int overwrite){
 		env_size++;
 		environ = realloc(environ,(env_size+1)*sizeof(char*));
 	}
-	int ind = zero>=0?zero:env_size-1;
+	int ind = zero>0?zero:env_size-1;
 	environ[ind] = malloc(strlen(name)+strlen(value)+2);
 	strcpy(environ[ind],name);
 	environ[ind] = strcat(environ[ind],"=");
 	environ[ind] = strcat(environ[ind],value);
 	environ[env_size] = 0;
+	
 	return 0;
 }
 int unsetenv(const char *name){

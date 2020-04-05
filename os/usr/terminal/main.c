@@ -4,6 +4,8 @@
      
     Author: gamehunt 
 
+
+	Terminal emulator. Acts as a mini-server for console applications and shell
 */
 
 #include <stdint.h>
@@ -18,7 +20,7 @@
 #define XRES 1024
 #define YRES 768
 
-#define CELL_SZ_X 10
+#define CELL_SZ_X 9
 #define CELL_SZ_Y 20
 
 uint16_t tx,ty;
@@ -28,8 +30,18 @@ uint32_t term_col_fg;
 FILE* second_out;
 FILE* second_in;
 
+char input_buffer[256];
+uint32_t input_size = 0;
+
+FILE* fb;
+
+int sig_child(){
+	exit(0);
+}
+
 void term_scroll(){
-	
+	uint32_t offs = CELL_SZ_Y;
+	sys_ioctl(fb->fd,0x20,&offs); //This should be in compositor
 }
 
 void term_putchar(char c){
@@ -42,39 +54,33 @@ void term_putchar(char c){
 	}
 	else if(c=='\0'){
 		return;
-	}
-	else if(c==0x08){
-		if(!tx){
-			tx = XRES;
-			ty--;
-		}else{
-			tx--;
-		}
-		term_putchar(0);
 	}else{
 		gdi_char(c,tx*CELL_SZ_X,ty*CELL_SZ_Y,term_col_fg,term_col_bg);
 		tx++;
 	}
 	
-	if(tx >= XRES){
+	if(tx >= XRES/CELL_SZ_X){
 		tx = 0;
 		ty++;
 	}
-	if(ty >= YRES){
+	if(ty >= YRES/CELL_SZ_Y){
 		ty--;
 		term_scroll();
 	}
 }
 
-void term_init(){
+int term_init(int argc,char** argv){
 	tx = 0;
 	ty = 1;
+	fb = fopen("/dev/fb0","w");
+	if(!fb){
+		return 1;
+	}
 	gdi_init("/dev/fb0",XRES,YRES);
 	term_col_bg = gdi_rgb2linear(0,0,0);
 	term_col_fg = gdi_rgb2linear(255,255,255);
-	sys_close(0);
-	sys_close(2);
-	uint32_t shell_exec = execv("/usr/bin/shell.smp",0);
+	sys_signal(SIG_CHILD,sig_child);
+	uint32_t shell_exec = execv(argc?argv[0]:"/usr/bin/shell.smp",0);
 	if(shell_exec){
 		char buffer[64];
 		char buffer1[64];
@@ -85,33 +91,44 @@ void term_init(){
 		while(!(second_out = fopen(buffer,"w")));
 		while(!(second_in  = fopen(buffer1,"r")));
 	}
+	return 0;
 	
 }
 
 void term_handle_input(char c){
-	term_putchar(c);
-	if(c != 0x08 && second_out){
-		fwrite(&c,1,1,second_out);
+	if(c==0x08){
+		input_size--;
+		input_buffer[input_size] = 0;
+		if(!tx){
+			tx = XRES;
+			ty--;
+		}else{
+			tx--;
+		}
+		gdi_char(0,tx*CELL_SZ_X,ty*CELL_SZ_Y,term_col_fg,term_col_bg);
+		return;
 	}
-	if(second_out){
-		putchar(c);
+	term_putchar(c);
+	input_buffer[input_size] = c;
+	input_size++;
+	if(c =='\n' && second_out){
+		fwrite(input_buffer,1,input_size,second_out);
+		memset(input_buffer,0,input_size);
+		input_size = 0;
 	}
 }
 
-int main(){
-	term_init();
-	FILE* kbd_in = fopen("/dev/kbd","r");
-	key_t* key = malloc(sizeof(key_t));
+int main(int argc, char** argv){
+	if(term_init(argc,argv)){
+		return 1;
+	}
 	char* buffer = malloc(256);
 	while(1){
-		uint32_t readen = fread(buffer,1,256,kbd_in);
+		uint32_t readen = fread(buffer,1,256,stdin);
 		for(uint32_t i=0;i<readen;i++){
-			kbd_key_event(key,buffer[i]);
-			if(key->state != KEY_ACTION_UP){
-				term_handle_input(key->key);
-			}
+				term_handle_input(buffer[i]);
 		}
-		readen = fread(buffer,1,256,stdin);
+		readen = fread(buffer,1,256,second_in);
 		for(uint32_t i=0;i<readen;i++){
 			term_putchar(buffer[i]);
 		}
