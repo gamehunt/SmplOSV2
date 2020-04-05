@@ -110,7 +110,7 @@ char*   dirent2str(fat_dirent_t* dirent){
 	for(i=0;i<8;i++){
 		
 		if(dirent->name[i] == ' '){
-			dirent->name[i] = '.';
+			name[i] = '.';
 			for(j=0;j<3;j++){
 				name[i+j+1]=dirent->name[8+j];
 			}

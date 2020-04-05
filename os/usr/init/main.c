@@ -16,9 +16,7 @@ int main(){
 	sys_echo("Init start",0);
 	
 	//TODO this should be readen from some file
-	execv("/usr/bin/tty.smp",0);
-	char* args[] = {"-sL"};
-	execv("/usr/bin/shell.smp",args);
+	execv("/usr/bin/sterm.smp",0);
 	while(1);
 	return 0;
 }

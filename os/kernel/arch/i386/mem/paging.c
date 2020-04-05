@@ -216,7 +216,7 @@ void pagefault_handler(regs_t r){
     : /* no input */
     : "%eax"
     );
-	if(get_current_process() && get_current_process()->pid != 0){
+	if(get_current_process() && get_current_process()->pid != 1){
 		kinfo("Process %s caused page fault at %a\n",get_current_process()->name,cr2);
 		proc_exit(get_current_process());
 		return;
@@ -258,12 +258,4 @@ void init_paging(){
 
 uint8_t validate(uint32_t ptr){
 	return (ptr != 0) && (virtual2physical(ptr) != 0);
-}
-
-void clean_page_directory(uint32_t* pd){
-	for(uint16_t i=0;i<1024;i++){
-		if(pd[i] != kernel_page_directory[i]){
-			pd[i] = kernel_page_directory[i];
-		}
-	}
 }

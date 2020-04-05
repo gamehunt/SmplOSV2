@@ -55,5 +55,6 @@ void setbuf(FILE*, char*);
 void fputc(char,FILE*);
 void fputs(const char*, FILE*);
 char *fgets(char *str, int num, FILE *stream);
+int getc(FILE *stream);
 #endif
 CH_END

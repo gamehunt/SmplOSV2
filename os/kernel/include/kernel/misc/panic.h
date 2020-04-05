@@ -12,3 +12,4 @@
 #include <kernel/module/symtable.h>
 
 void kpanic(crash_info_t crash);
+

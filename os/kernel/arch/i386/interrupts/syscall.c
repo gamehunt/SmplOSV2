@@ -115,7 +115,7 @@ uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t
 uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
 //	kinfo("[SYS_CLOSE] %d\n",fds);
 	proc_t* proc = get_current_process();
-	if(proc->f_descs_cnt > fds){
+	if(proc->f_descs_cnt > fds && proc->f_descs[fds]){
 		kclose(proc->f_descs[fds]);
 		proc->f_descs[fds] = 0;
 	}
@@ -288,6 +288,7 @@ uint32_t sys_pwreq(uint32_t req, uint32_t __,uint32_t ___,uint32_t ____,uint32_t
 		kinfo("Shooting down\n");
 		//TODO move to separate kernel function and unload all shit in it
 		AcpiEnterSleepStatePrep(5);
+		asm("cli");
 		AcpiEnterSleepState(5);
 		while(1){
 			asm("hlt");

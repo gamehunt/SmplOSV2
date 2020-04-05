@@ -39,6 +39,7 @@ libc_init.o\
 syscall.o \
 stdio/stdio.o\
 stdio/fgets.o\
+stdio/getc.o\
 stdlib/exit.o\
 dirent/dirent.o \
 unistd/exec.o \

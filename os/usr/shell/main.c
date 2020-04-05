@@ -30,9 +30,6 @@ static uint8_t login_only = 0; //Launch login and exit
 static uint8_t standalone_mode = 0;//Standalone mode(without compositor)
 
 int sig_child(){
-	if(login_only){
-		exit(0);
-	}
 	char proc_out[256];
 	memset(proc_out,0,256);
 	if(exec_stdout && fread(proc_out,1,256,exec_stdout)){
@@ -186,124 +183,34 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 	}
 }
 
-static void process_args(int argc,char** argv){
-	if(!argc){
-		return;
-	}
-	for(int i=0;i<argc;i++){
-		if(argv[i][0] == '-'){
-			for(int j=1;j<strlen(argv[i]);j++){
-				switch(argv[i][j]){
-					case 'L':
-						login_only = 1;
-					break;
-					case 's':
-						standalone_mode = 1;
-					break;
-				}
-			}
-		}
-	}
-}
-
 int main(int argc,char** argv,char** envp){
-	
+	uint8_t* cmd_buffer  = malloc(2048);
 
-	process_args(argc,argv);
+	sys_signal(SIG_CHILD,sig_child);
 	
-	if(standalone_mode){
-		
-		FILE* f_stdout = malloc(sizeof(FILE));
-		f_stdout->fd = 0;
-		fclose(f_stdout);
-		if(!fopen("/dev/tty","w")){
-			return 1;
+	printf("SHELL START\n");
+	
+	while(1){
+		uint32_t readen = 0;
+		char proc_stdout[256];
+		memset(proc_stdout,0,256);
+		if(exec_stdout){
+			readen = fread(proc_stdout,1,256,exec_stdout);
 		}
-
-		key_t* key = malloc(sizeof(key_t));
-		uint8_t* pipe_buffer = malloc(128);
-		uint8_t* cmd_buffer  = malloc(2048);
-		uint16_t cmd_buff_idx = 0;
 		
-		FILE* kbd = fopen("/dev/kbd","r");
-	
-		sys_signal(SIG_CHILD,sig_child);
-	
-		if(login_only){
-			process_input("/usr/bin/login.smp",strlen("/usr/bin/login.smp"));
-		}else{
-			if(setenv("PATH","/usr/bin",1) < 0){
-				printf("Failed to create environment!\n");
-				return 1;
-			}
-			printf("Launched standalone shell\n");
-			uint32_t random = 0;
-			FILE* random_file = fopen("/dev/random","r");
-			fread(&random,4,1,random_file);
-			fclose(random_file);
-			printf("\nToday's random integer is %a\n\n",random);
+		
+		for(uint32_t i =0;i<readen;i++){
+			putchar(proc_stdout[i]);
 		}
-	
-		while(1){
-			uint32_t nodes[2];
-			nodes[0] = 0;
-			nodes[1] = 0;
-			uint32_t cnt = 0;
-			if(exec_stdout){
-				nodes[0] = exec_stdout->fd;
-				nodes[1] = kbd->fd;
-				cnt = 2;
+				
+		readen = fread(cmdbuffer,1,2048,cmd_buffer);
+		if(readen){				
+			if(in_exec){
+				fwrite(cmd_buffer,1,1,exec_stdin);
 			}else{
-				nodes[0] = kbd->fd;
-				cnt = 1;
-			}
-			sys_fswait(nodes,cnt); //TODO return which node awaked us
-			char proc_stdout[256];
-			memset(proc_stdout,0,256);
-			if(in_exec && exec_stdout && fread(proc_stdout,1,256,exec_stdout)){
-				printf("%s",proc_stdout);
-			}
-			memset(key,0,sizeof(key_t));
-			memset(pipe_buffer,0,128);
-			uint32_t read = fread(pipe_buffer,1,128,kbd);
-			for(uint32_t i=0;i<read;i++){
-				kbd_key_event(key,pipe_buffer[i]);
-				if(key->key && key->state){
-					if(key->key == 0x8 && cmd_buff_idx){
-						cmd_buff_idx--;
-						cmd_buffer[cmd_buff_idx] = 0;
-						putchar(0x8);
-						continue;
-					}else if(key->key == 0x8){
-						continue;
-					}
-					if(key->key == '\n'){
-						//printf("in_exec: %d\n",in_exec);
-						if(cmd_buff_idx){
-							putchar('\n');
-							cmd_buffer[cmd_buff_idx+1] = '\0';
-							cmd_buff_idx++;
-							if(!in_exec){
-								process_input(cmd_buffer,cmd_buff_idx); //Process shell cmd
-							}else{
-								fwrite(cmd_buffer,cmd_buff_idx,1,exec_stdin); //Send to process
-							}
-							memset(cmd_buffer,0,cmd_buff_idx);
-							cmd_buff_idx=0;
-						}
-						if(!in_exec){
-							printf("\n[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
-						}
-					}else{
-						putchar(key->key);
-						cmd_buffer[cmd_buff_idx] = key->key;
-						cmd_buff_idx++;
-					}
-				}
+				process_input(cmd_buffer,readen);
+				memset(cmd_buffer,0,2048);
 			}
 		}
-	}else{
-		//TODO compositor 
-		
 	}
 }

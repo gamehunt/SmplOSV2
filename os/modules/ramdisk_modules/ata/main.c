@@ -90,7 +90,7 @@
 #define PCI_BUSMASTER_SECONDARY_STATUS 0xA
 #define PCI_BUSMASTER_SECONDARY_PRDT   0xC
 
-#define ATA_NODMA        0 //TODO need to setup some kind of wait_fs here
+#define ATA_NODMA        1 //TODO need to setup some kind of wait_fs here
 
 typedef struct{
 	uint16_t flags;
@@ -301,6 +301,7 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 			uint8_t status = inb(base + ATA_IOBASE_R_STATUS);
 			if (!(GET_BIT(status,ATA_STATUS_BSY))) break;
 		}
+		asm("sti");
 	}
 	outb(base + ATA_IOBASE_W_FEAT, 0x00);
 	if(dev->info->lba48_sectors > 0){
@@ -373,6 +374,7 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 			}
 		}
 #endif
+		asm("cli");
 		memcpy(buffer,dev->buffer,512);
 		dma_end(dev);
 		return 512;
@@ -526,6 +528,12 @@ uint8_t load(){
 				outb(ATA_PORT_CTRL_PRIMARY + ATA_CTRL_W_DEVICECTRL,0);
 			}else{
 				outb(ATA_PORT_CTRL_SECONDARY + ATA_CTRL_W_DEVICECTRL,0);
+			}
+		}else{
+			if(i){
+				outb(ATA_PORT_CTRL_PRIMARY + ATA_CTRL_W_DEVICECTRL,2);
+			}else{
+				outb(ATA_PORT_CTRL_SECONDARY + ATA_CTRL_W_DEVICECTRL,2);
 			}
 		}
 		for(uint8_t j = 0;j<=1;j++){
