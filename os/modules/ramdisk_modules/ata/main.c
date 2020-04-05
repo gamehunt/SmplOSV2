@@ -90,7 +90,7 @@
 #define PCI_BUSMASTER_SECONDARY_STATUS 0xA
 #define PCI_BUSMASTER_SECONDARY_PRDT   0xC
 
-#define ATA_NODMA        1 //TODO working DMA, it doesnt work, but PIO if fine for now
+#define ATA_NODMA        0 //TODO need to setup some kind of wait_fs here
 
 typedef struct{
 	uint16_t flags;
@@ -250,38 +250,59 @@ uint8_t ata_poll(ata_device_t* device){
 
 //mode = 0 = read;mode = 1 = write
 void dma_init(ata_device_t* device,uint8_t mode){
-	outb(device->busmaster +  device->bus?PCI_BUSMASTER_CMD:PCI_BUSMASTER_SECONDARY_CMD,0);
+	//kinfo("DMA INIT: pci %a prdt %a buffer %a for mode %d in bus %d\n",device->busmaster,device->dma,device->buffer,mode,device->bus);
+	
+	
 	if(device->bus){
+		outb(device->busmaster + PCI_BUSMASTER_CMD,0);
 		outl(device->busmaster + PCI_BUSMASTER_PRDT,(uint32_t)device->dma);
+		outb(device->busmaster + PCI_BUSMASTER_STATUS,inb(device->busmaster + PCI_BUSMASTER_STATUS) | 0x04 | 0x02);
+		outb(device->busmaster + PCI_BUSMASTER_CMD,mode?0x0:0x8);
 	}else{
+		outb(device->busmaster + PCI_BUSMASTER_SECONDARY_CMD,0);
 		outl(device->busmaster + PCI_BUSMASTER_SECONDARY_PRDT,(uint32_t)device->dma);
+		outb(device->busmaster + PCI_BUSMASTER_SECONDARY_STATUS,inb(device->busmaster + PCI_BUSMASTER_SECONDARY_STATUS) | 0x04 | 0x02);
+		outb(device->busmaster + PCI_BUSMASTER_SECONDARY_CMD,mode?0x0:0x8);
 	}
-	outb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS,inb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS) | 0x04 | 0x02);
-	outb(device->busmaster + device->bus?PCI_BUSMASTER_CMD:PCI_BUSMASTER_SECONDARY_CMD,mode?0x0:0x8);
+	
+	
 }
 
 void dma_start(ata_device_t* device,uint8_t mode){
-	outb(device->busmaster + device->bus?PCI_BUSMASTER_CMD:PCI_BUSMASTER_SECONDARY_CMD,(mode?0x0:0x8)|1);
+	//kinfo("DMA START:will set %a\n",(mode?0x0:0x8)|1);
+	if(device->bus){
+		outb(device->busmaster + PCI_BUSMASTER_CMD,(mode?0x0:0x8)|1);
+	}else{
+		outb(device->busmaster + PCI_BUSMASTER_SECONDARY_CMD,(mode?0x0:0x8)|1);
+	}
+	//kinfo("DMA START:after: %a stat: %a\n",inb(device->busmaster + PCI_BUSMASTER_CMD),inb(device->busmaster + PCI_BUSMASTER_STATUS));
 }
 
 void dma_end(ata_device_t* device){
-	outb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS,inb(device->busmaster + device->bus?PCI_BUSMASTER_STATUS:PCI_BUSMASTER_SECONDARY_STATUS) | 0x04 | 0x02);
+	if(device->bus){
+		outb(device->busmaster + PCI_BUSMASTER_STATUS,inb(device->busmaster + PCI_BUSMASTER_STATUS) | 0x04 | 0x02);
+	}else{
+		outb(device->busmaster + PCI_BUSMASTER_SECONDARY_STATUS,inb(device->busmaster + PCI_BUSMASTER_SECONDARY_STATUS) | 0x04 | 0x02);
+	}
 }
 
 uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 	if(dev->patrition_info){
 		lba += dev->patrition_info->start;
 	}
-	if(!ATA_NODMA && dma_setup){
-		dma_init(dev,0);
-		asm("sti");
-	}
 	
 	uint16_t base = dev->bus?ATA_PORT_IOBASE_PRIMARY:ATA_PORT_IOBASE_SECONDARY;
 	if(selected_drive != ata_index(dev->bus,dev->drive)){
 		ata_seldrive(dev->bus,dev->drive);
 	}
-	
+	if(!ATA_NODMA && dma_setup){
+		dma_init(dev,0);
+		while (1) {
+			uint8_t status = inb(base + ATA_IOBASE_R_STATUS);
+			if (!(GET_BIT(status,ATA_STATUS_BSY))) break;
+		}
+	}
+	outb(base + ATA_IOBASE_W_FEAT, 0x00);
 	if(dev->info->lba48_sectors > 0){
 		outb(base + ATA_IOBASE_RW_DRIVE,dev->drive?0x40:0x50);
 		outb(base + ATA_IOBASE_RW_SECCOUNT, 0);
@@ -298,9 +319,7 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		}else{
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_DMA_READ_EXT);
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
-			dma_start(dev,0);
 		}
-		
 	}else{
 		uint32_t slba = (uint32_t)lba;
 
@@ -315,13 +334,11 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 		}else{
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_DMA_READ);
 			outb(base + ATA_IOBASE_W_COM, ATA_CMD_CACHE_FLUSH);
-			dma_start(dev,0);
 		}
 		
 	}
 	ata_delay(dev);
 	if(ATA_NODMA || !dma_setup){
-		ata_delay(dev);
 		if(ata_poll(dev)){	
 			for(uint16_t i=0;i<256;i++){		
 				buffer[i] = inw(base + ATA_IOBASE_RW_DATA);
@@ -331,13 +348,38 @@ uint16_t ata_read_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 			return 0;
 		}
 	}else{
-		asm("cli");
+		while (1) {
+			uint8_t status = inb(base + ATA_IOBASE_R_STATUS);
+			if (!(GET_BIT(status,ATA_STATUS_BSY))) break;
+		}
+		dma_start(dev,0);
+		//kinfo("Waiting IDE...\n");
+#if 1
+		while (1) {
+			
+			int status = 0;
+			if(dev->bus){
+				status = inb(dev->busmaster + PCI_BUSMASTER_STATUS);
+			}else{
+				status = inb(dev->busmaster + PCI_BUSMASTER_SECONDARY_STATUS);
+			}
+			int dstatus = inb(base + ATA_IOBASE_R_STATUS);
+		//	kinfo("%b %b\n",status,dstatus);
+			if (!(status & 0x04)) {
+				continue;
+			}
+			if (!(GET_BIT(dstatus,ATA_STATUS_BSY))) {
+				break;
+			}
+		}
+#endif
 		memcpy(buffer,dev->buffer,512);
 		dma_end(dev);
 		return 512;
 	}
 }
 
+//TODO dma for write
 uint16_t ata_write_sector(ata_device_t* dev,uint64_t lba,uint16_t* buffer){
 	if(dev->patrition_info){
 		lba += dev->patrition_info->start;
@@ -451,13 +493,14 @@ static uint32_t slave_port;
 
 static void ata_master_irq(regs_t* reg){
 	outb(master_port +  PCI_BUSMASTER_CMD,0);
-	inb(master_port + PCI_BUSMASTER_STATUS);
-	kinfo("ATA IRQ MASTER\n");
+	inb(master_port + PCI_BUSMASTER_STATUS); //Here must be process_awake
+	inb(ATA_PORT_IOBASE_PRIMARY + ATA_IOBASE_R_STATUS);
 	irq_end(14);
 }
 static void ata_slave_irq(regs_t* reg){
 	outb(slave_port +  PCI_BUSMASTER_SECONDARY_CMD,0);
 	inb(slave_port + PCI_BUSMASTER_SECONDARY_STATUS);
+	inb(ATA_PORT_IOBASE_SECONDARY + ATA_IOBASE_R_STATUS);
 	irq_end(15);
 }
 
@@ -500,13 +543,18 @@ uint8_t load(){
 					pci_device_t* pcidev = pci_seek_device(0x8086,0x7010);
 					
 					if(pcidev){
-						uint16_t command_reg = pci_read_value(pcidev, PCI_COMMAND,4);
+						uint16_t command_reg = pci_read_value(pcidev, PCI_COMMAND,2);
 						if(!(command_reg & (1 << 2))){
-							kinfo("Enabled bus mastering\n");
 							command_reg |= (1 << 2);
-							pci_write_value32(pcidev, PCI_COMMAND, command_reg);
+							pci_write_value16(pcidev, PCI_COMMAND, command_reg);
+							command_reg = pci_read_value(pcidev, PCI_COMMAND,2);
+							kinfo("Enabled bus mastering\n");
 						}
-						device->busmaster = pci_read_value(pcidev,PCI_BAR4,4);
+						uint32_t ioaddr = pci_read_value(pcidev,PCI_BAR4,4);
+						if(ioaddr & 0x1){
+							ioaddr &= 0xFFFFFFFC;//FUCK IT
+						}
+						device->busmaster = ioaddr; 
 						if(device->bus){
 							master_port = device->busmaster;
 						}else{
@@ -522,7 +570,7 @@ uint8_t load(){
 						for(uint32_t i=0;i<DMA_REGION_BLOCK;i+=4096){
 							kmpalloc(device->buffer+i,device->buffer+i,0);
 						}
-						memset(device->buffer,0,DMA_REGION_BLOCK);
+						memset(device->buffer,0x00,DMA_REGION_BLOCK);
 						prdt[0] = 	((uint64_t)0x8000 << 48UL) | ((uint64_t)512 << 32UL) | device->buffer;
 						kinfo("Device busmaster: %a\n",device->busmaster);
 						kinfo("Device DMA prdt: %a\n",device->dma);

@@ -40,5 +40,6 @@ void remap_PIC(char offset, char offset1) {
   outb(PIC_B_DATA, mask1);
 
   PIC1_mask_irq(0xFC);
+  PIC2_mask_irq(0);
 }
 
