@@ -17,7 +17,7 @@ FILE* server_pipe;
 int recv_packet(){
 	int res = 0;
 	//sys_echo("Allocation size: ",sizeof(cspacket<int>));
-	cspacket<int> packet = (cspacket<int>*)malloc(sizeof(cspacket<int>));
+	cspacket<int>* packet = (cspacket<int>*)malloc(sizeof(cspacket<int>));
 	if(fread(packet,sizeof(cspacket<int>),1,server_pipe)){
 		switch(packet->get_type()){
 			case CS_TYPE_PROCESS:

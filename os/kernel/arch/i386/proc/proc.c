@@ -302,7 +302,6 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 		for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
 			knpalloc(USER_HEAP + i);
 		}
-		new_proc->old_heap = new_proc->heap;
 		new_proc->heap_size = USER_HEAP_SIZE;
 		knpalloc(USER_STACK);
 		if(current_process){
@@ -312,7 +311,6 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 		
 		strcpy(new_proc->name,parent->name);
 		new_proc->heap = parent->heap;
-		new_proc->old_heap = parent->old_heap;
 		new_proc->heap_size = parent->heap_size;
 	}
 	

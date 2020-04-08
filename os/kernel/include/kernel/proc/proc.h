@@ -62,7 +62,6 @@ struct process{
 	uint8_t in_sig; //Is we are handling signal?
 	uint8_t priority;
 	uint8_t* heap;
-	uint32_t old_heap; //Heap before growth
 	uint32_t heap_size;
 	int      status;
 	uint8_t sig_ret_state; //Status to which we return after signal;

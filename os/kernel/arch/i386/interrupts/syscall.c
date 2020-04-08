@@ -191,16 +191,13 @@ uint32_t sys_yield(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t __
 
 uint32_t sys_sbrk(uint32_t size,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
 	proc_t* proc = get_current_process();
-	uint32_t heap = (uint32_t)proc->heap;
-	uint32_t old_heap = heap;
-	heap = (heap + 0xFFF) & ~0xFFF; // align
-	proc->heap = (uint8_t*)((uint32_t)proc->heap + (heap - old_heap) + size);
-	while(proc->old_heap < (uint32_t)proc->heap){
-		proc->old_heap += 0x1000;
-		knpalloc(proc->old_heap);
+	
+	for(uint32_t i=0;i<size;i+=4096){
+		knpalloc((uint32_t)proc->heap + proc->heap_size);
+		proc->heap_size += 4096;
 	}
-	proc->heap_size += size;
-	return heap;
+	
+	return proc->heap;
 }
 
 uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t ___,uint32_t ____,uint32_t _____){
