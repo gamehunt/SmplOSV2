@@ -134,7 +134,7 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 	if(kdirent->chld_cnt > index){
 		struct dirent* dent = (struct dirent*)ptr;
 		dent->d_ino = index;
-		memcpy(dent->name,kdirent->chlds[index]->name,strlen(kdirent->chlds[index]->name));
+		memcpy(dent->d_name,kdirent->chlds[index]->name,strlen(kdirent->chlds[index]->name));
 	}else{
 		kfree(kdirent);
 		return 1;

@@ -3,6 +3,9 @@
 #include <sys/types.h>
 #include <kernel/interrupts/syscalls.h>
 #include <kernel/proc/proc.h>
+#include <cheader.h>
+
+CH_START
 
 #if !defined(__smplos_libk) && !defined(__smplos_kernel) 
 
@@ -37,7 +40,7 @@ static inline uint32_t sys_close(uint32_t fd){
 }
 
 static inline uint32_t sys_readdir(uint32_t fd,uint32_t index,struct dirent* ptr){
-	return sys_call(SYS_READDIR,fd,index,ptr,0,0);
+	return sys_call(SYS_READDIR,fd,index,(uint32_t)ptr,0,0);
 }
 
 static inline uint32_t sys_exec(char* path,char** argv,char** envp){
@@ -78,11 +81,11 @@ static inline uint32_t sys_waitpid(int pid){
 }
 
 static inline char* sys_getcwd(char* buffer,uint32_t buffer_size){
-	return sys_call(SYS_GETCWD,buffer,buffer_size,0,0,0);
+	return (char*)sys_call(SYS_GETCWD,(uint32_t)buffer,buffer_size,0,0,0);
 }
 
 static inline uint32_t sys_chdir(char* path){
-	return sys_call(SYS_CHDIR,path,0,0,0,0);
+	return sys_call(SYS_CHDIR,(uint32_t)path,0,0,0,0);
 }
 static inline pid_t sys_getpid(){
 	return sys_call(SYS_GETPID,0,0,0,0,0);
@@ -94,13 +97,13 @@ static inline int sys_setuid(uid_t uid){
 	return sys_call(SYS_SETUID,uid,0,0,0,0);
 }
 static inline int sys_link(char* whom,char* to){
-	return sys_call(SYS_LINK,whom,to,0,0,0);
+	return sys_call(SYS_LINK,(uint32_t)whom,(uint32_t)to,0,0,0);
 }
 static inline int sys_send(uint32_t pid,uint32_t sig){
 	return sys_call(SYS_SIG,pid,sig,0,0,0);
 }
 static inline int sys_signal(uint32_t sig, sig_handler_t handler){
-	return sys_call(SYS_SIGHANDL,sig,handler,0,0,0);
+	return sys_call(SYS_SIGHANDL,sig,(uint32_t)handler,0,0,0);
 }
 static inline int sys_sigexit(){
 	return sys_call(SYS_SIGEXIT,0,0,0,0,0);
@@ -115,10 +118,11 @@ static inline pid_t sys_getppid(){
 }
 
 static inline uint8_t sys_pipe(char* path,uint32_t buff_size){
-	return sys_call(SYS_PIPE,path,buff_size,0,0,0);
+	return sys_call(SYS_PIPE,(uint32_t)path,buff_size,0,0,0);
 }
 static inline uint8_t sys_pwreq(uint32_t req){
 	return sys_call(SYS_PWREQ,req,0,0,0,0);
 }
 
 #endif
+CH_END

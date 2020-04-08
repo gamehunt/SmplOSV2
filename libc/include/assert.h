@@ -14,10 +14,11 @@
 CH_START
 
 #ifndef NDEBUG
-	#define __assert_fail(num,name,exp)\
-		printf("Assertion failed: line %d in file %s: %s\n",num,name,exp);\
+	static inline void __assert_fail(){
+		printf("Assertion failed\n");
 		abort();
-	#define assert(exp) (exp?(void)0:__assert_fail( __LINE__, __FILE__, #exp))		
+	}
+	#define assert(exp) (exp?(void)0:__assert_fail())		
 #else
 	#define assert(exp) ((void)0)
 #endif

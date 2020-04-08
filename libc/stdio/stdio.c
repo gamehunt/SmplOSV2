@@ -3,15 +3,18 @@
 #include <kernel/interrupts/syscalls.h>
 
 FILE _stdout={
-		.fd = 0
+		.fd = 0,
+		.offset =0
 };
 
 FILE _stderr={
-		.fd = 1
+		.fd = 1,
+		.offset =0
 };
 
 FILE _stdin={
-		.fd = 2
+		.fd = 2,
+		.offset =0
 };
 
 FILE* stdout = &_stdout;
@@ -22,12 +25,12 @@ FILE* stderr = &_stderr;
 
 size_t fwrite(const void* ptr, size_t sz, size_t block_count, FILE* f){
 	uint32_t real_size = sz * block_count;
-	return sys_write(f->fd,0,real_size,ptr) / sz;
+	return sys_write(f->fd,f->offset,real_size,ptr) / sz;
 }
 
 size_t fread(void* ptr, size_t sz, size_t block_count, FILE* f){
 	uint32_t real_size = sz * block_count;
-	uint32_t readen = sys_read(f->fd,0,real_size,ptr);
+	uint32_t readen = sys_read(f->fd,f->offset,real_size,ptr);
 	return  readen / sz;
 }
 
@@ -60,4 +63,8 @@ int fclose(FILE* f){
 	sys_close(f->fd);
 	free(f);
 	return 0;
+}
+
+FILE *fdopen(int fildes, const char *mode){
+	
 }

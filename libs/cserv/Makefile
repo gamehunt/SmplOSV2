@@ -2,7 +2,7 @@ ALL_OBJS=\
 cserv.o\
 
 .PHONY: all clean install
-.SUFFIXES: .o .c .asm
+.SUFFIXES: .o .c .cpp .asm
 
 all: cserv.a install
 
@@ -14,10 +14,13 @@ clean:
 
 install:
 	cp cserv.a $(HOME)/SmplOSV2/libs/bin/libcserv.a
-	rsync -a include/ ../include
+	rsync -a include/ ../include/
 
 .c.o:
-	$(CC) -MD -c $< -o $@ -std=gnu11 -Iinclude $(LIBC_CFLAGS) $(CPPFLAGS)
+	$(CC) -MD -c $< -o $@ -std=gnu11 -Iinclude -Iinclude/cserv $(LIBC_CFLAGS) $(CPPFLAGS)
+
+.cpp.o:
+	i686-smplos-g++ -MD -c $< -o $@ -std=gnu11 -Iinclude -Iinclude/cserv $(LIBC_CFLAGS) $(CPPFLAGS)
  
 .asm.o:
 	nasm -f elf32 $< -o $@

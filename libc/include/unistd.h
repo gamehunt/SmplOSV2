@@ -6,16 +6,37 @@
 
 */
 #pragma once
-#if !defined(__smplos_libk) && !defined(__smplos_kernel)
+
 #include <sys/types.h>
+#include <cheader.h>
+
+#define O_WRONLY 1
+#define O_TRUNC  2
+
+
+CH_START
+
+#if !defined(__smplos_libk) && !defined(__smplos_kernel)
 int execv(const char*, char* const[]);
 int execve(const char*, char* const[], char* const[]);
 int execvp(const char*, char* const[]);
 pid_t fork(void);
 char* getcwd(char*,int);
-int   chdir(char*);
+int   chdir(const char*);
 pid_t getpid();
 pid_t getppid(void);  
 uid_t getuid();
 int   setuid(uid_t uid);
+int ioctl(int device, int cmd, void *dx, void *cx);
+int read(int fd, void *buf, unsigned count);
+int write(int handle, const void *buf, int count);
+int open(const char *path, int oflag, ... );
+int close(int fd);
+long lseek(int handle, long offset, int origin);
+long tell(int fd);
+int chmod(const char *filename, int mode);
+int mkdir(const char *path);
 #endif
+
+CH_END
+

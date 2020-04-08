@@ -7,6 +7,7 @@
 */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/syscall.h>
 
 int main(int argc,char** argv){
@@ -18,6 +19,6 @@ int main(int argc,char** argv){
 			printf("%s ",argv[i]);
 		}
 	}
-	
+	//write(1,0,0);
 	return 0;
 }

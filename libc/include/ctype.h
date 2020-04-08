@@ -14,10 +14,19 @@
 
 CH_START
 
-uint8_t isdigit(char c); 
-uint8_t isxdigit(int c);
-uint8_t isprint(int c);
-uint8_t isspace(int c);
+int isdigit(char c); 
+int isxdigit(int c);
+int isprint(int c);
+int isspace(int c);
+int isalnum(int ch);
+int isalpha(int ch);
+int iscntrl(int ch);
+int isgraph(int ch);
+int islower(int ch);
+int ispunct(int ch);
+int isupper(int ch);
+
 int tolower(int ch);
 int toupper(int ch);
+
 CH_END

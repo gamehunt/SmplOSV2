@@ -4,7 +4,7 @@
 
 #include <kernel/misc/pathutils.h>
 
-int   chdir(char* path){
+int   chdir(const char* path){
 	if(path[0] == '/'){
 		//Already absolute
 		return sys_chdir(path);

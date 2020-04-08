@@ -23,7 +23,7 @@ int main(int argc,char** argv){
 	}
 	struct dirent* file = 0;
 	while((file = readdir(d))){
-		printf("%s ",file->name);
+		printf("%s ",file->d_name);
 		free(file);
 	}
 	closedir(d);

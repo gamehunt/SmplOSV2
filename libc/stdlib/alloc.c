@@ -191,4 +191,8 @@ void* realloc(uint32_t* ptr,size_t size){
 }
 
 
-
+void* calloc(uint32_t num,size_t size){
+	void* ret = malloc(num*size);
+	memset(ret,0,num*size);
+	return ret;
+}
