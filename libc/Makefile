@@ -77,6 +77,7 @@ install:
 
 install-headers:
 	rsync -a include/ $(SYSROOT)$(SYSINC)/
+	rsync -a $(PREFIX)/i686-smplos/include/ $(SYSROOT)$(SYSINC)/
 
 .c.o:
 	$(CC) -MD -c $< -o $@ -std=gnu11 -Iinclude $(LIBC_CFLAGS) $(CPPFLAGS)

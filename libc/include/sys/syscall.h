@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <dirent.h>
 #include <sys/types.h>

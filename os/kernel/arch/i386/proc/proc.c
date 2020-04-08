@@ -29,6 +29,7 @@ static uint32_t wait_procs_size = 0;
 static uint32_t sleep_procs_size = 0;
 static uint32_t killed_procs_size = 0;
 
+static sig_t* proc_signals[64];
 
 #define PUSH(esp,type,value)\
 	 esp -= sizeof(type);\

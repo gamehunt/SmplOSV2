@@ -12,37 +12,54 @@
 #include <stdio.h>
 #include <sys/syscall.h>
 
-FILE* server_pipe;
+#include <vector>
 
-int recv_packet(){
-	int res = 0;
-	//sys_echo("Allocation size: ",sizeof(cspacket<int>));
-	cspacket<int>* packet = (cspacket<int>*)malloc(sizeof(cspacket<int>));
-	if(fread(packet,sizeof(cspacket<int>),1,server_pipe)){
-		switch(packet->get_type()){
+FILE* keyboard;
+
+
+CSProcess* active_process = 0;
+
+int process_packet(){
+	CSPacket* packet = CServer::__s_LastPacket();
+	
+	if(packet){
+		switch(packet->GetType()){
 			case CS_TYPE_PROCESS:
-				
-			res =  1;	
+				CServer::__s_AddProcess(((pid_t*)packet->GetBuffer())[0]);
+				if(!active_process){
+					active_process = CServer::__s_GetAllProcesses()[0];
+				}
+			break;
+			case CS_TYPE_ACTIVATE:
+				for(CSProcess* proc : CServer::__s_GetAllProcesses()){
+					if(proc->GetPid() == ((int*)packet->GetBuffer())[0]){
+						active_process = proc;
+					}
+				}	
+			break;
+			default:
+				active_process->AddPacket(packet);
 			break;
 		}
-		
-		
+		delete packet;
+		return 1;
 	}
-	free(packet);
-	return res;
+	
+	return 0;
 }
 
 int main(int argc,char** argv){
 	
+	CServer::Init("/dev/cserver");
+
+	keyboard = fopen("/dev/kbd","r");
 	
-	FILE* master_pipe = fopen("/dev/pipe","");
-	
-	sys_pipe("/dev/cserver",4096);
-	
-	server_pipe = fopen("/dev/cserver","r+");
-	
+	char inputbuffer[256];
+
 	while(1){
-		recv_packet();
+		sys_fswait(new uint32_t[2]{keyboard->fd,CServer::GetPipe()->fd},2);
+		process_packet();
+		CServer::__s_Tick();
 	}
 	
 	return 0;

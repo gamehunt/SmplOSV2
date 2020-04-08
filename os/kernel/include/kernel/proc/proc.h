@@ -83,8 +83,6 @@ struct process{
 typedef struct process proc_t;
 
 
-sig_t* proc_signals[64];
-
 void sig_register(uint32_t sig,sig_t* sigs);
 void init_signals();
 
