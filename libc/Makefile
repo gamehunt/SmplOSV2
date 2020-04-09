@@ -13,6 +13,7 @@ string/substr.o \
 string/strcpy.o \
 string/strchr.o \
 string/strtok.o \
+string/memchr.o \
 stdio/putchar.o \
 stdio/puts.o \
 stdio/vprintf.o \
@@ -23,11 +24,17 @@ ctype/isdigit.o \
 ctype/isxdigit.o \
 ctype/isprint.o \
 ctype/isspace.o \
+ctype/isalpha.o \
+ctype/isupper.o \
 ctype/tolower.o \
 ctype/toupper.o \
 stdlib/abort.o \
 stdlib/alloc.o \
 stdlib/atoi.o \
+stdlib/abs.o \
+stdlib/atol.o \
+stdlib/atoll.o \
+stdlib/strtoul.o \
 time/clock.o \
 time/time.o \
 
@@ -41,6 +48,7 @@ stdio/stdio.o\
 stdio/fgets.o\
 stdio/getc.o\
 stdlib/exit.o\
+stdlib/cxa_atexit.o\
 dirent/dirent.o \
 unistd/exec.o \
 unistd/getcwd.o \

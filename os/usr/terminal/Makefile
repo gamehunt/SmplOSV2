@@ -3,7 +3,7 @@ CPPFLAGS:=$(CPPFLAGS)
 LIBS:
 all: term.smp install
 term.smp:
-	$(CC) -o term.smp main.c  $(CFLAGS) $(CPPFLAGS) -lgdi -lkbd
+	i686-smplos-g++ -o term.smp main.cpp  $(CFLAGS) $(CPPFLAGS) -lgdi -lcserv
 install:
 	cp term.smp $(HOME)/SmplOSV2/os/usr/bin/term.smp
 clean:

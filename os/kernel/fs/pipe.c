@@ -22,7 +22,7 @@ typedef struct{
 	uint32_t read_ptr;
 	proc_t** waiters;
 	uint32_t waiters_cnt;
-	spinlock_t* lock;
+	spinlock_t lock;
 }pipe_info_t;
 
 uint32_t idx;
@@ -70,9 +70,11 @@ uint32_t pipe_ioctl(fs_node_t* pipe,uint32_t req,void* argp){
 		fs_node_t* pipe = kmount(path,"",idx);
 		pipe_info_t* inf = (pipe_info_t*)pipe->inode;
 		inf->size = ((uint32_t*)argp)[1];
+		pipe->size = inf->size;
 		inf->buffer = krealloc(inf->buffer,inf->size);
 		inf->write_ptr = 0;
 		inf->read_ptr = 0;
+		inf->waiters_cnt = 0;
 		memset(inf->buffer,0,inf->size);
 	}
 	return 0;
@@ -140,15 +142,20 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 }
 
 void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
-	//kinfo("%s: pipe_add_waiter\n",node->name);
+	
 	pipe_info_t* pipe = (pipe_info_t*)node->inode;
-	pipe->waiters_cnt++;
-	if(pipe->waiters_cnt == 1){
-		pipe->waiters = kmalloc(sizeof(proc_t*));
+	//kinfo("%s-%a: pipe_add_waiter :%d\n",node->name,pipe,pipe->waiters_cnt);
+	if(validate(pipe)){
+		pipe->waiters_cnt++;
+		if(pipe->waiters_cnt == 1){
+			pipe->waiters = kmalloc(sizeof(proc_t*));
+		}else{
+			pipe->waiters = krealloc(pipe->waiters,pipe->waiters_cnt*sizeof(proc_t*));
+		}
+		pipe->waiters[pipe->waiters_cnt-1] = waiter;
 	}else{
-		pipe->waiters = krealloc(pipe->waiters,pipe->waiters_cnt*sizeof(proc_t*));
+		kerr("Pipe %s has invalid info-block!\n",node->name);
 	}
-	pipe->waiters[pipe->waiters_cnt-1] = waiter;
 }
 
 fs_node_t* pipe_create(char* path,uint32_t buffer_size){
@@ -156,10 +163,15 @@ fs_node_t* pipe_create(char* path,uint32_t buffer_size){
 	if(node){
 		pipe_info_t* inf = (pipe_info_t*)node->inode;
 		inf->buffer = krealloc(inf->buffer,buffer_size);
+		memset(inf->buffer,0,buffer_size);
 		inf->size = buffer_size;
 		node->size = buffer_size;
 		inf->lock = 0;
+		inf->waiters_cnt = 0;
+		//kinfo("Pipe created: %a\n",inf);
 	}
+	
+	return node;
 }
 
 void pipe_umount(fs_node_t* node){

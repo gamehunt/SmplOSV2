@@ -173,13 +173,17 @@ uint32_t sys_exit(uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 
 
 uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t __,uint32_t ___,uint32_t _____){
+	
 	uint32_t* fds_ptr = (uint32_t*)fds;
 	fs_node_t** nodes = kmalloc(sizeof(fs_node_t*)*cnt);
+	
+	//kinfo("[FSWAIT] Allocd %d \n",cnt);
 	for(uint32_t i=0;i<cnt;i++){
 		if(fds_ptr[i] < get_current_process()->f_descs_cnt){
 			nodes[i] = get_current_process()->f_descs[fds_ptr[i]];
 		}
 	}
+	
 	process_fswait(get_current_process(),nodes,cnt);
 	return 0;
 }

@@ -3,7 +3,7 @@ CPPFLAGS:=$(CPPFLAGS)
 LIBS:
 all: cserv.smp install
 cserv.smp:
-	i686-smplos-g++ -o cserv.smp main.cpp  $(CFLAGS) $(CPPFLAGS) -lkbd -lcserv
+	i686-smplos-g++ -o cserv.smp main.cpp  $(CFLAGS) $(CPPFLAGS) -lkbd -lcserv -lgdi
 install:
 	cp cserv.smp $(HOME)/SmplOSV2/os/usr/bin/cserv.smp
 clean:

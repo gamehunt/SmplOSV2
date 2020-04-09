@@ -11,11 +11,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>
+#include <unistd.h>
 #include <kernel/interrupts/syscalls.h>
 #include <sys/syscall.h>
 #include <kernel/fs/vfs.h>
 #include <gdi.h>
 #include <kbd.h>
+#include <cserv/cserv.h>
 
 #define XRES 1024
 #define YRES 768
@@ -80,9 +83,12 @@ int sig_child(){
 }
 
 int term_init(int argc,char** argv){
+	CServer::Init("/dev/cserver");
+	CSPacket* pack = CSPacket::CreatePacket(CS_TYPE_PROCESS,sizeof(pid_t));
+	((pid_t*)pack->GetBuffer())[0] = getpid();
+	CServer::C_SendPacket(pack);
 	tx = 0;
 	ty = 1;
-	gdi_init("/dev/fb0",1024,768); //TODO this should be called once somewhere and written to env
 	term_col_bg = gdi_rgb2linear(0,0,0);
 	term_col_fg = gdi_rgb2linear(255,255,255);
 	sys_signal(SIG_CHILD,sig_child);
@@ -128,7 +134,7 @@ int main(int argc, char** argv){
 	if(term_init(argc,argv)){
 		return 1;
 	}
-	char* buffer = malloc(256);
+	char* buffer = (char*)malloc(256);
 	while(1){
 		memset(buffer,0,256);
 		uint32_t readen = fread(buffer,1,256,stdin);
