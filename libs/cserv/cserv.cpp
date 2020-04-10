@@ -1,5 +1,6 @@
 #include <cserv/cserv.h>
 #include <unistd.h>
+#include <cstring>
 
 FILE* CServer::server_pipe;
 FILE* CServer::client_pipe;
@@ -103,30 +104,21 @@ CSPacket* CServer::C_LastPacket(){
 	return 0;
 }
 
-CSPacket::CSPacket(int type,int buffer_size){
+CSPacket::CSPacket(int type){
 	this->type = type;
-	this->buffer_size = buffer_size;
-	if(this->buffer_size){
-			this->buffer = malloc(buffer_size);
-	}
+	memset(this->buffer,0,128);
 }
-CSPacket::~CSPacket(){
-	if(this->buffer_size){
-		delete buffer;
-	}
-}
-void* CSPacket::GetBuffer(){
+CSPacket::~CSPacket(){}
+uint8_t* CSPacket::GetBuffer(){
 	return buffer;
 }
-int CSPacket::GetBuffSize(){
-	return buffer_size;
-}
+
 int CSPacket::GetType(){
 	return type;
 }
 
-CSPacket* CSPacket::CreatePacket(int t,int bs){
-	return new CSPacket(t,bs);
+CSPacket* CSPacket::CreatePacket(int t){
+	return new CSPacket(t);
 }
 
 CSProcess::CSProcess(pid_t pid){

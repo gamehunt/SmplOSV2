@@ -55,6 +55,7 @@ struct process{
 	fs_node_t* node;
 	context_t* state;
 	regs_t syscall_state;
+	uint32_t syscall_ret;
 	regs_t signal_state;
 	sig_handler_t sig_handlers[64];
 	uint32_t* sig_stack; //stack of signals

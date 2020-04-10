@@ -9,6 +9,9 @@
 #define MOD_RSHIFT 0x08
 
 #include <stdint.h>
+#include <cheader.h>
+
+CH_START
 
 typedef struct{
 	uint32_t keycode; //Keycode
@@ -20,3 +23,5 @@ typedef struct{
 
 
 void kbd_key_event(key_t* key,unsigned char scancode); //fills up key structure
+
+CH_END

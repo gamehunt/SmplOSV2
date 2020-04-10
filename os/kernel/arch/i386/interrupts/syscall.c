@@ -32,10 +32,12 @@ void syscall_handler(regs_t r){
 	
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
-		get_current_process()->syscall_state = r;
-		//kinfo("Syscall %d -> %a %a %a %a %a\n",r->eax,r->ebx,r->ecx,r->edx,r->esi,r->edi);
+		proc_t* cp = get_current_process();
+		cp->syscall_state = r;
 		uint32_t ret = sysc(r->ebx,r->ecx,r->edx,r->esi,r->edi);
-		r->eax = ret;
+		if(cp == get_current_process()){
+			cp->syscall_state->eax = ret;
+		}
 	}else{
 		kerr("Syscall %a has null handler\n",r->eax);
 	}

@@ -45,7 +45,7 @@ static inline uint32_t sys_readdir(uint32_t fd,uint32_t index,struct dirent* ptr
 	return sys_call(SYS_READDIR,fd,index,(uint32_t)ptr,0,0);
 }
 
-static inline uint32_t sys_exec(char* path,char** argv,char** envp){
+static inline pid_t sys_exec(char* path,char** argv,char** envp){
 	return sys_call(SYS_EXEC,(uint32_t)path,(uint32_t)argv,(uint32_t)envp,0,0);
 }
 

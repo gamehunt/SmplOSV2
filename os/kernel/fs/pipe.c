@@ -118,7 +118,7 @@ void pipe_notify_waiters(fs_node_t* pipe){
 }
 
 uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
-	//kinfo("Pipe write: %d %d\n",size,buffer[0]);
+	
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
 	lock_spin(&inf->lock);
 	uint32_t write = 0;
@@ -137,14 +137,13 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 		pipe_notify_waiters(node);
 	}
 	unlock_spin(&inf->lock);
-	//kinfo("Pipe written: %d\n",write);
 	return write;
 }
 
 void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
 	
 	pipe_info_t* pipe = (pipe_info_t*)node->inode;
-	//kinfo("%s-%a: pipe_add_waiter :%d\n",node->name,pipe,pipe->waiters_cnt);
+	
 	if(validate(pipe)){
 		pipe->waiters_cnt++;
 		if(pipe->waiters_cnt == 1){

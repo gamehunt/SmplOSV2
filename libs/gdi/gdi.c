@@ -40,12 +40,10 @@ void    gdi_char(unsigned char c,int x,int y,uint32_t fc,uint32_t bc){
 uint8_t gdi_init(char* fb,uint16_t xres,uint16_t yres){
 	x_res = xres;
 	y_res = yres;
-	framebuffer = fopen(fb,"w");
+	framebuffer = fopen(fb,"w"); //We should draw using CSerwer widgets
 	if(!framebuffer){
 		printf("Failed to open framebuffer!\n");
 		return 1;
 	}
-	uint16_t args[] = {x_res,y_res,0x20};
-	sys_ioctl(framebuffer->fd,0x10,args);
 	return 0;
 }

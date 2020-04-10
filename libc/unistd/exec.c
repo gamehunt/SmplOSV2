@@ -20,6 +20,5 @@ int execvp(const char* f, char* const argv[]){
 	return 0; //TODO err code? success?
 }
 int execv(const char* f, char* const argv[]){
-	
-	return sys_exec(f,argv,environ);;
+	return (int)sys_exec(f,argv,environ);;
 }

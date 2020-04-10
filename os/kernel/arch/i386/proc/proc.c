@@ -634,10 +634,9 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 		memcpy(proc->fswait_nodes,nodes,sizeof(fs_node_t*)*cnt);
 		proc->fswait_nodes_cnt = cnt;
 		for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
-			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs
+			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs, also need something to remove waiters from pipe
 		}
 		if(proc->status == PROC_READY){
-			
 			ready_remove(proc);
 		}
 		wait_insert(proc);
@@ -654,10 +653,12 @@ void process_fswait_awake(proc_t* proc){
 }
 
 void process_fswait_notify(proc_t* process,fs_node_t* node){
-	
+	//kinfo("Notifying %s\n",process->name);
 	if(process->fswait_nodes_cnt){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
 			if(node->inode == process->fswait_nodes[i]->inode){
+				process->state->eax = i; //Return which node awoken us
+				//kinfo("Set eax of %s to %d\n",process->name,process->state->eax);
 				process_fswait_awake(process);
 			}
 		}

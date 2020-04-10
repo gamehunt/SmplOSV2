@@ -13,6 +13,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <gdi.h>
+#include <kbd.h>
 
 FILE* keyboard;
 
@@ -22,14 +23,13 @@ CSProcess* active_process = 0;
 int process_packet(){
 	CSPacket* packet = CServer::S_LastPacket();
 	FILE* sock;
-	if(packet){
+	while(packet){
 		switch(packet->GetType()){
 			case CS_TYPE_PROCESS:
 				CServer::S_AddProcess(((pid_t*)packet->GetBuffer())[0]);
 				if(!active_process){
 					active_process = CServer::S_GetAllProcesses()[0];
 				}
-				sys_echo("Added process to cserver\n",0);
 			break;
 			case CS_TYPE_ACTIVATE:
 				for(CSProcess* proc : CServer::S_GetAllProcesses()){
@@ -38,7 +38,32 @@ int process_packet(){
 					}
 				}	
 			break;
+			case CS_TYPE_KEY:
+				if(!active_process){
+					break;
+				}
+				if(!active_process->ApplyFilter(packet)){
+					for(uint8_t i=0;i<128&&packet->GetBuffer()[i];i++){
+						key_t* key = (key_t*)malloc(sizeof(key));
+						kbd_key_event(key,packet->GetBuffer()[i]);
+						if(key->key && key->state == KEY_ACTION_DOWN){
+							char buffer[64];
+							sprintf(buffer,"/proc/%d/stdin",active_process->GetPid());
+							FILE* in = fopen(buffer,"w");
+							if(in){
+								fwrite(&key->key,1,1,in);
+								fclose(in);
+							}
+						}
+						free(key);
+					}
+					break;
+				}
+				//Fallback to default
 			default:
+				if(!active_process){
+					break;
+				}
 				if(!active_process->ApplyFilter(packet)){
 					break;
 				}
@@ -50,9 +75,8 @@ int process_packet(){
 			break;
 		}
 		delete packet;
-		return 1;
+		packet = CServer::S_LastPacket();
 	}
-	
 	return 0;
 }
 
@@ -68,14 +92,28 @@ int main(int argc,char** argv){
 
 	sys_echo("Starting server...",0);
 
-	gdi_init("/dev/fb0",1024,768);
+	FILE* fb = fopen("/dev/fb0","w");
+	if(fb){
+		uint16_t args[] = {1024,768,0x20};
+		sys_ioctl(fb->fd,0x10,args);
+		fclose(fb);
+	}	
 
 	execv("/usr/bin/term.smp",0);
 
+	sys_yield();
+	
+	uint32_t node = 1;
+	
 	while(1){
-		sys_fswait(new uint32_t[2]{keyboard->fd,CServer::GetServerPipe()->fd},2);
+		if(node == 0){
+			CSPacket* pack = CSPacket::CreatePacket(CS_TYPE_KEY);
+			fread(pack->GetBuffer(),1,128,keyboard);
+			CServer::C_SendPacket(pack);
+		}
 		process_packet();
 		CServer::S_Tick();
+		node = sys_fswait(new uint32_t[2]{keyboard->fd,CServer::GetServerPipe()->fd},2);
 	}
 	
 	return 0;

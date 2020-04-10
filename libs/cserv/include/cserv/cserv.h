@@ -18,16 +18,14 @@
 
 class CSPacket{
 	public:
-		CSPacket(int type,int buffer_size);
-		virtual ~CSPacket();
-		virtual void* GetBuffer();
-		virtual int GetBuffSize();
-		virtual int GetType();
-		static CSPacket* CreatePacket(int type,int buffer_size);
+		CSPacket(int type);
+		~CSPacket();
+		uint8_t* GetBuffer();
+		int GetType();
+		static CSPacket* CreatePacket(int type);
 	private:
 		int type;
-		void* buffer;
-		int buffer_size;
+		uint8_t buffer[128]; 
 };
 
 class CSProcess{
