@@ -1,6 +1,7 @@
 #include <cserv/cserv.h>
 #include <unistd.h>
 #include <cstring>
+#include <cstdlib>
 
 FILE* CServer::server_pipe;
 FILE* CServer::client_pipe;
@@ -101,6 +102,21 @@ CSPacket* CServer::C_LastPacket(){
 		return packet;
 	}
 	free(packet);
+	return 0;
+}
+
+static void cserver_atexit_handlr(){
+	sys_echo("Sending CS_TYPE_TERMINATE\n",0);
+}
+
+int CServer::C_InitClient(){
+	if(CServer::Init("/dev/cserver")){
+		return 1;
+	}
+	CSPacket* pack = CSPacket::CreatePacket(CS_TYPE_PROCESS);
+	((pid_t*)pack->GetBuffer())[0] = getpid();
+	CServer::C_SendPacket(pack);
+	std::atexit(cserver_atexit_handlr);
 	return 0;
 }
 

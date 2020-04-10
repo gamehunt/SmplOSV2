@@ -54,6 +54,13 @@ void qsort( const void *ptr, size_t count, size_t size,int (*comp)(const void *,
 
 #if !defined(__smplos_libk) && !defined(__smplos_kernel)
 
+#define MAX_CXA_HANDLERS 256
+
+typedef void (*atexit_handl_t) (void *);
+typedef struct{
+	void* arg;
+	atexit_handl_t handl;
+}cxa_atexit_handler;
 
 
 int atexit(void (*)(void));

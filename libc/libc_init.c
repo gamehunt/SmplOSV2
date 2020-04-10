@@ -1,4 +1,5 @@
 #include <sys/syscall.h>
+#include <stdlib.h>
 
 extern int main(int argc,char** argv, char** envp);
 extern char** environ;
@@ -34,5 +35,5 @@ void libc_init(int argc, char** argv, char** envp){
 	sys_open(path,F_READ);
 	int resp = main(argc,argv,envp);
 	sys_sleep(2);
-	sys_exit(resp);
+	exit(resp);
 }

@@ -47,8 +47,9 @@ syscall.o \
 stdio/stdio.o\
 stdio/fgets.o\
 stdio/getc.o\
-stdlib/exit.o\
 stdlib/cxa_atexit.o\
+stdlib/atexit.o\
+stdlib/exit.o\
 dirent/dirent.o \
 unistd/exec.o \
 unistd/getcwd.o \

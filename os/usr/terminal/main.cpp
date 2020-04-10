@@ -84,10 +84,7 @@ int sig_child(){
 }
 
 int term_init(int argc,char** argv){
-	CServer::Init("/dev/cserver");
-	CSPacket* pack = CSPacket::CreatePacket(CS_TYPE_PROCESS);
-	((pid_t*)pack->GetBuffer())[0] = getpid();
-	CServer::C_SendPacket(pack);
+	CServer::C_InitClient();
 	tx = 0;
 	ty = 1;
 	term_col_bg = gdi_rgb2linear(0,0,0);

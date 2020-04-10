@@ -60,6 +60,7 @@ class CServer{
 		static std::vector<CSProcess*> S_GetAllProcesses();
 		static void S_Tick();
 		static FILE* OpenSocket(pid_t pid);
+		static int C_InitClient();
 	private:
 		static FILE* server_pipe;
 		static FILE* client_pipe;
