@@ -1,19 +1,19 @@
 ALL_OBJS=\
-gdi.o\
+fb.o\
 
 .PHONY: all clean install
 .SUFFIXES: .o .c .asm
 
-all: gdi.a install
+all: fb.a install
 
 clean:
-	-rm -f gdi.a
-	-rm -f $(HOME)/SmplOSV2/libs/bin/libgdi.a
+	-rm -f fb.a
+	-rm -f $(HOME)/SmplOSV2/libs/bin/libfb.a
 	-rm -f $(ALL_OBJS) *.o */*.o */*/*.o
 	-rm -f $(ALL_OBJS:.o=.d) *.d */*.d */*/*.d
 
 install:
-	cp gdi.a $(HOME)/SmplOSV2/libs/bin/libgdi.a
+	cp fb.a $(HOME)/SmplOSV2/libs/bin/libfb.a
 	rsync -a include/ ../include
 
 .c.o:
@@ -22,7 +22,7 @@ install:
 .asm.o:
 	nasm -f elf32 $< -o $@
 	
-gdi.a:$(ALL_OBJS)
+fb.a:$(ALL_OBJS)
 	$(AR) rcs $@ $(ALL_OBJS)
 
 

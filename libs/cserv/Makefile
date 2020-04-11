@@ -1,5 +1,7 @@
 ALL_OBJS=\
 cserv.o\
+widgets/widget.o\
+widgets/debug.o\
 
 .PHONY: all clean install
 .SUFFIXES: .o .c .cpp .asm
@@ -20,7 +22,7 @@ install:
 	$(CC) -MD -c $< -o $@ -std=gnu11 -Iinclude -Iinclude/cserv $(LIBC_CFLAGS) $(CPPFLAGS)
 
 .cpp.o:
-	i686-smplos-g++ -MD -c $< -o $@ -std=gnu11 -Iinclude -Iinclude/cserv $(LIBC_CFLAGS) $(CPPFLAGS)
+	i686-smplos-g++ -MD -c $< -o $@ -std=gnu11 -Iinclude -Iinclude/cserv -I../fb/include $(LIBC_CFLAGS) $(CPPFLAGS) -lfb
  
 .asm.o:
 	nasm -f elf32 $< -o $@

@@ -1,20 +1,20 @@
 #pragma once
 
-#define CS_TYPE_PROCESS  1
-#define CS_TYPE_KEY      2
-#define CS_TYPE_ACTIVATE 3
+#define CS_TYPE_PROCESS          1
+#define CS_TYPE_KEY              2
+#define CS_TYPE_ACTIVATE         3
+#define CS_TYPE_TERMINATE        4
+#define CS_TYPE_WIDGET           5
 
+
+
+#include <vector>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/syscall.h>
 
 #include <cserv/widgets/widget.h>
-
-#include <vector>
-
-
-
 
 class CSPacket{
 	public:
@@ -27,6 +27,7 @@ class CSPacket{
 		int type;
 		uint8_t buffer[128]; 
 };
+
 
 class CSProcess{
 	public:
@@ -47,6 +48,7 @@ class CSProcess{
 		int canvas_offs_y;
 };
 
+
 class CServer{
 	public:
 		static int Init(const char* pipe);
@@ -66,3 +68,4 @@ class CServer{
 		static FILE* client_pipe;
 		static std::vector<CSProcess*> processes;
 };
+

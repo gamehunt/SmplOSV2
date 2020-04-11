@@ -4,6 +4,8 @@
     Author: gamehunt 
 */
 
+#pragma once
+
 #include <kernel/fs/vfs.h>
 
 #include <kernel/global.h>

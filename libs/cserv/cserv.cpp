@@ -117,6 +117,7 @@ int CServer::C_InitClient(){
 	((pid_t*)pack->GetBuffer())[0] = getpid();
 	CServer::C_SendPacket(pack);
 	std::atexit(cserver_atexit_handlr);
+	sys_echo("Client initialized",0);
 	return 0;
 }
 
@@ -160,4 +161,8 @@ bool CSProcess::ApplyFilter(CSPacket* packet){
 }
 void CSProcess::SetupFilter(bool(*filter)(CSPacket*)){
 	this->packet_filter = filter;
+}
+
+void CSProcess::AddWidget(CSWidget* w){
+	widgets.push_back(w);
 }

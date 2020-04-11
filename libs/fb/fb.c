@@ -1,5 +1,5 @@
-#include <gdi.h>
-#include <gdi_font.h>
+#include <fb.h>
+#include <fb_font.h>
 
 #include <stdio.h>
 #include <sys/syscall.h>
@@ -17,30 +17,32 @@ uint8_t reverse(uint8_t n) {
    return (lookup[n&0b1111] << 4) | lookup[n>>4];
 }
 
-uint32_t gdi_rgb2linear(uint8_t r,uint8_t g,uint8_t b){
+uint32_t fb_rgb2linear(uint8_t r,uint8_t g,uint8_t b){
 	return b | (g << 8) | (r << 16) | (0 << 24);
 }
 
-void    gdi_pixel(int x,int y,uint32_t color){
-	sys_write(framebuffer->fd,(y*x_res+x)*4,4,&color);
+void    fb_pixel(int x,int y,uint32_t color){
+	if(framebuffer){
+		sys_write(framebuffer->fd,(y*x_res+x)*4,4,&color);
+	}
 }
 
-void    gdi_char(unsigned char c,int x,int y,uint32_t fc,uint32_t bc){
+void    fb_char(unsigned char c,int x,int y,uint32_t fc,uint32_t bc){
 	uint8_t mask[8];
 	for(int i=0;i<8;i++){
 		mask[i] = (i==0?1:mask[i-1]*2);
 	}
 	for(int i=0;i<16;i++){
 		for(int j=0;j<8;j++){
-			gdi_pixel(x+j,y+i-12,reverse(ibmvga_8x16_font[c*16+i])&mask[j]?fc:bc);
+			fb_pixel(x+j,y+i,reverse(ibmvga_8x16_font[c*16+i])&mask[j]?fc:bc);
 		}
 	}
 }
 
-uint8_t gdi_init(char* fb,uint16_t xres,uint16_t yres){
+uint8_t fb_init(char* fb,uint16_t xres,uint16_t yres){
 	x_res = xres;
 	y_res = yres;
-	framebuffer = fopen(fb,"w"); //We should draw using CSerwer widgets
+	framebuffer = fopen(fb,"w");
 	if(!framebuffer){
 		printf("Failed to open framebuffer!\n");
 		return 1;
