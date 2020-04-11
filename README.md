@@ -20,3 +20,11 @@ What is done:
   --> InitRD and module loading
   
   --> Some syscalls and userspace
+
+  --> Working hosted toolchain for c and c++
+  
+  --> framebuffer and keyboard userspace libraries
+  
+  --> INDEV: Shell and terminal emulator
+  
+  --> INDEV: Compositor server and widgets
