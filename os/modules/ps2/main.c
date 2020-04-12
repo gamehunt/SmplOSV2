@@ -60,11 +60,38 @@
 #define PS2_KBD_RESP_ACK           0xFA
 #define PS2_KBD_RESP_RESEND        0xFE
 
+#define PS2_MS_CMD_WRAP_SET        0xEE
+#define PS2_MS_CMD_WRAP_RESET      0xEC
+#define PS2_MS_CMD_READ            0xEB
+#define PS2_MS_CMD_STREAM_SET      0xEA
+#define PS2_MS_CMD_STATUS          0xE9
+#define PS2_MS_CMD_RESOLUTION      0xE8
+#define PS2_MS_CMD_SCALE           0xE6
+#define PS2_MS_CMD_REMOTE          0xF0
+#define PS2_MS_CMD_DEVID           0xF2
+#define PS2_MS_CMD_SAMPLE          0xF3
+#define PS2_MS_CMD_ENABLE          0xF4
+#define PS2_MS_CMD_DISABLE         0xF5
+#define PS2_MS_CMD_DEFAULT         0xF6
+#define PS2_MS_CMD_RESEND          0xFE
+#define PS2_MS_CMD_RESET           0xFF
+
 static uint8_t ps2_kbd = 0xFF;
 static uint8_t ps2_kbd_scncd_set = 0xFF;
 static uint8_t ps2_mouse = 0xFF;
 
+static uint8_t ms_pack_part = 0;
+
 fs_node_t* kbd_device;
+fs_node_t* mouse_dev;
+
+uint8_t pack_bytes[3];//[0] =  yo|xo|ys|xs|ao|bm|br|bl [1] = xm [2] = ym
+
+typedef struct{
+	int x_mov;
+	int y_mov;
+	uint8_t buttons;
+}mouse_packet_t;
 
 uint8_t ps2_wait_write(){
 	uint16_t cnt = 0;
@@ -172,7 +199,7 @@ uint8_t init_ps2_controller(){
 	if(dual_port){
 		ps2_device_send(0,0xFF);
 	}
-	ps2_map_devices();
+	ps2_map_devices(dual_port);
 	return 1;
 }
 
@@ -269,11 +296,29 @@ uint8_t init_ps2_kbd(){
 	}else{
 		kinfo("Failed to get keyboard scancode set\n");
 	}
-	kbd_device = kmount("/dev/kbd","",ktypeid("pipe"));
+	kbd_device = pipe_create("/dev/kbd",128);
 	irq_set_handler(ps2_kbd?1:12,ps2_kbd_int_handler);
 	ps2_device_send(ps2_kbd,PS2_KBD_CMD_ENABLE);
+	ps2_device_read();
 	//while(1);
 	return 1;
+}
+
+void ps2_mouse_int_handler(regs_t r){
+	uint8_t byte = inb(PS2_IOPORT_DATA);
+	pack_bytes[ms_pack_part] = byte;
+	if(ms_pack_part == 2){
+		mouse_packet_t* pack = kmalloc(sizeof(mouse_packet_t));
+		pack->x_mov = pack_bytes[1] - ((pack_bytes[0] << 4) & 0x100);
+		pack->y_mov = pack_bytes[2] - ((pack_bytes[0] << 3) & 0x100);
+		pack->buttons = pack_bytes[0] & 0b00000111;
+		kwrite(mouse_dev,0,sizeof(mouse_packet_t),pack);
+		kfree(pack);
+		ms_pack_part = 0;
+	}else{
+		ms_pack_part++;
+	}
+	irq_end(12);
 }
 
 uint8_t init_ps2_mouse(){
@@ -281,7 +326,13 @@ uint8_t init_ps2_mouse(){
 		kinfo("Mouse not found!\n");
 		return 0;
 	}
-	//TODO
+	ps2_device_send(ps2_mouse,PS2_MS_CMD_DEFAULT);
+	ps2_device_read();
+	irq_set_handler(12,ps2_mouse_int_handler);
+	ps2_device_send(ps2_mouse,PS2_MS_CMD_ENABLE);
+	ps2_device_read();
+	mouse_dev = pipe_create("/dev/mouse",3072); //256 mouse packets
+	kinfo("Mouse initialized\n");
 	return 1;
 }
 
@@ -299,6 +350,7 @@ uint8_t load(){
 	if(!init_ps2_mouse()){
 		kerr("Failed to initialize PS2 Mouse\n");
 	}
+
 	return 0;
 }
 uint8_t unload(){

@@ -10,6 +10,7 @@
 
 #include <kernel/module/symtable.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/fs/pipe.h>
 #include <kernel/misc/log.h>
 #include <kernel/memory/memory.h>
 #include <kernel/io/io.h>
@@ -98,6 +99,8 @@ void init_symtable(){
 	symbol_export("vfs_set_flag",&vfs_set_flag);
 	symbol_export("vfs_check_flag",&vfs_check_flag);
 	symbol_export("vfs_clear_flag",&vfs_clear_flag);
+	
+	symbol_export("pipe_create",&pipe_create);
 	
 	symbol_export("strcat",&strcat);
 	symbol_export("strlen",&strlen);

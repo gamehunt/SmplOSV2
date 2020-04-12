@@ -5,7 +5,8 @@
 #define CS_TYPE_ACTIVATE         3
 #define CS_TYPE_TERMINATE        4
 #define CS_TYPE_WIDGET           5
-
+#define CS_TYPE_MOUSE            6
+#define CS_TYPE_REDRAW           7
 
 
 #include <vector>

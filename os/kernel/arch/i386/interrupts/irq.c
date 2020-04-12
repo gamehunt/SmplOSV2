@@ -19,7 +19,6 @@ void irq_unset_handler(uint8_t irq){
 	irq_handlers[irq] = 0;
 }
 void irq_end(uint8_t int_no){
-	//printf("%dE\n",int_no);
 	if (int_no >= 8) {
 		outb(0xA0, 0x20);
 	}
