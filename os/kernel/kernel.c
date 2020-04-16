@@ -90,7 +90,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	if(mbt->flags & MULTIBOOT_INFO_MODS){
 		  int n = mbt->mods_count;
 		  multiboot_module_t* mod = mbt->mods_addr;
-		  kinfo("Found %d boot modules (base=%a)\n",n,mbt->mods_addr);
+		  kinfo("Found %d boot modules (base=%p)\n",n,mbt->mods_addr);
 		  for (int i=0;i<n;i++){
 			  module_ramdisk_add(mod);
 			  if(mod->mod_end > (uint32_t)k_frame_stack){

@@ -47,6 +47,14 @@ syscall.o \
 stdio/stdio.o\
 stdio/fgets.o\
 stdio/getc.o\
+stdio/fseek.o\
+stdio/ftell.o\
+stdio/feof.o\
+stdio/setbuf.o\
+stdio/ferror.o\
+stdio/fgetpos.o\
+stdio/fsetpos.o\
+stdio/rewind.o\
 stdlib/cxa_atexit.o\
 stdlib/atexit.o\
 stdlib/exit.o\
@@ -57,6 +65,8 @@ unistd/chdir.o \
 unistd/getpid.o \
 unistd/uid.o \
 unistd/io.o \
+unistd/prior.o \
+unistd/stat.o \
 stdlib/env.o \
 
 CRT_OBJS=crt0.o\

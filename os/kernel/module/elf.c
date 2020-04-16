@@ -236,7 +236,7 @@ void *elf_load_exec(elf32_hdr_t* hdr){
 	for(uint16_t i = 0;i<hdr->e_phnum;i++){
 		elf32_prog_hdr_t ph = prog_hdrs[i];
 		if(ph.p_type == PH_LOAD){
-			kinfo("Allocating memory for segment %a - %a\n",ph.p_vaddr,ph.p_vaddr + ph.p_memsz);
+			kinfo("Allocating memory for segment %p - %p\n",ph.p_vaddr,ph.p_vaddr + ph.p_memsz);
 			for(uint32_t i = ph.p_vaddr;i<ph.p_vaddr + ph.p_memsz;i+=4096){	
 				knpalloc(i); 
 			//	kinfo("%a - %a - %d(%d) (+%a)\n",i,virtual2physical(i),ph.p_memsz,ph.p_filesz,ph.p_offset);

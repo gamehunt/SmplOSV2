@@ -21,7 +21,7 @@ int sig_child(){
 
 int main(){
 	//*((uint8_t*)0xFFFFFFFF) = 0;
-	sys_echo("Init start",0);
+	sys_echo("[INI] Init start\n");
 	
 	setenv("PATH","/usr/bin",1);
 	

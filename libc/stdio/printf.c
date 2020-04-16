@@ -18,15 +18,15 @@ int fprintf(FILE* fd,const char* restrict format,...){
 }
 #endif
 
-void printf(const char* restrict format,...){
+int printf(const char* restrict format,...){
 
 	va_list argptr;
 	va_start(argptr,format);
 	#ifdef __smplos_libk
-		vprintf(format,argptr);
+	int r =	vprintf(format,argptr);
 	#else
-		vfprintf(stdout,format,argptr);
+	int r =	vfprintf(stdout,format,argptr);
 	#endif
 	va_end(argptr);
-
+	return r;
 }

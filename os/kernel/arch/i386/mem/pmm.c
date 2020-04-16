@@ -76,7 +76,7 @@ void init_pmm(multiboot_info_t *mbt){
 	stat2 = create_stat("pmm_peak",0);
 	multiboot_memory_map_t* mmap = mbt->mmap_addr;
 	while((uint32_t)mmap < mbt->mmap_addr+ mbt->mmap_length) {
-		kinfo("0x%e - 0x%e - 0x%x\n",mmap->addr,mmap->addr+mmap->len,mmap->type);
+		kinfo("0x%llx - 0x%llx - 0x%x\n",mmap->addr,mmap->addr+mmap->len,mmap->type);
 		if(mmap->type == 1){
 			for(int i = 0; i< mmap->len; i+= 4096){
 				if(pmm_check_frame(mmap->addr+i)){

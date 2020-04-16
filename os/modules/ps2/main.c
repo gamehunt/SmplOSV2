@@ -225,7 +225,7 @@ void ps2_map_devices(uint8_t dual){
 	}
 	ps2_device_read();
 	uint8_t resp = ps2_device_read();
-	kinfo("Ident response on port 1: %a\n",resp);
+	kinfo("Ident response on port 1: %p\n",resp);
 	if(!ps2_wait_read()){
 		ps2_device_read();
 	}
@@ -252,7 +252,7 @@ void ps2_map_devices(uint8_t dual){
 	if(!ps2_wait_read()){
 		ps2_device_read();
 	}
-	kinfo("Ident response on port 2: %a\n",resp);
+	kinfo("Ident response on port 2: %p\n",resp);
 	if(resp == 0x00 || resp == 0x03 || resp == 0x04){
 		kinfo("Detected mouse on port 2\n");
 		ps2_mouse = 0;
@@ -278,7 +278,7 @@ uint8_t init_ps2_kbd(){
 	ps2_device_send(ps2_kbd,PS2_KBD_CMD_ECHO);
 	uint8_t resp = ps2_device_read();
 	if(resp != PS2_KBD_RESP_ECHO){
-		kwarn("Keyboard echo selftest failed!(%a)\n",resp);
+		kwarn("Keyboard echo selftest failed!(0x%x)\n",resp);
 	}else{
 		kinfo("Keyboard echo selftest passed\n");
 	}
@@ -291,7 +291,7 @@ uint8_t init_ps2_kbd(){
 		do{
 			resp = ps2_device_read();
 		}while(resp == 0xFA);
-		kinfo("Keyboard uses %a scancode set\n",resp);
+		kinfo("Keyboard uses %p scancode set\n",resp);
 		ps2_kbd_scncd_set = resp;
 	}else{
 		kinfo("Failed to get keyboard scancode set\n");

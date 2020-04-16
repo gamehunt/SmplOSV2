@@ -94,14 +94,16 @@ int process_packet(){
 
 int main(int argc,char** argv){
 	
+	setpriority(0,0,1);
+	
 	if(CServer::Init("/dev/cserver")){
-		sys_echo("Failed to initialize server!",0);
+		sys_echo("[CSRV] Failed to initialize server!\n");
 	}
 	
 	keyboard = fopen("/dev/kbd","r");
 	mouse    = fopen("/dev/mouse","r");
 
-	sys_echo("Setting up framebuffer...",0);
+	sys_echo("[CSRV] Setting up framebuffer...\n");
 
 	FILE* fb = fopen("/dev/fb0","w");
 	uint16_t args[] = {1024,768,0x20};
@@ -111,14 +113,14 @@ int main(int argc,char** argv){
 		return 1;
 	}
 	
-	if(fb_init("/dev/fb0",1024,768)){
-		sys_echo("Failed to initialize framebuffer",0);
+	if(fb_init("/dev/fb0",1024,768,1)){
+		sys_echo("[CSRV] Failed to initialize framebuffer\n");
 		return 1;
 	}
 	
 	sys_send(getppid(),0); //send SIG_CHILD 
 	
-	sys_echo("Started server",0);
+	sys_echo("[CSRV] Started server\n");
 	
 	uint32_t node = 0;
 	
@@ -152,9 +154,10 @@ int main(int argc,char** argv){
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}
 		process_packet();
-		sys_ioctl(fb->fd,0x10,args); //This hack will clear all video memory, TODO: make something less stupid to do that (this also flicks)
-		CServer::S_Tick();
+		fb_fill(0,0,1024,768,0x00000000); //this is rather slow
+		CServer::S_Tick(); //TODO separate thread for rendering
 		fb_char('A',mx,my,0x00000000,0x00FF0000);
+		fb_swapbuffers();
 	}
 	
 	return 0;

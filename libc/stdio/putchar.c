@@ -16,16 +16,18 @@
 #endif
 
 #ifndef __smplos_libk
-void fputc(char c, FILE* f){
+int fputc(char c, FILE* f){
 	char buffer[] = {c};
-	fwrite(buffer,1,1,f);
+	int res = fwrite(buffer,1,1,f);
+	return res?res:EOF;
 }
 #endif
 
-void putchar(char c){
+int putchar(char c){
 	#ifdef __smplos_libk
 		eld_putchar(c);
+		return 1;
 	#else
-		fputc(c,stdout);
+		return fputc(c,stdout);
 	#endif
 }

@@ -91,12 +91,12 @@ uint8_t load(){
 	}
 	qvid_write_register(VBE_DISPI_INDEX_ID,0xB0C4);
 	uint16_t ver = qvid_read_register(VBE_DISPI_INDEX_ID);
-	kinfo("Version : %a\n",ver);
+	kinfo("Version : %p\n",ver);
 	uint32_t* lfb = (uint32_t*)(pci_read_value(qvid,PCI_BAR0,4) & 0xFFFFFFF0);
 	for(uint32_t i = 0;i<(8*1024*1024/4096);i++){
 		kmpalloc((uint32_t*)((uint32_t)lfb+i*4096),(uint32_t*)((uint32_t)lfb+i*4096),0);
 	}
-	kinfo("LFB at %a\n",lfb);
+	kinfo("LFB at %p\n",lfb);
 	fs_node_t* node = kcreate("/dev/fb0",VFS_TYPE_VIRTUAL);
 	node->inode = (uint32_t)lfb;
 	node->ioctl = fb_ioctl;

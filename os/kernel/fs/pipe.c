@@ -141,10 +141,15 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 }
 
 void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
-	
 	pipe_info_t* pipe = (pipe_info_t*)node->inode;
-	
 	if(validate(pipe)){
+		
+		for(uint32_t i=0;i<pipe->waiters_cnt;i++){
+			if(!validate(pipe->waiters[i])){
+				pipe->waiters[i] = waiter;
+				return;
+			}
+		}
 		pipe->waiters_cnt++;
 		if(pipe->waiters_cnt == 1){
 			pipe->waiters = kmalloc(sizeof(proc_t*));
@@ -152,6 +157,21 @@ void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
 			pipe->waiters = krealloc(pipe->waiters,pipe->waiters_cnt*sizeof(proc_t*));
 		}
 		pipe->waiters[pipe->waiters_cnt-1] = waiter;
+	}else{
+		kerr("Pipe %s has invalid info-block!\n",node->name);
+	}
+}
+
+void pipe_remove_waiter(fs_node_t* node,proc_t* waiter){
+	pipe_info_t* pipe = (pipe_info_t*)node->inode;
+	
+	if(validate(pipe)){
+		for(uint32_t i=0;i<pipe->waiters_cnt;i++){
+			if(pipe->waiters[i] == waiter){
+				pipe->waiters[i] = 0;
+				return;
+			}
+		}
 	}else{
 		kerr("Pipe %s has invalid info-block!\n",node->name);
 	}

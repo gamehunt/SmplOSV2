@@ -13,6 +13,7 @@
 #include <kernel/misc/pathutils.h>
 #include <kernel/dev/acpica/acpi.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #define MAX_SYSCALL 128
 
@@ -51,8 +52,11 @@ void register_syscall(uint16_t id,syscall_t handler){
 	syscalls[id] = handler;
 }
 
-uint32_t sys_echo(uint32_t str,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
-	kinfo("[SYS_ECHO][%d] %s %d %d %d %d\n",get_current_process()->pid,str,a,b,c,d);
+uint32_t sys_echo(uint32_t str,uint32_t va,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	vprintf((const char*)str,va);
 	return 0;
 }
 
@@ -83,8 +87,22 @@ uint32_t sys_write(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t siz
 	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 
-uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t _____){
-	
+uint32_t sys_fstat(uint32_t fd,uint32_t stat,uint32_t a,uint32_t b,uint32_t c){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	if(get_current_process()->f_descs_cnt <= fd || !validate(stat)){
+		return 1;
+	}
+	fs_node_t* node = get_current_process()->f_descs[fd];
+	((stat_t*)stat)->st_size = node->size;
+	return 0;
+}
+
+uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t a,uint32_t b,uint32_t c){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
 	fs_node_t* node = kopen((char*)path);
 	if(!node && (flags & F_CREATE)){
 		node = kcreate(path,0);
@@ -114,8 +132,11 @@ uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t __,uint32_t ___,uint32_t
 }
 
 
-uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
-//	kinfo("[SYS_CLOSE] %d\n",fds);
+uint32_t sys_close(uint32_t fds,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
 	proc_t* proc = get_current_process();
 	if(proc->f_descs_cnt > fds && proc->f_descs[fds]){
 		kclose(proc->f_descs[fds]);
@@ -124,7 +145,9 @@ uint32_t sys_close(uint32_t fds,uint32_t _,uint32_t __,uint32_t ___,uint32_t ___
 	return 0;
 }
 
-uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32_t _____){
+uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t a,uint32_t b){
+	UNUSED(a);
+	UNUSED(b);
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 1;
 	}
@@ -146,8 +169,9 @@ uint32_t sys_readdir(uint32_t fd,uint32_t index,uint32_t ptr,uint32_t ___,uint32
 	return 0;
 }
 
-uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t _,uint32_t _____){
-	//kinfo("Trying to execute: %s\n",path);
+uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t a,uint32_t b){
+	UNUSED(a);
+	UNUSED(b);
 	proc_t* p = execute(kseek((char*)path),argv,envp,0);
 	if(!p){
 		return 0;
@@ -155,12 +179,19 @@ uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t _,uint32_t 
 	return p->pid;
 }
 
-uint32_t sys_clone(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_clone(uint32_t a,uint32_t b,uint32_t c,uint32_t d, uint32_t e){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
 	create_process("",get_current_process(),1);
 	return 0;
 }
 
-uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,uint32_t _____){
+uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t a,uint32_t b){
+	UNUSED(a);
+	UNUSED(b);
 	if(get_current_process()->f_descs_cnt <= fd){
 		return 0;
 	}
@@ -168,13 +199,20 @@ uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t ___,uint32_t 
 	return kioctl(node,req,argp);
 }
 
-uint32_t sys_exit(uint32_t code,uint32_t _,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_exit(uint32_t code,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
 	proc_exit(get_current_process());
 	return 0;
 }
 
 
-uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t __,uint32_t ___,uint32_t _____){
+uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t a,uint32_t b,uint32_t c){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
 	
 	uint32_t* fds_ptr = (uint32_t*)fds;
 	fs_node_t** nodes = kmalloc(sizeof(fs_node_t*)*cnt);
@@ -190,12 +228,23 @@ uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t __,uint32_t ___,uint32_t 
 	return 0;
 }
 
-uint32_t sys_yield(uint32_t _,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_yield(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
 	schedule(0,1);
 	return 0;
 }
 
-uint32_t sys_sbrk(uint32_t size,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_sbrk(uint32_t size,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
 	proc_t* proc = get_current_process();
 	
 	for(uint32_t i=0;i<size;i+=4096){
@@ -206,7 +255,12 @@ uint32_t sys_sbrk(uint32_t size,uint32_t __,uint32_t ___,uint32_t ____,uint32_t 
 	return proc->heap;
 }
 
-uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t a,uint32_t b,uint32_t c){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	
 	sys_close(fd_dest,0,0,0,0);
 	proc_t* proc = get_current_process();
 	fs_node_t* node = kmalloc(sizeof(fs_node_t));
@@ -215,30 +269,65 @@ uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t ___,uint32_t ____,
 	sys_close(fd_src,0,0,0,0);
 }
 
-uint32_t sys_sig(uint32_t pid,uint32_t sig,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_sig(uint32_t pid,uint32_t sig,uint32_t a,uint32_t b,uint32_t c){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+
 	send_signal(get_process_by_pid(pid),sig);
 	return 0;
 }
 
-uint32_t sys_sighandl(uint32_t sig,uint32_t handler,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_sighandl(uint32_t sig,uint32_t handler,uint32_t a,uint32_t b,uint32_t c){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	
 	set_sig_handler(get_current_process(),handler,sig);
 	return 0;
 }
 
-uint32_t sys_sigexit(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_sigexit(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
+	
 	exit_sig(get_current_process());
 	return 0;
 }
 
-uint32_t sys_time(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_time(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
+	
 	return rtc_current_time(); //Returns wrong values. We dont count extra day each fourth year!
 }
-uint32_t sys_waitpid(uint32_t pid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_waitpid(uint32_t pid,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
 	process_waitpid(get_current_process(),pid); 
 	return 0;
 }
 
-uint32_t sys_getcwd(uint32_t buffer,uint32_t buffer_size,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_getcwd(uint32_t buffer,uint32_t buffer_size,uint32_t a,uint32_t b,uint32_t c){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	
 	if(buffer_size < strlen(get_current_process()->work_dir_abs)){
 	//	kerr("Buffer size too small: need %d\n",strlen(get_current_process()->work_dir_abs));
 		return 0;
@@ -247,7 +336,13 @@ uint32_t sys_getcwd(uint32_t buffer,uint32_t buffer_size,uint32_t ___,uint32_t _
 	return buffer;
 }
 
-uint32_t sys_chdir(uint32_t path,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_chdir(uint32_t path,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
 	fs_node_t* node = kseek(path);
 	if(node){
 		strcpy(get_current_process()->work_dir_abs,canonize_absolute(path));
@@ -256,37 +351,84 @@ uint32_t sys_chdir(uint32_t path,uint32_t _,uint32_t ___,uint32_t ____,uint32_t 
 	}
 	return -1;
 }
-uint32_t sys_getpid(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_getpid(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
+	
 	return get_current_process()->pid;
 }
-uint32_t sys_getuid(uint32_t __,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_getuid(uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
+	
 	return get_current_process()->uid;
 }
-uint32_t sys_setuid(uint32_t uid,uint32_t _,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_setuid(uint32_t uid,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
 	if(get_current_process()->uid != PROC_ROOT_UID){
 		return -1; //Only root can change it's owner
 	}
 	get_current_process()->uid = uid;
 	return 0;
 }
-uint32_t sys_link(uint32_t patha,uint32_t pathb,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_link(uint32_t patha,uint32_t pathb,uint32_t a,uint32_t b,uint32_t c){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
 	return klink(patha,pathb)?1:0;
 }
-uint32_t sys_sleep(uint32_t ticks,uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_sleep(uint32_t ticks,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
 	process_sleep(get_current_process(),ticks);
 	return 0;
 }
-uint32_t sys_getppid(uint32_t _, uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_getppid(uint32_t a, uint32_t b,uint32_t c,uint32_t d,uint32_t e){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
+	
 	if(!get_current_process()->parent){
 		return -1;
 	}
 	return get_current_process()->parent->pid;;
 }
-uint32_t sys_pipe(uint32_t path, uint32_t size,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_pipe(uint32_t path, uint32_t size,uint32_t a,uint32_t b,uint32_t c){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	
 	fs_node_t* node = pipe_create(path,size);
 	return node?0:1;
 }
-uint32_t sys_pwreq(uint32_t req, uint32_t __,uint32_t ___,uint32_t ____,uint32_t _____){
+uint32_t sys_pwreq(uint32_t req, uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
 	if(req == 0){
 		kinfo("Shooting down\n");
 		//TODO move to separate kernel function and unload all shit in it
@@ -316,6 +458,22 @@ uint32_t sys_pwreq(uint32_t req, uint32_t __,uint32_t ___,uint32_t ____,uint32_t
 		}
 	}
 }
+
+uint32_t sys_prior(uint32_t req, uint32_t who,uint32_t which,uint32_t prior,uint32_t d){
+	UNUSED(d);
+	
+	if(req){
+		if(!get_current_process()->uid){
+			ready_remove(get_current_process());
+			get_current_process()->priority = prior;
+			ready_insert(get_current_process());
+		}
+	}else{
+		return get_current_process()->priority;
+	}
+	return 0;
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -349,4 +507,6 @@ void init_syscalls(){
 	register_syscall(SYS_GETPPID,&sys_getppid);
 	register_syscall(SYS_PIPE,&sys_pipe);
 	register_syscall(SYS_PWREQ,&sys_pwreq);
+	register_syscall(SYS_FSSTAT,&sys_fstat);
+	register_syscall(SYS_PRIOR,&sys_prior);
 }

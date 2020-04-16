@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdarg.h>
 #include <stdint.h>
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <kernel/interrupts/syscalls.h>
 #include <kernel/proc/proc.h>
 #include <cheader.h>
@@ -16,8 +18,11 @@ CH_START
 
 extern uint32_t sys_call(uint32_t n,uint32_t a,uint32_t b,uint32_t c,uint32_t d,uint32_t e);
 
-static inline uint32_t sys_echo(char* str,uint32_t opt){
-	return sys_call(SYS_ECHO,(uint32_t)str,opt,0,0,0);
+static inline void sys_echo(const char* format,...){
+	va_list argptr;
+	va_start(argptr,format);
+	sys_call(SYS_ECHO,(uint32_t)format,(uint32_t)argptr,0,0,0);
+	va_end(argptr);
 }
 
 static inline uint32_t sys_read(uint32_t fd,uint64_t offset, uint32_t size,uint8_t* buffer){
@@ -107,8 +112,8 @@ static inline int sys_send(uint32_t pid,uint32_t sig){
 static inline int sys_signal(uint32_t sig, sig_handler_t handler){
 	return sys_call(SYS_SIGHANDL,sig,(uint32_t)handler,0,0,0);
 }
-static inline int sys_sigexit(){
-	return sys_call(SYS_SIGEXIT,0,0,0,0,0);
+static inline void sys_sigexit(){
+	sys_call(SYS_SIGEXIT,0,0,0,0,0);
 }
 
 static inline int sys_sleep(uint32_t ticks){
@@ -124,6 +129,18 @@ static inline uint8_t sys_pipe(char* path,uint32_t buff_size){
 }
 static inline uint8_t sys_pwreq(uint32_t req){
 	return sys_call(SYS_PWREQ,req,0,0,0,0);
+}
+
+static inline uint8_t sys_stat(int fd,stat_t* stat){
+	return sys_call(SYS_FSSTAT,fd,(uint32_t)stat,0,0,0);
+}
+
+static inline uint8_t sys_setprior(int which,int who,int prior){
+	return sys_call(SYS_PRIOR,1,which,who,prior,0);
+}
+
+static inline uint8_t sys_getprior(int which,int who){
+	return sys_call(SYS_PRIOR,0,which,who,0,0);
 }
 
 #endif

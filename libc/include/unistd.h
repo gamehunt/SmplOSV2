@@ -8,6 +8,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <cheader.h>
 
 #define O_WRONLY 1
@@ -36,6 +37,9 @@ long lseek(int handle, long offset, int origin);
 long tell(int fd);
 int chmod(const char *filename, int mode);
 int mkdir(const char *path);
+int stat(int fd,stat_t* stat);
+int getpriority(int which, int who);
+int setpriority(int which, int who, int prio);
 #endif
 
 CH_END

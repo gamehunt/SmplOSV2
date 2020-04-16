@@ -12,7 +12,7 @@
 typedef struct{
 	char name[32];
 	uint32_t value;
-}stat_t;
+}kstat_t;
 
 void i_reset_stat(uint32_t idx,uint32_t val);
 void reset_stat(char name[32],uint32_t val);

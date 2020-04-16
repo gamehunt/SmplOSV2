@@ -45,11 +45,11 @@ proc_t* get_ready_high(){
 	do{
 		proc = ready_procs_high[ready_procs_pointer_high];
 		ready_procs_pointer_high++;
-		if(first == ready_procs_high){
-			break;
-		}
-		if(ready_procs_pointer_high > ready_procs_size_high){
+		if(ready_procs_pointer_high >= ready_procs_size_high){
 			ready_procs_pointer_high = 0;
+		}
+		if(first == ready_procs_pointer_high){
+			break;
 		}
 	}while(!proc);
 	return proc;
@@ -65,11 +65,11 @@ proc_t* get_ready_low(){
 	do{
 		proc = ready_procs_low[ready_procs_pointer_low];
 		ready_procs_pointer_low++;
-		if(first == ready_procs_low){
-			break;
-		}
-		if(ready_procs_pointer_low > ready_procs_size_low){
+		if(ready_procs_pointer_low >= ready_procs_size_low){
 			ready_procs_pointer_low = 0;
+		}
+		if(first == ready_procs_pointer_low){
+			break;
 		}
 	}while(!proc);
 	return proc;
@@ -323,8 +323,6 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 		new_proc->state->esp = parent->syscall_state->esp;
 		new_proc->state->ebp = parent->syscall_state->ebp;
 		new_proc->state->eip = parent->syscall_state->eip;
-		
-		kinfo("Cloned process will jump to %a(par = %a)\n",new_proc->state->eip,parent->syscall_state->eip);
 	}
 	
 	if(parent){
@@ -341,7 +339,7 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	total_prcs++;
 	ready_insert(new_proc);
 		
-	kinfo("Process created: '%s' with pid %d (stack %a)\n",new_proc->name,new_proc->pid,new_proc->state->k_esp);
+	kinfo("Process created: '%s' with pid %d (stack %p)\n",new_proc->name,new_proc->pid,new_proc->state->k_esp);
 	return new_proc;
 }
 
@@ -350,10 +348,10 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	disable_interrupts();
 	if(!validate(node)){
-		kinfo("Tried to create process from invalid node %a!\n",node);
+		kinfo("Tried to create process from invalid node %p!\n",node);
 		return 0;
 	}
-	kinfo("Creating process from node %s; args: %a %a\n",node->name,argv,envp);
+	kinfo("Creating process from node %s; args: %p %p\n",node->name,argv,envp);
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
@@ -445,7 +443,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	uint32_t entry = elf_load_file(buffer);
 	kfree(buffer);
 	proc->state->eip = entry;
-	kinfo("ENTRY: %a\n",entry);
+	kinfo("ENTRY: %p\n",entry);
 
 	PUSH(proc->state->esp,char**,usr_envp);
 	PUSH(proc->state->esp,char**,usr_argv);
@@ -508,7 +506,7 @@ void clean_process(proc_t* proc){
 		}
 		kremove(proc_node);
 	}
-	kinfo("Cleaning process: %s(%d) - %a - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
+	kinfo("Cleaning process: %s(%d) - %p - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 
 	//kffree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->state->k_esp);
@@ -634,7 +632,7 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 		memcpy(proc->fswait_nodes,nodes,sizeof(fs_node_t*)*cnt);
 		proc->fswait_nodes_cnt = cnt;
 		for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
-			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs, also need something to remove waiters from pipe
+			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs
 		}
 		if(proc->status == PROC_READY){
 			ready_remove(proc);
@@ -647,6 +645,9 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 }
 
 void process_fswait_awake(proc_t* proc){
+	for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
+		pipe_remove_waiter(proc->fswait_nodes[i],proc);
+	}
 	proc->fswait_nodes_cnt = 0;
 	kfree(proc->fswait_nodes);
 	ready_insert(proc);

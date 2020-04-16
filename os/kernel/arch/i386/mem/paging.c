@@ -217,7 +217,7 @@ void pagefault_handler(regs_t r){
     : "%eax"
     );
 	if(get_current_process() && get_current_process()->pid != 1){
-		kinfo("Process %s caused page fault at %a\n",get_current_process()->name,cr2);
+		kinfo("Process %s caused page fault at %p\n",get_current_process()->name,cr2);
 		proc_exit(get_current_process());
 		return;
 	}
@@ -226,7 +226,7 @@ void pagefault_handler(regs_t r){
 	crash.description = "Page Fault";
 	char message[60];
 	memset(message,0,60);
-	sprintf(message,"Fault address: %a, error code = %a",cr2,r->err_code);
+	sprintf(message,"Fault address: %p, error code = 0x%x",cr2,r->err_code);
 	crash.extra_info = message;
 	kpanic(crash);
 }

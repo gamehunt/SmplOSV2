@@ -15,16 +15,18 @@
 #endif
 
 #ifndef __smplos_libk
-	void fputs(const char* str,FILE* f){
+	int fputs(const char* str,FILE* f){
 		//printf("%d\n",strlen(str));
-		fwrite(str,strlen(str),1,f);
+		int r = fwrite(str,strlen(str),1,f);
+		return r?r:EOF;
 	}
 #endif
 
-void puts(const char* str){
+int puts(const char* str){
 	#ifdef __smplos_libk
 		eld_puts(str,strlen(str));
+		return strlen(str);
 	#else
-		fputs(str,stdout);
+		return fputs(str,stdout);
 	#endif
 }

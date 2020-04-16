@@ -11,6 +11,8 @@
 
 #define NULL 0
 
+#define UNUSED(x) (void)(x)
+
 struct registers{
 	unsigned int gs,fs,es,ds;
 	unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;

@@ -9,7 +9,7 @@
 #include <kernel/misc/stat.h>
 #include <kernel/memory/memory.h>
 
-static stat_t* stats[128];
+static kstat_t* stats[128];
 static uint32_t last_stat = 0;
 
 void i_reset_stat(uint32_t idx,uint32_t val){
@@ -42,8 +42,8 @@ uint32_t i_get_stat(uint32_t idx){
 }
 uint32_t create_stat(char name[32],uint32_t init){
 	if(!has_stat(name) && last_stat < 128){
-		stats[last_stat] = kmalloc(sizeof(stat_t));
-		memset(stats[last_stat],0,sizeof(stat_t));
+		stats[last_stat] = kmalloc(sizeof(kstat_t));
+		memset(stats[last_stat],0,sizeof(kstat_t));
 		memcpy(stats[last_stat],name,strlen(name));
 		//kinfo("%s %s\n",stats[last_stat],name);
 		stats[last_stat]->value = init;

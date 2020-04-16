@@ -16,7 +16,7 @@ int CServer::Init(const char* path){
 	}
 	server_pipe = fopen(path,"r+");
 	if(!server_pipe){
-		sys_echo("Failed to open server!",0);
+		sys_echo("[CSRV] Failed to open server!\n");
 		return 1;
 	}
 	char sock_path[128];
@@ -27,7 +27,7 @@ int CServer::Init(const char* path){
 	}
 	client_pipe = fopen(sock_path,"r");
 	if(!client_pipe){
-		sys_echo("Failed to open socket!",0);
+		sys_echo("[CSRV] Failed to open socket!\n");
 		return 2;
 	}
 	return 0;
@@ -37,11 +37,11 @@ void CServer::C_SendPacket(CSPacket* packet){
 		if(server_pipe){
 			if(!fwrite(packet,sizeof(CSPacket),1,server_pipe)){
 				//printf("Failed to send packet: unknown write failure\n");
-				sys_echo("Failed to send packet: unknown write failure",0);
+				sys_echo("[CSRV] Failed to send packet: unknown write failure\n");
 			}
 		}else{
 				//printf("Failed to send packet: cserver not available\n");
-				sys_echo("Failed to send packet: cserver not available",0);
+				sys_echo("[CSRV] Failed to send packet: cserver not available\n");
 		}
 }
 
@@ -106,7 +106,7 @@ CSPacket* CServer::C_LastPacket(){
 }
 
 static void cserver_atexit_handlr(){
-	sys_echo("Sending CS_TYPE_TERMINATE\n",0);
+	sys_echo("[CSRV] Sending CS_TYPE_TERMINATE\n");
 }
 
 int CServer::C_InitClient(){
@@ -117,7 +117,7 @@ int CServer::C_InitClient(){
 	((pid_t*)pack->GetBuffer())[0] = getpid();
 	CServer::C_SendPacket(pack);
 	std::atexit(cserver_atexit_handlr);
-	sys_echo("Client initialized",0);
+	sys_echo("[CSRV] Client initialized\n");
 	return 0;
 }
 
