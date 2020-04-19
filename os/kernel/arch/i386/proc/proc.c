@@ -610,7 +610,7 @@ void schedule(regs_t reg,uint8_t save){
 			current_process = low;
 		}
 		
-		if(current_process && save){
+		if(current_process){
 			if(current_process->in_sig){
 				setup_ctx(current_process->signal_state,reg,current_process->pdir,current_process->kernel_stack);
 			}else{
@@ -627,16 +627,17 @@ void schedule(regs_t reg,uint8_t save){
 			//kinfo("Handling signal: [%p+%d]\n",current_process->sig_stack,current_process->sig_stack_esp);
 			
 			uint32_t signum = current_process->sig_stack[current_process->sig_stack_esp];
-			
-			//kinfo("SIGNUM: %d\n",signum);
-			if(signum > MAX_SIG){
-			//	return;
-			}
-			
 			current_process->sig_stack_esp--;
 			if(current_process->sig_stack_esp < 0){
 				kfree(current_process->sig_stack);
 			}
+			//kinfo("SIGNUM: %d\n",signum);
+			if(signum > MAX_SIG){
+				kwarn("Tried to handle bad signal: %d\n",signum);
+				return;
+			}
+			
+			
 			sig_handler_t sig = current_process->sig_handlers[signum];
 			
 			if(sig){
@@ -819,6 +820,7 @@ void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig){
 	if(sig>=MAX_SIG){
 		return;
 	}
+	kinfo("Signal hadnler set: %d for %s\n",sig,proc->name);
 	proc->sig_handlers[sig] = handl;
 }
 

@@ -16,6 +16,7 @@ volatile uint8_t cserv_exec = 0;
 
 int sig_child(){
 	cserv_exec = 1;
+	sys_echo("INIT received SIGCHILD\n");
 	sys_sigexit();
 }
 
