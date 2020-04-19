@@ -63,6 +63,7 @@ static mem_t* split(mem_t* orig,uint32_t size){
 	void* mem = ptr(orig);
 	mem_t* newb = (mem_t*)((uint32_t)mem+size);
 	newb->size = orig->size - size - sizeof(mem_t);
+	newb->guard = KHEAP_GUARD_VALUE;
 	orig->size = size;
 	//kinfo("SPLIT: %d to %d + %d + %d | REQ: %d\n",osize,orig->size,newb->size,sizeof(mem_t),size);
 	return (mem_t*)newb;
@@ -208,7 +209,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 
-	return;
+	//return;
 
 	if(!VALIDATE(addr)){
 		return;
@@ -272,7 +273,7 @@ void mem_check(){
 		if(block->guard != KHEAP_GUARD_VALUE || block->size > max_allocation){
 			kerr("\t [B] -- block: %p/%p [%p %d %p %p]\n",block,heap_start,block->guard,block->size,block->prev,block->next);
 			errors++;
-		}else if(next_block < heap_start && (next_block->guard != KHEAP_GUARD_VALUE || next_block->size > max_allocation || next_block->next != 0xAABBCCDD || next_block->prev != 0xAABBCCDD)){
+		}else if(next_block < heap_start && (next_block->guard != KHEAP_GUARD_VALUE || next_block->size > max_allocation)){
 			kwarn("\t [O] -- block: %p/%p [%p %d %p %p]\n",block,heap_start,block->guard,block->size,block->prev,block->next);
 			errors++;
 		}

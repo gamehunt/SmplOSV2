@@ -781,6 +781,8 @@ void send_signal(proc_t* proc,uint32_t sig){
 		}else{
 			proc->sig_stack[proc->sig_stack_esp] = sig;
 		}
+	}else{
+			proc->sig_stack[proc->sig_stack_esp] = sig;
 	}
 
 	
