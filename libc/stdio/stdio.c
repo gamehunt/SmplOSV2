@@ -9,7 +9,8 @@ FILE _stdout={
 		.offset =0,
 		.eof = 0,
 		.buffer = 0,
-		.error = 0
+		.error = 0,
+		.size = 0
 };
 
 FILE _stderr={
@@ -17,7 +18,8 @@ FILE _stderr={
 		.offset =0,
 		.eof = 0,
 		.buffer = 0,
-		.error = 0
+		.error = 0,
+		.size = 0
 };
 
 FILE _stdin={
@@ -25,7 +27,8 @@ FILE _stdin={
 		.offset =0,
 		.eof = 0,
 		.buffer = 0,
-		.error = 0
+		.error = 0,
+		.size = 0
 };
 
 FILE* stdout = &_stdout;
@@ -82,8 +85,9 @@ FILE* fopen(const char* name,const char* mode){
 		stat_t* stat = malloc(sizeof(stat_t));
 		sys_stat(fd,stat);
 		f->size = stat->st_size;
+		free(stat);
+		return f;
 	} 
-	return f;
 }
 
 int fclose(FILE* f){

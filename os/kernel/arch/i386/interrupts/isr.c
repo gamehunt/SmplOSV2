@@ -60,15 +60,16 @@ void fault_handler(regs_t r){
 	irq_handler_t handler = isr_handlers[r->int_no];
 	if(handler){
 		handler(r);
-	}else if(get_current_process()){
+	}else if(get_current_process() && get_current_process()->pid != 1){
 		kinfo("Process %s caused exception: %s\n",get_current_process()->name,exc_m[r->int_no]);
 		proc_exit(get_current_process());
 	}else{
+		mem_check();
 		crash_info_t crash;	
 		crash.regs = r;	
 		crash.description = exc_m[r->int_no];
 		char message[128];
-		sprintf(message,"kpanic() invoked via unhandled isr\n[E] Error code: %a\n",r->err_code);
+		sprintf(message,"kpanic() invoked via unhandled isr\n[E] Error code: %p\n",r->err_code);
 		crash.extra_info = message;
 		kpanic(crash);
 	}

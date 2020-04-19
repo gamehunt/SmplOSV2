@@ -39,6 +39,7 @@ void CServer::C_SendPacket(CSPacket* packet){
 				//printf("Failed to send packet: unknown write failure\n");
 				sys_echo("[CSRV] Failed to send packet: unknown write failure\n");
 			}
+			rewind(server_pipe);
 		}else{
 				//printf("Failed to send packet: cserver not available\n");
 				sys_echo("[CSRV] Failed to send packet: cserver not available\n");
@@ -89,6 +90,7 @@ CSPacket* CServer::S_LastPacket(){
 	if(fread(packet,sizeof(CSPacket),1,server_pipe)){
 		return packet;
 	}
+	rewind(server_pipe);
 	free(packet);
 	return 0;
 }
@@ -101,6 +103,7 @@ CSPacket* CServer::C_LastPacket(){
 	if(fread(packet,sizeof(CSPacket),1,sock)){
 		return packet;
 	}
+	rewind(sock);
 	free(packet);
 	return 0;
 }

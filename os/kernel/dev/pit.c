@@ -61,8 +61,8 @@ void pit_tick(regs_t r){
 				pit_listeners[i]->handler(r);
 			}
 		}
-		irq_end(0);
 		schedule(r,1);
+		irq_end(0);
 }
 
 uint32_t pit_system_ticks(){

@@ -94,7 +94,7 @@ int process_packet(){
 
 int main(int argc,char** argv){
 	
-	setpriority(0,0,1);
+	//setpriority(0,0,1);
 	
 	if(CServer::Init("/dev/cserver")){
 		sys_echo("[CSRV] Failed to initialize server!\n");
@@ -102,6 +102,11 @@ int main(int argc,char** argv){
 	
 	keyboard = fopen("/dev/kbd","r");
 	mouse    = fopen("/dev/mouse","r");
+	
+	if(!keyboard || !mouse){
+		sys_echo("[CSRV] Failed to open input devices!\n");
+		return 1;
+	}
 
 	sys_echo("[CSRV] Setting up framebuffer...\n");
 
@@ -119,23 +124,28 @@ int main(int argc,char** argv){
 	}
 	
 	sys_send(getppid(),0); //send SIG_CHILD 
-	
 	sys_echo("[CSRV] Started server\n");
 	
-	uint32_t node = 0;
+	//while(1);
 	
+	
+	
+	
+	uint32_t node = 0;
 	while(1){
 		node = sys_fswait(new uint32_t[3]{keyboard->fd,mouse->fd,CServer::GetServerPipe()->fd},3);
 		if(node == 0){
 			CSPacket* pack = CSPacket::CreatePacket(CS_TYPE_KEY);
 			fread(pack->GetBuffer(),1,128,keyboard);
+			rewind(keyboard);
 			CServer::C_SendPacket(pack);
 		}
 		if(node == 1){
 			 mouse_packet_t* packets = new mouse_packet_t[256];
 			 int read = fread(packets,sizeof(mouse_packet_t),256,mouse);
+			 rewind(mouse);
 			 for(int i=0;i<read;i++){
-				 mx += packets[i].x_mov/10;
+				 mx += packets[i].x_mov/10; //TODO calculate proper values for division
 				 my += packets[i].y_mov/10;
 			 }
 			 if(mx < 0){
@@ -154,10 +164,7 @@ int main(int argc,char** argv){
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}
 		process_packet();
-		fb_fill(0,0,1024,768,0x00000000); //this is rather slow
-		CServer::S_Tick(); //TODO separate thread for rendering
-		fb_char('A',mx,my,0x00000000,0x00FF0000);
-		fb_swapbuffers();
+		//TODO separate thread for render
 	}
 	
 	return 0;

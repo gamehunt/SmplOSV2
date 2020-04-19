@@ -100,6 +100,7 @@ uint8_t load(){
 	fs_node_t* node = kcreate("/dev/fb0",VFS_TYPE_VIRTUAL);
 	node->inode = (uint32_t)lfb;
 	node->ioctl = fb_ioctl;
+	node->size = 8*1024*1024;
 	return 0;
 }
 uint8_t unload(){

@@ -111,9 +111,9 @@ void kffree(uint32_t addr){
 
 void pmm_protect_region(uint32_t region_start,uint32_t size){
 	if(prot_regions_counter >= MAX_PROTECTED_REGIONS){
-		kerr("Failed to protect region %a-%a\n",region_start,region_start+size);
+		kerr("Failed to protect region %p-%p\n",region_start,region_start+size);
 	}else{
-		kinfo("Protected region %a-%a\n",region_start,region_start+size);
+		kinfo("Protected region %p-%p\n",region_start,region_start+size);
 	}
 	protected_regions[prot_regions_counter].size = size;
 	protected_regions[prot_regions_counter].start = region_start;

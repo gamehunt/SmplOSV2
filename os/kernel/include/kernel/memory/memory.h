@@ -39,6 +39,8 @@
 #define DMA_REGION_SIZE     1024*1024  //1MB
 #define DMA_REGION_BLOCK    64*1024
 
+#define KHEAP_GUARD_VALUE   0xED
+
 struct gdt_entry {
   uint16_t limit;
   uint16_t base_low;
@@ -90,10 +92,12 @@ struct tss_entry_struct
 typedef struct tss_entry_struct tss_entry_t;
 
 struct mem_block{
-	//uint8_t guard;
+	
+	uint8_t guard;
 	uint32_t size;
 	struct mem_block* prev;
 	struct mem_block* next;
+	
 }__attribute__((packed));
 typedef struct mem_block mem_t;
 
@@ -150,3 +154,5 @@ uint32_t virtual2physical(uint32_t v_addr);
 void pmm_protect_region(uint32_t region_start,uint32_t size);
 uint32_t pmm_allocate_dma();
 void pmm_free_dma(uint32_t frame);
+
+void mem_check();

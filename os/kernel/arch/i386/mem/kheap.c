@@ -122,12 +122,13 @@ mem_t* free_block(uint32_t size){
 		}
 		if(freeb->size > size + sizeof(mem_t)){
 			//continue;
+			free_remove(freeb);
 			mem_t* new_b = split(freeb,size);
 			if(VALIDATE(new_b)){
 				free_insert(new_b);
 			}
 			//kinfo("After split: %d when req %d\n",freeb->size,size);
-			free_remove(freeb);
+			
 			return freeb;
 		}
 		freeb = freeb->next;
@@ -194,11 +195,11 @@ uint32_t* kmalloc(uint32_t size){
 		i_update_stat(stat_alloc_total,size);
 		i_update_stat(stat_max_load,size);
 		mem_t* nblock = heap_start;
+		nblock->guard = KHEAP_GUARD_VALUE;
 		heap_start = (uint32_t*)((uint32_t)heap_start + sizeof(mem_t)+size);
 		nblock->size = size;
 		nblock->prev = 0xAABBCCDD;
 		nblock->next = 0xAABBCCDD;
-		
 		return ptr(nblock);
 	}
 	return 0;
@@ -207,7 +208,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 
-//	return;
+	return;
 
 	if(!VALIDATE(addr)){
 		return;
@@ -215,7 +216,7 @@ void kfree(uint32_t* addr){
 	
 	mem_t* block = header(addr);
 	
-	if(block->size > max_allocation || block->next != 0xAABBCCDD || block->prev != 0xAABBCCDD){
+	if(block->guard != KHEAP_GUARD_VALUE || block->size > max_allocation || block->next != 0xAABBCCDD || block->prev != 0xAABBCCDD){
 		return;
 		
 	}
@@ -259,4 +260,29 @@ uint32_t* krealloc(uint32_t* ptr,uint32_t newsize){
 	memmove(new_alloc,ptr,header(ptr)->size >= newsize?newsize:header(ptr)->size);
 	kfree(ptr);
 	return new_alloc;
+}
+
+void mem_check(){
+	kinfo("---------MEMCHECK------------\n");
+	mem_t* block = KHEAP_START;
+	mem_t* next_block;
+	uint32_t errors = 0;
+	while(validate(block) && block < heap_start){
+		next_block = (uint32_t)block + sizeof(mem_t) + block->size;
+		if(block->guard != KHEAP_GUARD_VALUE || block->size > max_allocation){
+			kerr("\t [B] -- block: %p/%p [%p %d %p %p]\n",block,heap_start,block->guard,block->size,block->prev,block->next);
+			errors++;
+		}else if(next_block < heap_start && (next_block->guard != KHEAP_GUARD_VALUE || next_block->size > max_allocation || next_block->next != 0xAABBCCDD || next_block->prev != 0xAABBCCDD)){
+			kwarn("\t [O] -- block: %p/%p [%p %d %p %p]\n",block,heap_start,block->guard,block->size,block->prev,block->next);
+			errors++;
+		}
+		if(!block->size){
+			kerr("Found null size block!\n");
+			errors++;
+			break;
+		}
+		block = next_block;
+	}
+	kinfo("Total errors: %d\n",errors);
+	kinfo("-----------------------------\n");
 }

@@ -18,7 +18,7 @@ struct registers{
 	unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;
 	unsigned int int_no, err_code;
 	unsigned int eip, cs, eflags, useresp, ss;  
-};
+}__attribute__((packed));
 typedef struct registers * regs_t;
 
 typedef struct{

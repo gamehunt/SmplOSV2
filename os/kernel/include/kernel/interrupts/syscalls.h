@@ -15,7 +15,7 @@
 #define SYS_CLOSE    4
 #define SYS_YIELD    5 
 #define SYS_EXEC     6
-#define SYS_CLONE    7 //currently dont work
+//#define SYS_CLONE    7 
 #define SYS_IOCTL    8
 #define SYS_READDIR  9
 #define SYS_FSWAIT   10

@@ -54,10 +54,6 @@ static inline pid_t sys_exec(char* path,char** argv,char** envp){
 	return sys_call(SYS_EXEC,(uint32_t)path,(uint32_t)argv,(uint32_t)envp,0,0);
 }
 
-static inline uint32_t sys_clone(){
-	return sys_call(SYS_CLONE,0,0,0,0,0);
-}
-
 static inline uint32_t sys_ioctl(uint32_t fd,uint32_t req,void* argp){
 	return sys_call(SYS_IOCTL,fd,req,(uint32_t)argp,0,0);
 }

@@ -35,12 +35,7 @@
 
 #define SIG_CHILD 0
 
-typedef struct{
-	uint32_t cr3,esp,ebp,eip;
-	uint32_t eax,ebx,ecx,edx;
-
-	uint32_t k_esp;
-}context_t;
+#define MAX_SIG 64
 
 typedef struct{
 	char name[32];
@@ -55,14 +50,16 @@ struct process{
 	uint32_t pid;
 	char name[64];
 	fs_node_t* node;
-	context_t* state;
+	regs_t state;
+	uint32_t kernel_stack;
+	uint32_t pdir;
 	regs_t syscall_state;
 	uint32_t syscall_ret;
 	regs_t signal_state;
-	sig_handler_t sig_handlers[64];
+	sig_handler_t sig_handlers[MAX_SIG];
 	uint32_t* sig_stack; //stack of signals
 	long      sig_stack_esp;
-	uint8_t in_sig; //Is we are handling signal?
+	uint8_t in_sig; //Are we handling signal?
 	uint8_t priority;
 	uint8_t* heap;
 	uint32_t heap_size;
@@ -93,7 +90,8 @@ void schedule(regs_t reg,uint8_t save);
 
 proc_t* create_child(proc_t* parent);
 
-void setup_ctx(context_t* ctx,regs_t r);
+void save_ctx(regs_t ctx,regs_t r);
+void setup_ctx(regs_t ctx,regs_t r,uint32_t pd,uint32_t ks);
 
 void proc_exit(proc_t* pid);
 

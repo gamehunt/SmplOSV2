@@ -113,7 +113,9 @@ void pipe_notify_waiters(fs_node_t* pipe){
 	
 	pipe_info_t* inf = (pipe_info_t*)pipe->inode;
 	for(uint32_t i=0;i<inf->waiters_cnt;i++){
-			process_fswait_notify(inf->waiters[i],pipe);
+			if(validate(inf->waiters[i])){
+				process_fswait_notify(inf->waiters[i],pipe);
+			}
 	}
 }
 
@@ -141,13 +143,18 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 }
 
 void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
+	if(!validate(node)){
+		kwarn("Tried to add waiter to invalid pipe %p\n",node);
+		return;
+	}
 	pipe_info_t* pipe = (pipe_info_t*)node->inode;
 	if(validate(pipe)){
-		
-		for(uint32_t i=0;i<pipe->waiters_cnt;i++){
-			if(!validate(pipe->waiters[i])){
-				pipe->waiters[i] = waiter;
-				return;
+		if(validate(pipe->waiters)){
+			for(uint32_t i=0;i<pipe->waiters_cnt;i++){
+				if(!validate(pipe->waiters[i])){
+					pipe->waiters[i] = waiter;
+					return;
+				}
 			}
 		}
 		pipe->waiters_cnt++;
@@ -163,9 +170,13 @@ void pipe_add_waiter(fs_node_t* node,proc_t* waiter){
 }
 
 void pipe_remove_waiter(fs_node_t* node,proc_t* waiter){
+	if(!validate(node)){
+		return;
+	}
+	
 	pipe_info_t* pipe = (pipe_info_t*)node->inode;
 	
-	if(validate(pipe)){
+	if(validate(pipe) && validate(pipe->waiters)){
 		for(uint32_t i=0;i<pipe->waiters_cnt;i++){
 			if(pipe->waiters[i] == waiter){
 				pipe->waiters[i] = 0;

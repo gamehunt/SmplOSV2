@@ -81,7 +81,7 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
-		//kwarn("Trying to remap %a...\n",v_addr);
+		//kwarn("Trying to remap %p...\n",v_addr);
 	}
 	k_pt[pte] = pt_entry(p_addr, _flags );
 	if(paging_flag){
@@ -221,6 +221,7 @@ void pagefault_handler(regs_t r){
 		proc_exit(get_current_process());
 		return;
 	}
+	mem_check();
 	crash_info_t crash;	
 	crash.regs = r;	
 	crash.description = "Page Fault";
@@ -229,9 +230,14 @@ void pagefault_handler(regs_t r){
 	sprintf(message,"Fault address: %p, error code = 0x%x",cr2,r->err_code);
 	crash.extra_info = message;
 	kpanic(crash);
+	
 }
 
 void set_page_directory(uint32_t pdir){
+	if(!pdir){
+		kwarn("Tried to set null page directory!\n");
+		return;
+	}
 	//kinfo("Setting page directory to %a(p=%a)\n",pdir,current_page_directory);
 	current_page_directory = (uint32_t*)pdir;
 	__asm_set_page_directory(pdir);

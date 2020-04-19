@@ -25,11 +25,10 @@ static uint32_t ready_procs_pointer_low  = 0;
 static uint32_t ready_procs_size_high = 0;
 static uint32_t ready_procs_size_low  = 0;
 
-static uint32_t wait_procs_size = 0;
 static uint32_t sleep_procs_size = 0;
 static uint32_t killed_procs_size = 0;
 
-static sig_t* proc_signals[64];
+static sig_t* proc_signals[MAX_SIG];
 
 #define PUSH(esp,type,value)\
 	 esp -= sizeof(type);\
@@ -197,36 +196,67 @@ void sleep_remove(proc_t* proc){
 	}
 }
 
-void setup_ctx(context_t* ctx,regs_t r){
+void setup_ctx(regs_t ctx,regs_t r,uint32_t pd,uint32_t ks){
 	
-	set_page_directory(ctx->cr3);
-	tss_set_kernel_stack(ctx->k_esp);
+	//kinfo("Setting up context: %p %p %p %p\n",ctx,r,pd,ks);
 	
-	r->useresp = ctx->esp;
-	r->ebp = ctx->ebp;
-	r->eip = ctx->eip;
+	set_page_directory(pd);
+	tss_set_kernel_stack(ks);
 	
 	r->eax = ctx->eax;
 	r->ebx = ctx->ebx;
 	r->ecx = ctx->ecx;
 	r->edx = ctx->edx;
+	
+	r->edi = ctx->edi;
+	r->esi = ctx->esi;
+	
+	//r->eflags = ctx->eflags;
 	 
-	//kinfo("EIP -> %a\n",r->eip);
+	r->useresp = ctx->useresp;
+	r->ebp     = ctx->ebp;
+	r->eip     = ctx->eip;
+	
 	
 }
 
-void save_ctx(context_t* ctx,regs_t r){
+void save_ctx(regs_t ctx,regs_t r){
 	
-	ctx->cr3 = current_page_directory;
+	/*kinfo("Saving up context: %p into %p\n",r,ctx);
 	
-	ctx->esp = r->useresp;
-	ctx->ebp = r->ebp;
-	ctx->eip = r->eip;
+	kinfo("[0]Context dump: \n");
+	kinfo("\t EIP-> %p \n",r->eip);
+	kinfo("\t EBP-> %p \n",r->ebp);
+	kinfo("\t ESP-> %p \n",r->useresp);
+	kinfo("---------------\n");
+	kinfo("\tC EIP-> %p \n",ctx->eip);
+	kinfo("\tC EBP-> %p \n",ctx->ebp);
+	kinfo("\tC ESP-> %p \n",ctx->useresp);*/
 	
 	ctx->eax = r->eax;
 	ctx->ebx = r->ebx;
 	ctx->ecx = r->ecx;
 	ctx->edx = r->edx;
+	
+	ctx->edi = r->edi;
+	ctx->esi = r->esi;
+	
+	//ctx->eflags = r->eflags;
+	 
+	ctx->useresp = r->useresp;
+	ctx->ebp     = r->ebp;
+	ctx->eip     = r->eip;
+	
+	/*r->eip = 0xFFFFFFFF;
+	
+	kinfo("[1]Context dump: \n");
+	kinfo("\t EIP-> %p \n",r->eip);
+	kinfo("\t EBP-> %p \n",r->ebp);
+	kinfo("\t ESP-> %p \n",r->useresp);
+	kinfo("---------------\n");
+	kinfo("\tC EIP-> %p \n",ctx->eip);
+	kinfo("\tC EBP-> %p \n",ctx->ebp);
+	kinfo("\tC ESP-> %p \n",ctx->useresp);*/
 	
 	//kinfo("EIP <- %a\n",r->eip);
 }
@@ -243,22 +273,28 @@ uint32_t free_pid(){
 }
 
 
-proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
+proc_t* create_process(const char* name, proc_t* parent){
+	
+	kinfo("Allocating process structures\n");
+	
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	memset(new_proc,0,sizeof(proc_t));
-	new_proc->state = kmalloc(sizeof(context_t));
-	memset(new_proc->state,0,sizeof(context_t));
-	new_proc->syscall_state = 0;
-	new_proc->signal_state = kmalloc(sizeof(regs_t));
 	
+	new_proc->state = kmalloc(sizeof(struct registers));
+	memset(new_proc->state,0,sizeof(struct registers));
+	
+	new_proc->syscall_state = 0;
+	new_proc->signal_state = kmalloc(sizeof(struct registers));
 	uint32_t cpdir = current_page_directory;
 	set_page_directory(kernel_page_directory);
-	new_proc->state->cr3 = clone?copy_page_directory(parent->state->cr3):copy_page_directory(kernel_page_directory);
-	new_proc->state->k_esp = (uint32_t)kvalloc(4096,4096) + 4096;
+	new_proc->pdir = copy_page_directory(kernel_page_directory);
+	new_proc->kernel_stack = (uint32_t)kvalloc(4*4096,4096) + 4*4096;
+	memset((uint32_t)new_proc->kernel_stack-4*4096,0,4*4096);
+	
 	set_page_directory(cpdir);
 	
-	uint32_t pid = free_pid();
 	
+	uint32_t pid = free_pid();
 	if(!pid){
 			crash_info_t crash;
 			crash.description = "Failed to allocate pid";
@@ -290,56 +326,52 @@ proc_t* create_process(const char* name, proc_t* parent, uint8_t clone){
 	
 	if(parent){
 		new_proc->work_dir = parent->work_dir;
+		memset(new_proc->work_dir_abs,0,256);
 		strcpy(new_proc->work_dir_abs,parent->work_dir_abs);
 	}else{
 		new_proc->work_dir = kseek("/");
+		memset(new_proc->work_dir_abs,0,256);
 		strcpy(new_proc->work_dir_abs,"/");
 	}
 	
-	if(!clone){
-		strcpy(new_proc->name,name);
-		new_proc->heap = USER_HEAP;
-		set_page_directory(new_proc->state->cr3);
-		for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
-			knpalloc(USER_HEAP + i);
-		}
-		new_proc->heap_size = USER_HEAP_SIZE;
-		knpalloc(USER_STACK);
-		if(current_process){
-			set_page_directory(current_process->state->cr3);
-		}
-	}else{
-		
-		strcpy(new_proc->name,parent->name);
-		new_proc->heap = parent->heap;
-		new_proc->heap_size = parent->heap_size;
+	strcpy(new_proc->name,name);
+	new_proc->heap = USER_HEAP;
+	
+	
+	
+	set_page_directory(new_proc->pdir);
+	for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
+		knpalloc(USER_HEAP + i);
+	}
+	new_proc->heap_size = USER_HEAP_SIZE;
+	knpalloc(USER_STACK);
+	if(current_process){
+		set_page_directory(current_process->pdir);
 	}
 	
-	if(!clone){
-		new_proc->state->esp = USER_STACK + 4096;
-		new_proc->state->ebp = new_proc->state->esp;
-		new_proc->state->eip = 0;
-	}else{
-		new_proc->state->esp = parent->syscall_state->esp;
-		new_proc->state->ebp = parent->syscall_state->ebp;
-		new_proc->state->eip = parent->syscall_state->eip;
-	}
+	new_proc->state->useresp = USER_STACK + 4096;
+	new_proc->state->ebp = new_proc->state->useresp;
+	new_proc->state->eip = 0;
+	
+
+	
 	
 	if(parent){
 		if(parent->child_count){
 			parent->childs = krealloc(parent->childs,(parent->child_count+1)*sizeof(proc_t));
 		}else{
-			parent->childs = kmalloc((parent->child_count+1)*sizeof(proc_t));
+			parent->childs = kmalloc(sizeof(proc_t));
 		}
-			parent->child_count++;
-			parent->childs[parent->child_count-1] = new_proc;
-			new_proc->parent = parent;
+		parent->child_count++;
+		parent->childs[parent->child_count-1] = new_proc;
+		new_proc->parent = parent;
 	}
 	processes[new_proc->pid] = new_proc;
 	total_prcs++;
 	ready_insert(new_proc);
-		
-	kinfo("Process created: '%s' with pid %d (stack %p)\n",new_proc->name,new_proc->pid,new_proc->state->k_esp);
+	
+	kinfo("Process created: '%s' with pid %d (stack %p)\n",new_proc->name,new_proc->pid,new_proc->kernel_stack);
+
 	return new_proc;
 }
 
@@ -358,7 +390,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		return 0;
 	}
 
-	proc_t* proc = create_process(node->name,current_process,0);
+	proc_t* proc = create_process(node->name,current_process);
 	
 	int argc = 0;
 	if(validate(argv)){
@@ -391,8 +423,8 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 			strcpy(envp_copy[i],envp[i]);
 		}
 	}
-	set_page_directory(proc->state->cr3);
-	tss_set_kernel_stack(proc->state->k_esp);
+	set_page_directory(proc->pdir);
+	tss_set_kernel_stack(proc->kernel_stack);
 	
 	kinfo("Allocating space for %d cmd arguments and %d envp entries\n",argc,envsize);
 	
@@ -445,15 +477,13 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	proc->state->eip = entry;
 	kinfo("ENTRY: %p\n",entry);
 
-	PUSH(proc->state->esp,char**,usr_envp);
-	PUSH(proc->state->esp,char**,usr_argv);
-	PUSH(proc->state->esp,int,   argc);
-	
-	
+	PUSH(proc->state->useresp,char**,usr_envp);
+	PUSH(proc->state->useresp,char**,usr_argv);
+	PUSH(proc->state->useresp,int,   argc);
 	
 	if(!init){ //This is hack, TODO rewrite 
-		set_page_directory(current_process->state->cr3);
-		tss_set_kernel_stack(current_process->state->k_esp);
+		set_page_directory(current_process->pdir);
+		tss_set_kernel_stack(current_process->kernel_stack);
 	}
 	
 	if(!entry || entry == 1){
@@ -462,11 +492,16 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		return 0;
 	}
 
+	
+
 	if(init){ //This is hack, TODO rewrite 
 		init_process = proc;
 		current_process = proc;
 		jump_usermode(entry);
 	}
+	
+
+	
 	
 	return proc;
 }
@@ -509,7 +544,7 @@ void clean_process(proc_t* proc){
 	kinfo("Cleaning process: %s(%d) - %p - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 
 	//kffree(processes[proc->pid]->state->cr3);
-	kvfree(processes[proc->pid]->state->k_esp);
+	kvfree(processes[proc->pid]->kernel_stack);
 	kfree(processes[proc->pid]->state);
 	kfree(processes[proc->pid]->signal_state);
 	if(processes[proc->pid]->sig_stack_esp >= 0){
@@ -541,35 +576,62 @@ void clean_processes(){
 
 void schedule(regs_t reg,uint8_t save){
 	if(total_prcs){
-		if(sleep_procs_size){
-			while(sleep_procs_size){
-				sleep_procs[0]->sleep_time--;
-				if(!sleep_procs[0]->sleep_time){
-					process_awake(sleep_procs[0]);
-				}else{
-					break;
-				}
+		while(sleep_procs_size){
+			sleep_procs[0]->sleep_time--;
+			if(!sleep_procs[0]->sleep_time){
+				process_awake(sleep_procs[0]);
+			}else{
+				break;
 			}
 		}
-		if(!reg && current_process && current_process->syscall_state){
+		if(!reg && current_process && validate(current_process->syscall_state)){
 			reg = current_process->syscall_state;
+		}else if(!reg){
+			//kinfo("No valid registers - skipping tick\n");
+			return;
 		}
+		
 		if(current_process && save){
-			save_ctx(current_process->in_sig?current_process->signal_state:current_process->state,reg);
+			if(current_process->in_sig){
+				save_ctx(current_process->signal_state,reg);
+			}else{
+				save_ctx(current_process->state,reg);
+			}
 		}
 		proc_t* high = get_ready_high();
 		proc_t* low  = get_ready_low();
 		
 		if(high){
+			//kinfo("Scheduling high\n");
 			current_process = high;	
 		}else if(low){
+			//kinfo("Scheduling low\n");
+			
 			current_process = low;
 		}
-		setup_ctx(current_process->in_sig?current_process->signal_state:current_process->state,reg);
+		
+		if(current_process && save){
+			if(current_process->in_sig){
+				setup_ctx(current_process->signal_state,reg,current_process->pdir,current_process->kernel_stack);
+			}else{
+				setup_ctx(current_process->state,reg,current_process->pdir,current_process->kernel_stack);
+			}
+		}
+		
+		clean_processes();
+		
+		//return;
 
 		if(!current_process->in_sig && current_process->sig_stack_esp >= 0){
 			
+			//kinfo("Handling signal: [%p+%d]\n",current_process->sig_stack,current_process->sig_stack_esp);
+			
 			uint32_t signum = current_process->sig_stack[current_process->sig_stack_esp];
+			
+			//kinfo("SIGNUM: %d\n",signum);
+			if(signum > MAX_SIG){
+			//	return;
+			}
 			
 			current_process->sig_stack_esp--;
 			if(current_process->sig_stack_esp < 0){
@@ -585,14 +647,14 @@ void schedule(regs_t reg,uint8_t save){
 				proc_exit(current_process);
 			}
 		}
-		clean_processes();
+		
 	}else{
 		memset(processes,0,sizeof(proc_t*)*MAX_PROCESSES);
 	}
 }
 
 void proc_exit(proc_t* proc){
-	if(proc->pid == 0){
+	if(proc->pid == 1){
 		if(proc == current_process){
 			current_process = 0;
 		}
@@ -628,8 +690,7 @@ proc_t* get_process_by_pid(uint32_t pid){
 
 void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 	if(proc->status != PROC_WAIT && !proc->fswait_nodes_cnt){
-		proc->fswait_nodes =  kmalloc(sizeof(fs_node_t*)*cnt);
-		memcpy(proc->fswait_nodes,nodes,sizeof(fs_node_t*)*cnt);
+		proc->fswait_nodes = nodes;
 		proc->fswait_nodes_cnt = cnt;
 		for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
 			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs
@@ -655,12 +716,14 @@ void process_fswait_awake(proc_t* proc){
 
 void process_fswait_notify(proc_t* process,fs_node_t* node){
 	//kinfo("Notifying %s\n",process->name);
-	if(process->fswait_nodes_cnt){
+	if(validate(process) && validate(node) && process->fswait_nodes_cnt && validate(process->fswait_nodes)){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
-			if(node->inode == process->fswait_nodes[i]->inode){
+			if(validate(process->fswait_nodes[i]) && node->inode == process->fswait_nodes[i]->inode){
 				process->state->eax = i; //Return which node awoken us
 				//kinfo("Set eax of %s to %d\n",process->name,process->state->eax);
 				process_fswait_awake(process);
+			}else if(!validate(process->fswait_nodes[i])){
+				kwarn("Bad fswait node: %p\n",process->fswait_nodes[i]);
 			}
 		}
 	}
@@ -693,13 +756,14 @@ void send_signal(proc_t* proc,uint32_t sig){
 	if(proc->sig_stack_esp >= MAX_SIGSTACK_SIZE){
 		return;
 	}
+	
 	proc->sig_stack_esp++;
 	if(!proc->sig_stack_esp){
 		proc->sig_stack = kmalloc(sizeof(uint32_t));
 	}else{
 		proc->sig_stack = krealloc(proc->sig_stack,(proc->sig_stack_esp+1)*sizeof(uint32_t));
 	}
-	if(proc->state == PROC_WAIT){
+	if(proc->status == PROC_WAIT){
 		proc->sig_ret_state = PROC_WAIT;
 		if(proc_signals[sig]->block_behav == SIG_BLOCK_AWAKE){
 			proc->sig_stack[proc->sig_stack_esp] = sig;
@@ -750,7 +814,7 @@ void init_signals(){
 }
 
 void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig){
-	if(sig>=64){
+	if(sig>=MAX_SIG){
 		return;
 	}
 	proc->sig_handlers[sig] = handl;

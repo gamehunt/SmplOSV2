@@ -39,13 +39,12 @@ fs_node_t* tar_header2node(tar_hdr_t* hdr){
 }
 
 fs_node_t* tar_mount(fs_node_t* root,fs_node_t* device){
-	tar_hdr_t** hdrs = kmalloc(sizeof(tar_hdr_t*)*module_ramdisk_count());
-	root->inode = hdrs;
+	tar_hdr_t** hdrs = kmalloc(sizeof(tar_hdr_t*));
 	
+	unsigned int j = 0;
 	for(int i=0;i<module_ramdisk_count();i++){
-		unsigned int j;
 		uint32_t address = ((multiboot_module_t*)module_ramdisk_get(i))->mod_start;
-		for (j = 0; ; j++)
+		for (j ; ; j++)
 		{
  
 			struct tar_header *header = (struct tar_header *)address;
@@ -61,11 +60,14 @@ fs_node_t* tar_mount(fs_node_t* root,fs_node_t* device){
  
 			if (size % 512)
 				address += 512;
+			
+			hdrs = krealloc(hdrs,(j+2)*sizeof(tar_hdr_t*));
  
 		}
-		root->size += j;
+		
 	}
-	root->size--;
+	root->inode = hdrs;
+	root->size = j - 1;
 	return root;
 }
 uint8_t tar_umount(fs_node_t* root){

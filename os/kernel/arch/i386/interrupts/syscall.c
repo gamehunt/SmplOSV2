@@ -26,11 +26,11 @@ void syscall_handler(regs_t r){
 	
 	lock_interrupts();
 	
-	if(r->eax > MAX_SYSCALL){
-		kerr("Invalid syscall: %a\n",r->eax);
+	if(r->eax >= MAX_SYSCALL){
+		kerr("Invalid syscall: %p\n",r->eax);
 		return;
 	}
-	
+	//kinfo("Syscall %d\n",r->eax);
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
 		proc_t* cp = get_current_process();
@@ -40,12 +40,10 @@ void syscall_handler(regs_t r){
 			cp->syscall_state->eax = ret;
 		}
 	}else{
-		kerr("Syscall %a has null handler\n",r->eax);
+		kerr("Syscall %p has null handler\n",r->eax);
 	}
-	
+	//kinfo("Syscall end\n");
 	unlock_interrupts();
-
-	//kinfo("Syscall exit\n");
 }
 
 void register_syscall(uint16_t id,syscall_t handler){
@@ -95,30 +93,43 @@ uint32_t sys_fstat(uint32_t fd,uint32_t stat,uint32_t a,uint32_t b,uint32_t c){
 		return 1;
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
-	((stat_t*)stat)->st_size = node->size;
-	return 0;
+	if(validate(node)){
+		((stat_t*)stat)->st_size = node->size;
+		return 0;
+	}else{
+		return 1;
+	}
 }
 
 uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t a,uint32_t b,uint32_t c){
 	UNUSED(a);
 	UNUSED(b);
 	UNUSED(c);
+	
+//	kinfo("[SYS_OPEN] %s - start\n",(char*)path);
+	
 	fs_node_t* node = kopen((char*)path);
-	if(!node && (flags & F_CREATE)){
+	if(!validate(node) && (flags & F_CREATE)){
 		node = kcreate(path,0);
-	}else if(!node){
+		if(!validate(node)){
+			// kwarn("[1]Failed to open %s\n",(char*)path);
+			return -1;
+		}
+	}else if(!validate(node)){
+		//kwarn("[2]Failed to open %s\n",(char*)path);
 		return -1;
 	}
 	node->open_flags = flags;
 	for(uint32_t i=0;i<get_current_process()->f_descs_cnt;i++){
-		if(!get_current_process()->f_descs[i]){
+		if(!validate(get_current_process()->f_descs[i])){
 			get_current_process()->f_descs[i] = node;
 		//	kinfo("Opened %s as %d\n",path,i);
+		
 			return i;
 		}
 	}
 	get_current_process()->f_descs_cnt++;
-	if(get_current_process()->f_descs){
+	if(validate(get_current_process()->f_descs)){
 		get_current_process()->f_descs = krealloc(get_current_process()->f_descs,get_current_process()->f_descs_cnt*sizeof(fs_node_t*));	
 	}else{
 		get_current_process()->f_descs = kmalloc(sizeof(fs_node_t*));
@@ -138,7 +149,7 @@ uint32_t sys_close(uint32_t fds,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
 	UNUSED(c);
 	UNUSED(d);
 	proc_t* proc = get_current_process();
-	if(proc->f_descs_cnt > fds && proc->f_descs[fds]){
+	if(proc->f_descs_cnt > fds && validate(proc->f_descs[fds])){
 		kclose(proc->f_descs[fds]);
 		proc->f_descs[fds] = 0;
 	}
@@ -179,16 +190,6 @@ uint32_t sys_exec(uint32_t path,uint32_t argv,uint32_t envp,uint32_t a,uint32_t 
 	return p->pid;
 }
 
-uint32_t sys_clone(uint32_t a,uint32_t b,uint32_t c,uint32_t d, uint32_t e){
-	UNUSED(a);
-	UNUSED(b);
-	UNUSED(c);
-	UNUSED(d);
-	UNUSED(e);
-	create_process("",get_current_process(),1);
-	return 0;
-}
-
 uint32_t sys_ioctl(uint32_t fd,uint32_t req,uint32_t argp,uint32_t a,uint32_t b){
 	UNUSED(a);
 	UNUSED(b);
@@ -218,9 +219,12 @@ uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t a,uint32_t b,uint32_t c){
 	fs_node_t** nodes = kmalloc(sizeof(fs_node_t*)*cnt);
 	
 	//kinfo("[FSWAIT] Allocd %d \n",cnt);
+	uint32_t j = 0;
 	for(uint32_t i=0;i<cnt;i++){
+		//kinfo("Trying to add: %d\n",fds_ptr[i]);
 		if(fds_ptr[i] < get_current_process()->f_descs_cnt){
-			nodes[i] = get_current_process()->f_descs[fds_ptr[i]];
+			nodes[j] = get_current_process()->f_descs[fds_ptr[i]];
+			j++;
 		}
 	}
 	
@@ -490,7 +494,6 @@ void init_syscalls(){
 	register_syscall(SYS_YIELD,&sys_yield);
 	register_syscall(SYS_CLOSE,&sys_close);
 	register_syscall(SYS_SBRK,&sys_sbrk);
-	register_syscall(SYS_CLONE,&sys_clone);
 	register_syscall(SYS_ASSIGN,&sys_assign);
 	register_syscall(SYS_SIG,&sys_sig);
 	register_syscall(SYS_SIGHANDL,&sys_sighandl);

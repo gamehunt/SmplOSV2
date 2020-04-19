@@ -312,10 +312,11 @@ uint8_t klink(char* path, char* link){
 }
 
 uint32_t kioctl(fs_node_t* node, uint32_t req, void* argp){
-	if(!node){
+	if(!validate(node)){
+		kwarn("Tried to apply ioctl on invalid node %p\n",node);
 		return 0;
 	}
-	if(node->ioctl){
+	if(validate(node->ioctl)){
 		return node->ioctl(node,req,argp); 
 	}
 	if(validate(fss[node->fsid]->ioctl)){

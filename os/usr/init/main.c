@@ -23,9 +23,9 @@ int main(){
 	//*((uint8_t*)0xFFFFFFFF) = 0;
 	sys_echo("[INI] Init start\n");
 	
-	setenv("PATH","/usr/bin",1);
+	//setenv("PATH","/usr/bin",1);
 	
-	sys_signal(SIG_CHILD,sig_child);
+	//sys_signal(SIG_CHILD,sig_child);
 	//TODO this should be readen from some file
 	execv("/usr/bin/cserv.smp",0);
 	while(!cserv_exec); //Wait unitl cserver send us SIGCHILD
