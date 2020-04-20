@@ -41,6 +41,9 @@
 
 #define KHEAP_GUARD_VALUE   0xED
 
+#define KERNEL_STACK_PER_PROCESS 8*4096
+#define USER_STACK_PER_PROCESS 16*4096
+
 struct gdt_entry {
   uint16_t limit;
   uint16_t base_low;
@@ -105,7 +108,7 @@ uint32_t* kernel_page_directory;
 uint32_t* current_page_directory;
 extern void enable_paging();
 extern void __asm_set_page_directory(uint32_t pdir);
-void set_page_directory(uint32_t pdir);
+void set_page_directory(uint32_t pdir,uint8_t phys);
 
 
 void add_gdt_entry(int num,uint32_t base,uint32_t limit,uint32_t access,uint32_t gran);
@@ -123,12 +126,8 @@ void init_kheap();
 
 //allocates page with given frame or address
 void kmpalloc(uint32_t addr, uint32_t frame,uint8_t flags);
-//Just allocates next page with frame given from kfalloc()
-uint32_t* kpalloc();
 //Allocates next page with addr vaddr
 uint32_t* knpalloc(uint32_t vaddr);
-//Allocates n pages, which mapped as continious
-uint32_t* kcpalloc(uint32_t n);
 
 uint32_t* kmalloc(uint32_t size);
 //frees page and frame, also clears pt if needed
@@ -156,3 +155,5 @@ uint32_t pmm_allocate_dma();
 void pmm_free_dma(uint32_t frame);
 
 void mem_check();
+
+void kralloc(uint32_t region_start,uint32_t region_end);

@@ -139,5 +139,9 @@ static inline uint8_t sys_getprior(int which,int who){
 	return sys_call(SYS_PRIOR,0,which,who,0,0);
 }
 
+static inline uint8_t sys_thread(uint32_t entry){
+	return sys_call(SYS_THREAD,entry,0,0,0,0);
+}
+
 #endif
 CH_END

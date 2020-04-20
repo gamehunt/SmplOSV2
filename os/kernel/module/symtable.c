@@ -65,7 +65,7 @@ void init_symtable(){
 	symbol_export("kfalloc",&kfalloc);
 	symbol_export("kmpalloc",&kmpalloc);
 	symbol_export("knpalloc",&knpalloc);
-	symbol_export("kcpalloc",&kcpalloc);
+	symbol_export("kralloc",&kralloc);
 	symbol_export("kffree",&kffree);
 	
 	

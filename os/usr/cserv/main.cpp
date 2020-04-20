@@ -39,6 +39,16 @@ CSWidget* widget_from_id(int id){
 	return 0;
 }
 
+void render(){
+	int pmx = 0;
+	int pmy = 0;
+	while(1){
+		fb_fill(0,0,1024,768,0x00000000);
+		CServer::S_Tick();
+		fb_swapbuffers();
+	}
+}
+
 int process_packet(){
 	CSPacket* packet = CServer::S_LastPacket();
 	while(packet){
@@ -129,7 +139,7 @@ int main(int argc,char** argv){
 	//while(1);
 	
 	
-	
+	sys_thread((uint32_t)&render);
 	
 	uint32_t node = 0;
 	while(1){
@@ -145,8 +155,8 @@ int main(int argc,char** argv){
 			 int read = fread(packets,sizeof(mouse_packet_t),256,mouse);
 			 rewind(mouse);
 			 for(int i=0;i<read;i++){
-				 mx += packets[i].x_mov/10; //TODO calculate proper values for division
-				 my += packets[i].y_mov/10;
+				 mx += packets[i].x_mov; //TODO calculate proper values for division
+				 my -= packets[i].y_mov;
 			 }
 			 if(mx < 0){
 				mx = 0;
@@ -154,17 +164,16 @@ int main(int argc,char** argv){
 			 if(my < 0){
 				my = 0;
 			 }
-			 if(mx > 1024){
-				 mx = 1024;
+			 if(mx > 1023){
+				 mx = 1023;
 			 }
-			 if(my > 768){
-				 my = 768;
+			 if(my > 767){
+				 my = 767;
 			 }
 			 delete[] packets;
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}
 		process_packet();
-		//TODO separate thread for render
 	}
 	
 	return 0;

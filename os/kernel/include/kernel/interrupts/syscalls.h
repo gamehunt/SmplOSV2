@@ -39,6 +39,7 @@
 #define SYS_PWREQ    28
 #define SYS_FSSTAT   29
 #define SYS_PRIOR    30
+#define SYS_THREAD   31
 //vfs opened node flags. TODO: append and truncate
 #define F_READ   	1
 #define F_WRITE  	2

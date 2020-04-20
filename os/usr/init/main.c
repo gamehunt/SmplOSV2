@@ -31,6 +31,7 @@ int main(){
 	execv("/usr/bin/cserv.smp",0);
 	while(!cserv_exec); //Wait unitl cserver send us SIGCHILD
 	execv("/usr/bin/ctst.smp",0);
+	
 	while(1);
 	return 0;
 }

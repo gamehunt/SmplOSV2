@@ -28,10 +28,7 @@ static uint32_t stat_alloc,stat_free,stat_merges,stat_alloc_total,stat_freed_tot
 
 void init_kheap(){
 	kinfo("Allocating kernel heap...\n");
-	for(uint32_t i=KHEAP_START;i<KHEAP_END;i+=4096){
-		//kinfo("Allocating block %a-%a...\n",i,i+4096);
-		knpalloc(i);
-	}
+	kralloc(KHEAP_START,KHEAP_END);
 	heap_start = KHEAP_START;
 	heap_start_static = heap_start;
 	stat_alloc = create_stat("kheap_alloc_times",0);
@@ -231,19 +228,18 @@ void kfree(uint32_t* addr){
 	//merge();
 }
 
-//allocates aligned memory, should be freed as ((void**) ptr)[-1]
+//allocates aligned memory
 uint32_t* kvalloc(uint32_t size,uint32_t alignment){
-	size_t request_size = size + alignment;
-    char* buf =  kmalloc(request_size);
-
-    size_t remainder = ((size_t)buf) % alignment;
-    size_t offset = alignment - remainder;
-    char* ret = buf + (unsigned char)offset;
-
-    // store how many extra bytes we allocated in the byte just before the
-    // pointer we return
-    *(unsigned char*)(ret - 1) = offset;
-	return (uint32_t*)ret;
+	void* p1; // original block
+    void** p2; // aligned block
+    int offset = alignment - 1 + sizeof(void*);
+    if ((p1 = (void*)kmalloc(size + offset)) == NULL)
+    {
+       return NULL;
+    }
+    p2 = (void**)(((size_t)(p1) + offset) & ~(alignment - 1));
+    p2[-1] = p1;
+    return p2;
 }
 
 //frees aligned ptr

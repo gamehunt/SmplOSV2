@@ -18,6 +18,7 @@
 #define PROC_WAIT    3
 #define PROC_SLEEP   4
 
+
 #define PROC_PRIORITY_HIGH 1
 #define PROC_PRIORITY_LOW  0
 
@@ -46,15 +47,19 @@ typedef struct{
 
 typedef int (*sig_handler_t)(void);
 
+typedef struct{
+	regs_t state;
+	regs_t syscall_state;
+	uint32_t kernel_stack;
+}thread_t;
+
 struct process{
 	uint32_t pid;
 	char name[64];
 	fs_node_t* node;
-	regs_t state;
-	uint32_t kernel_stack;
+	thread_t* thread;
+	int status;
 	uint32_t pdir;
-	regs_t syscall_state;
-	uint32_t syscall_ret;
 	regs_t signal_state;
 	sig_handler_t sig_handlers[MAX_SIG];
 	uint32_t* sig_stack; //stack of signals
@@ -63,7 +68,6 @@ struct process{
 	uint8_t priority;
 	uint8_t* heap;
 	uint32_t heap_size;
-	int      status;
 	uint8_t sig_ret_state; //Status to which we return after signal;
 	uint32_t queue_idx; //Index in queues
 	fs_node_t** fswait_nodes; //Nodes which we are wait
@@ -88,8 +92,6 @@ void init_signals();
 
 void schedule(regs_t reg,uint8_t save);
 
-proc_t* create_child(proc_t* parent);
-
 void save_ctx(regs_t ctx,regs_t r);
 void setup_ctx(regs_t ctx,regs_t r,uint32_t pd,uint32_t ks);
 
@@ -112,3 +114,5 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init); //execute
 void send_signal(proc_t* proc,uint32_t sig);
 void exit_sig(proc_t* proc);
 void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig);
+
+void process_create_thread(proc_t* parent,uint32_t entry);

@@ -34,10 +34,10 @@ void syscall_handler(regs_t r){
 	syscall_t sysc = syscalls[r->eax];
 	if(sysc){
 		proc_t* cp = get_current_process();
-		cp->syscall_state = r;
+		cp->thread->syscall_state = r;
 		uint32_t ret = sysc(r->ebx,r->ecx,r->edx,r->esi,r->edi);
 		if(cp == get_current_process()){
-			cp->syscall_state->eax = ret;
+			cp->thread->syscall_state->eax = ret;
 		}
 	}else{
 		kerr("Syscall %p has null handler\n",r->eax);
@@ -478,6 +478,16 @@ uint32_t sys_prior(uint32_t req, uint32_t who,uint32_t which,uint32_t prior,uint
 	return 0;
 }
 
+uint32_t sys_thread(uint32_t entry, uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
+	process_create_thread(get_current_process(),entry);
+	return 0;
+}
+
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
 	memset(syscalls,0,sizeof(syscall_t)*MAX_SYSCALL);
@@ -512,4 +522,5 @@ void init_syscalls(){
 	register_syscall(SYS_PWREQ,&sys_pwreq);
 	register_syscall(SYS_FSSTAT,&sys_fstat);
 	register_syscall(SYS_PRIOR,&sys_prior);
+	register_syscall(SYS_THREAD,&sys_thread);
 }

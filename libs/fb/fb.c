@@ -28,16 +28,22 @@ void    fb_pixel(int x,int y,uint32_t color){
 	}
 	if(framebuffer){
 		if(!back_buffer){
-			sys_write(framebuffer->fd,(y*x_res+x)*4,4,&color);
+			__memcpy_opt(0xFD000000+(y*x_res+x)*4,&color,1);
 		}else{
 			back_buffer[y*x_res+x] = color;
 		}
 	}
 }
 
+void __memcpy_opt(uint32_t* dest,uint32_t* src,uint32_t size){
+	for(uint32_t i=0;i<size;i++){
+		dest[i] = src[i];
+	}
+}
+
 void fb_swapbuffers(){
 	if(back_buffer){
-		sys_write(framebuffer->fd,0,2*1024*768*sizeof(uint32_t),back_buffer);
+		__memcpy_opt(0xFD000000,src,1024*768);
 	}
 }
 

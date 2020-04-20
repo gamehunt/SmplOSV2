@@ -81,7 +81,7 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
-		//kwarn("Trying to remap %p...\n",v_addr);
+		kwarn("Trying to remap %p from %p to %p...\n",v_addr,virtual2physical(v_addr),p_addr);
 	}
 	k_pt[pte] = pt_entry(p_addr, _flags );
 	if(paging_flag){
@@ -108,23 +108,15 @@ uint32_t virtual2physical(uint32_t v_addr){
 }
 
 uint32_t* copy_page_directory(uint32_t* src){
-	uint32_t* new_pdir = (uint32_t*)kpalloc();
+	uint32_t* new_pdir = kvalloc(4096,4096);
 	memcpy(new_pdir,src,4096);
-	return paging_flag?virtual2physical(new_pdir):new_pdir;
-	//return new_pdir;
+	//return paging_flag?virtual2physical(new_pdir):new_pdir;
+	return new_pdir;
 }
 
 //allocates page with given frame or address
 void kmpalloc(uint32_t addr, uint32_t frame,uint8_t flags){
 	map(frame?frame:addr,addr,flags?flags:(PAGE_PRESENT | PAGE_RW | PAGE_USER)); 
-}
-
-//Just allocates next page with frame given from kfalloc()
-
-uint32_t* kpalloc(){
-	uint32_t addr = kfalloc();
-	kmpalloc(addr,0,0);
-	return (uint32_t*) addr;
 }
 
 //Allocates next page with addr vaddr
@@ -135,15 +127,11 @@ uint32_t* knpalloc(uint32_t vaddr){
 	return(uint32_t*)vaddr;
 }
 
-//Allocates n pages, which mapped as continious
-uint32_t* kcpalloc(uint32_t n){
-	uint32_t* ptr = kpalloc();
-		
-	for(int i=1;i<n;i++){
-		//kinfo("%a\n",ptr + 4096*i);
-		knpalloc((uint32_t)ptr + 4096*i);
+void kralloc(uint32_t region_start,uint32_t region_end){
+	for(uint32_t i=region_start;i<region_end;i+=4096){
+		//kinfo("Allocating block %a-%a...\n",i,i+4096);
+		knpalloc(i);
 	}
-	return ptr;
 }
 
 //frees page and frame, also clears pt if needed
@@ -233,14 +221,14 @@ void pagefault_handler(regs_t r){
 	
 }
 
-void set_page_directory(uint32_t pdir){
+void set_page_directory(uint32_t pdir,uint8_t phys){
 	if(!pdir){
 		kwarn("Tried to set null page directory!\n");
 		return;
 	}
 	//kinfo("Setting page directory to %a(p=%a)\n",pdir,current_page_directory);
 	current_page_directory = (uint32_t*)pdir;
-	__asm_set_page_directory(pdir);
+	__asm_set_page_directory(phys?pdir:virtual2physical(pdir));
 }
 
 void init_paging(){
@@ -253,7 +241,7 @@ void init_paging(){
 	for(int i=0;i<0x400000;i+=4096){
 		kmpalloc(i,0,0);
 	}
-	set_page_directory((uint32_t)kernel_page_directory);
+	set_page_directory((uint32_t)kernel_page_directory,1);
 	enable_paging();
 	isr_set_handler(14,pagefault_handler);
 	paging_flag = 1;

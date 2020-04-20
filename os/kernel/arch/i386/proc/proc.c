@@ -2,6 +2,9 @@
     Copyright (C) 2020
      
     Author: gamehunt 
+    
+    
+    TODO: now I need to implement some kind of group scheduling
 */
 
 #include <kernel/proc/proc.h>
@@ -41,7 +44,7 @@ proc_t* get_ready_high(){
 	}
 	uint32_t first = ready_procs_pointer_high;
 	proc_t* proc = 0;
-	do{
+	while(!proc){
 		proc = ready_procs_high[ready_procs_pointer_high];
 		ready_procs_pointer_high++;
 		if(ready_procs_pointer_high >= ready_procs_size_high){
@@ -50,7 +53,7 @@ proc_t* get_ready_high(){
 		if(first == ready_procs_pointer_high){
 			break;
 		}
-	}while(!proc);
+	}
 	return proc;
 }
 
@@ -61,8 +64,10 @@ proc_t* get_ready_low(){
 	}
 	uint32_t first = ready_procs_pointer_low;
 	proc_t* proc = 0;
-	do{
+	while(!proc){
+		//kinfo("Testing %d(%d)\n",ready_procs_pointer_low,ready_procs_size_low);
 		proc = ready_procs_low[ready_procs_pointer_low];
+		//kinfo("At %d: %p(%s)\n",ready_procs_pointer_low,proc,(proc?proc->name:"none"));
 		ready_procs_pointer_low++;
 		if(ready_procs_pointer_low >= ready_procs_size_low){
 			ready_procs_pointer_low = 0;
@@ -70,7 +75,7 @@ proc_t* get_ready_low(){
 		if(first == ready_procs_pointer_low){
 			break;
 		}
-	}while(!proc);
+	}
 	return proc;
 }
 
@@ -98,7 +103,7 @@ void ready_insert(proc_t* proc){
 			}
 		}
 		if(ready_procs_size_low < MAX_PROCESSES){
-			//kinfo("Inserted %s: %d\n",proc->name,ready_procs_size_low);
+//			kinfo("Inserted %s: %d\n",proc->name,ready_procs_size_low);
 			proc->queue_idx = ready_procs_size_low;
 			ready_procs_low[ready_procs_size_low] = proc;
 			ready_procs_size_low++;
@@ -110,7 +115,7 @@ void ready_remove(proc_t* proc){
 	if(proc->priority == PROC_PRIORITY_HIGH){
 		ready_procs_high[proc->queue_idx] = 0;
 	}else{
-		//kinfo("Removed %d from ready\n",proc->queue_idx);
+//		kinfo("Removed %s from ready\n",proc->name);
 		ready_procs_low[proc->queue_idx] = 0;
 	}
 }
@@ -200,7 +205,7 @@ void setup_ctx(regs_t ctx,regs_t r,uint32_t pd,uint32_t ks){
 	
 	//kinfo("Setting up context: %p %p %p %p\n",ctx,r,pd,ks);
 	
-	set_page_directory(pd);
+	set_page_directory(pd,0);
 	tss_set_kernel_stack(ks);
 	
 	r->eax = ctx->eax;
@@ -280,18 +285,20 @@ proc_t* create_process(const char* name, proc_t* parent){
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	memset(new_proc,0,sizeof(proc_t));
 	
-	new_proc->state = kmalloc(sizeof(struct registers));
-	memset(new_proc->state,0,sizeof(struct registers));
+	new_proc->thread = kmalloc(sizeof(thread_t));
+	memset(new_proc->thread,0,sizeof(thread_t)); //TODO calloc for setting memory to zero on allocation
 	
-	new_proc->syscall_state = 0;
+	new_proc->thread->state = kmalloc(sizeof(struct registers));
+	memset(new_proc->thread->state,0,sizeof(struct registers));
+	
+	new_proc->thread->syscall_state = 0;
 	new_proc->signal_state = kmalloc(sizeof(struct registers));
 	uint32_t cpdir = current_page_directory;
-	set_page_directory(kernel_page_directory);
+	set_page_directory(kernel_page_directory,0);
 	new_proc->pdir = copy_page_directory(kernel_page_directory);
-	new_proc->kernel_stack = (uint32_t)kvalloc(4*4096,4096) + 4*4096;
-	memset((uint32_t)new_proc->kernel_stack-4*4096,0,4*4096);
-	
-	set_page_directory(cpdir);
+	new_proc->thread->kernel_stack = (uint32_t)kvalloc(KERNEL_STACK_PER_PROCESS,4096) + KERNEL_STACK_PER_PROCESS;
+	memset((uint32_t)new_proc->thread->kernel_stack-KERNEL_STACK_PER_PROCESS,0,KERNEL_STACK_PER_PROCESS);
+	set_page_directory(cpdir,0);
 	
 	
 	uint32_t pid = free_pid();
@@ -331,7 +338,7 @@ proc_t* create_process(const char* name, proc_t* parent){
 	}else{
 		new_proc->work_dir = kseek("/");
 		memset(new_proc->work_dir_abs,0,256);
-		strcpy(new_proc->work_dir_abs,"/");
+		strcpy(new_proc->work_dir_abs,"/"); //TODO this must be per-thread I think
 	}
 	
 	strcpy(new_proc->name,name);
@@ -339,19 +346,21 @@ proc_t* create_process(const char* name, proc_t* parent){
 	
 	
 	
-	set_page_directory(new_proc->pdir);
+	set_page_directory(new_proc->pdir,0);
 	for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
 		knpalloc(USER_HEAP + i);
 	}
 	new_proc->heap_size = USER_HEAP_SIZE;
-	knpalloc(USER_STACK);
+	for(uint32_t i = 0;i<USER_STACK_PER_PROCESS;i+=4096){
+		knpalloc(USER_STACK+i);
+	}
 	if(current_process){
-		set_page_directory(current_process->pdir);
+		set_page_directory(current_process->pdir,0);
 	}
 	
-	new_proc->state->useresp = USER_STACK + 4096;
-	new_proc->state->ebp = new_proc->state->useresp;
-	new_proc->state->eip = 0;
+	new_proc->thread->state->useresp = USER_STACK + USER_STACK_PER_PROCESS;
+	new_proc->thread->state->ebp = new_proc->thread->state->useresp;
+	new_proc->thread->state->eip = 0;
 	
 
 	
@@ -370,7 +379,7 @@ proc_t* create_process(const char* name, proc_t* parent){
 	total_prcs++;
 	ready_insert(new_proc);
 	
-	kinfo("Process created: '%s' with pid %d (stack %p)\n",new_proc->name,new_proc->pid,new_proc->kernel_stack);
+	kinfo("Process created: '%s' with pid %d (stack %p)\n",new_proc->name,new_proc->pid,new_proc->thread->kernel_stack);
 
 	return new_proc;
 }
@@ -423,8 +432,8 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 			strcpy(envp_copy[i],envp[i]);
 		}
 	}
-	set_page_directory(proc->pdir);
-	tss_set_kernel_stack(proc->kernel_stack);
+	set_page_directory(proc->pdir,0);
+	tss_set_kernel_stack(proc->thread->kernel_stack);
 	
 	kinfo("Allocating space for %d cmd arguments and %d envp entries\n",argc,envsize);
 	
@@ -474,16 +483,16 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	
 	uint32_t entry = elf_load_file(buffer);
 	kfree(buffer);
-	proc->state->eip = entry;
+	proc->thread->state->eip = entry;
 	kinfo("ENTRY: %p\n",entry);
 
-	PUSH(proc->state->useresp,char**,usr_envp);
-	PUSH(proc->state->useresp,char**,usr_argv);
-	PUSH(proc->state->useresp,int,   argc);
+	PUSH(proc->thread->state->useresp,char**,usr_envp);
+	PUSH(proc->thread->state->useresp,char**,usr_argv);
+	PUSH(proc->thread->state->useresp,int,   argc);
 	
 	if(!init){ //This is hack, TODO rewrite 
-		set_page_directory(current_process->pdir);
-		tss_set_kernel_stack(current_process->kernel_stack);
+		set_page_directory(current_process->pdir,0);
+		tss_set_kernel_stack(current_process->thread->kernel_stack);
 	}
 	
 	if(!entry || entry == 1){
@@ -544,8 +553,9 @@ void clean_process(proc_t* proc){
 	kinfo("Cleaning process: %s(%d) - %p - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 
 	//kffree(processes[proc->pid]->state->cr3);
-	kvfree(processes[proc->pid]->kernel_stack);
-	kfree(processes[proc->pid]->state);
+	kvfree(processes[proc->pid]->thread->kernel_stack);
+	kfree(processes[proc->pid]->thread->state);
+	
 	kfree(processes[proc->pid]->signal_state);
 	if(processes[proc->pid]->sig_stack_esp >= 0){
 		kfree(processes[proc->pid]->sig_stack);
@@ -584,8 +594,8 @@ void schedule(regs_t reg,uint8_t save){
 				break;
 			}
 		}
-		if(!reg && current_process && validate(current_process->syscall_state)){
-			reg = current_process->syscall_state;
+		if(!reg && current_process && validate(current_process->thread->syscall_state)){
+			reg = current_process->thread->syscall_state;
 		}else if(!reg){
 			//kinfo("No valid registers - skipping tick\n");
 			return;
@@ -595,7 +605,7 @@ void schedule(regs_t reg,uint8_t save){
 			if(current_process->in_sig){
 				save_ctx(current_process->signal_state,reg);
 			}else{
-				save_ctx(current_process->state,reg);
+				save_ctx(current_process->thread->state,reg);
 			}
 		}
 		proc_t* high = get_ready_high();
@@ -610,11 +620,14 @@ void schedule(regs_t reg,uint8_t save){
 			current_process = low;
 		}
 		
+		
+		//kinfo("Scheduling: %d\n",current_process->pid);
+		
 		if(current_process){
 			if(current_process->in_sig){
-				setup_ctx(current_process->signal_state,reg,current_process->pdir,current_process->kernel_stack);
+				setup_ctx(current_process->signal_state,reg,current_process->pdir,current_process->thread->kernel_stack);
 			}else{
-				setup_ctx(current_process->state,reg,current_process->pdir,current_process->kernel_stack);
+				setup_ctx(current_process->thread->state,reg,current_process->pdir,current_process->thread->kernel_stack);
 			}
 		}
 		
@@ -644,7 +657,7 @@ void schedule(regs_t reg,uint8_t save){
 				current_process->in_sig = 1;
 				reg->eip = sig;
 			}else if(proc_signals[signum]->unhandled_behav == SIG_UNHANDLD_KILL){
-				current_process->syscall_state = reg;
+				current_process->thread->syscall_state = reg;
 				proc_exit(current_process);
 			}
 		}
@@ -659,7 +672,7 @@ void proc_exit(proc_t* proc){
 		if(proc == current_process){
 			current_process = 0;
 		}
-		schedule(proc->syscall_state,0);
+		schedule(proc->thread->syscall_state,0);
 		return;
 	}
 	kinfo("Stopping process %s(%d)\n",proc->name,proc->pid);
@@ -677,7 +690,7 @@ void proc_exit(proc_t* proc){
 	killed_insert(proc);
 	if(proc == current_process){
 		current_process = 0;
-		schedule(proc->syscall_state,0);
+		schedule(proc->thread->syscall_state,0);
 	}
 }
 
@@ -720,7 +733,7 @@ void process_fswait_notify(proc_t* process,fs_node_t* node){
 	if(validate(process) && validate(node) && process->fswait_nodes_cnt && validate(process->fswait_nodes)){
 		for(uint32_t i=0;i<process->fswait_nodes_cnt;i++){
 			if(validate(process->fswait_nodes[i]) && node->inode == process->fswait_nodes[i]->inode){
-				process->state->eax = i; //Return which node awoken us
+				process->thread->state->eax = i; //Return which node awoken us
 				//kinfo("Set eax of %s to %d\n",process->name,process->state->eax);
 				process_fswait_awake(process);
 			}else if(!validate(process->fswait_nodes[i])){
@@ -841,3 +854,46 @@ void process_awake(proc_t* proc){
 	ready_insert(proc);
 }
 
+void process_create_thread(proc_t* parent,uint32_t entry){
+	uint32_t pid = free_pid();
+	
+	if(!pid){
+		crash_info_t crash;
+		crash.description = "Failed to allocate pid";
+		kpanic(crash);
+	}
+	
+	if(!validate(entry)){
+			kwarn("Tried to create thread for %s with invalid entry %p\n",parent->name,entry);
+			return;
+	}
+	
+	proc_t* new = kmalloc(sizeof(proc_t));
+	memcpy(new,parent,sizeof(proc_t));
+	new->pid = pid;
+	new->thread = kmalloc(sizeof(thread_t));
+	memset(new->thread,0,sizeof(thread_t)); //TODO calloc for setting memory to zero on allocation
+	
+	uint32_t cpd = current_page_directory;
+	set_page_directory(kernel_page_directory,0);
+	new->pdir = copy_page_directory(parent->pdir);
+	set_page_directory(cpd,0);
+	
+	new->thread->state = kmalloc(sizeof(struct registers));
+	memset(new->thread->state,0,sizeof(struct registers));
+	
+	new->thread->state->useresp = USER_STACK + USER_STACK_PER_PROCESS; 
+	new->thread->state->ebp = new->thread->state->useresp;
+	new->thread->state->eip = entry;
+	new->thread->kernel_stack = (uint32_t)kvalloc(KERNEL_STACK_PER_PROCESS,4096) + KERNEL_STACK_PER_PROCESS;
+	memset((uint32_t)new->thread->kernel_stack-KERNEL_STACK_PER_PROCESS,0,KERNEL_STACK_PER_PROCESS);
+	
+	new->thread->syscall_state = 0;
+	
+
+	processes[pid] = new;
+	total_prcs++;
+	ready_insert(new);
+	
+	kinfo("Thread created in %s with entry %p - %d\n",parent->name,entry,pid);
+}

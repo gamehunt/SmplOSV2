@@ -157,11 +157,12 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	
 	kcreate("/proc",VFS_TYPE_VIRTUAL);
 	
+	//while(1);
+	
 	fs_node_t* init = kopen("/usr/bin/init.smp");
 	if(init){
 		asm("cli");
 		execute(init,0,0,1);
-		mem_check();
 	}
 	
 	
