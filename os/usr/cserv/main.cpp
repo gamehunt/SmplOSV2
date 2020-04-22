@@ -8,6 +8,7 @@
 
 #include <sys/syscall.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fb.h>
@@ -25,9 +26,11 @@ CSProcess* active_process = 0;
 int mx=0;
 int my=0;
 
+uint32_t clks = 0;
+
 typedef struct{
-	int x_mov;
-	int y_mov;
+	int32_t x_mov;
+	int32_t y_mov;
 	uint8_t buttons;
 }mouse_packet_t;
 
@@ -40,11 +43,28 @@ CSWidget* widget_from_id(int id){
 }
 
 void render(){
-	int pmx = 0;
-	int pmy = 0;
 	while(1){
 		fb_fill(0,0,1024,768,0x00000000);
 		CServer::S_Tick();
+		/* --mouse test code
+		char num[32];
+		memset(num,0,32);
+		sprintf(num,"X: %d",mx);
+		for(int i=0;i<32;i++){
+			fb_char(num[i],10*(i+1),16,0x00FF0000,0x00000000);
+		}
+		memset(num,0,32);
+		sprintf(num,"Y: %d",my);
+		for(int i=0;i<32;i++){
+			fb_char(num[i],10*(i+1),33,0x00FF0000,0x00000000);
+		}
+		memset(num,0,32);
+		sprintf(num,"Clicks: %d",clks);
+		for(int i=0;i<32;i++){
+			fb_char(num[i],10*(i+1),70,0x00FF0000,0x00000000);
+		}
+		fb_char('A',mx,my,0x0000FF00,0x00000000);
+		*/
 		fb_swapbuffers();
 	}
 }
@@ -104,7 +124,7 @@ int process_packet(){
 
 int main(int argc,char** argv){
 	
-	//setpriority(0,0,1);
+	setpriority(0,0,1);
 	
 	if(CServer::Init("/dev/cserver")){
 		sys_echo("[CSRV] Failed to initialize server!\n");
@@ -139,9 +159,10 @@ int main(int argc,char** argv){
 	//while(1);
 	
 	
-	sys_thread((uint32_t)&render);
+	//sys_thread((uint32_t)&render);
 	
 	uint32_t node = 0;
+	
 	while(1){
 		node = sys_fswait(new uint32_t[3]{keyboard->fd,mouse->fd,CServer::GetServerPipe()->fd},3);
 		if(node == 0){
@@ -155,21 +176,26 @@ int main(int argc,char** argv){
 			 int read = fread(packets,sizeof(mouse_packet_t),256,mouse);
 			 rewind(mouse);
 			 for(int i=0;i<read;i++){
-				 mx += packets[i].x_mov; //TODO calculate proper values for division
-				 my -= packets[i].y_mov;
+				 mx += packets[i].x_mov / 2; //TODO calculate proper values for division
+				 my -= packets[i].y_mov / 2;
+				 if(mx < 0){
+					mx = 0;
+				 }
+				 if(my < 0){
+					my = 0;
+				 }
+				 if(mx > 1023){
+					mx = 1023;
+				 }
+				 if(my > 767){
+					my = 767;
+				 }
+				 if(packets[i].buttons){
+					 
+					 clks++;
+				 }
 			 }
-			 if(mx < 0){
-				mx = 0;
-			 }
-			 if(my < 0){
-				my = 0;
-			 }
-			 if(mx > 1023){
-				 mx = 1023;
-			 }
-			 if(my > 767){
-				 my = 767;
-			 }
+			 
 			 delete[] packets;
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}

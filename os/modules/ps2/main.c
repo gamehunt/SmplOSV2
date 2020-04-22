@@ -88,8 +88,8 @@ fs_node_t* mouse_dev;
 uint8_t pack_bytes[3];//[0] =  yo|xo|ys|xs|ao|bm|br|bl [1] = xm [2] = ym
 
 typedef struct{
-	int x_mov;
-	int y_mov;
+	int32_t x_mov;
+	int32_t y_mov;
 	uint8_t buttons;
 }mouse_packet_t;
 
@@ -306,19 +306,35 @@ uint8_t init_ps2_kbd(){
 
 void ps2_mouse_int_handler(regs_t r){
 	uint8_t byte = inb(PS2_IOPORT_DATA);
+	if(!ms_pack_part && !(byte & (1 << 3))){
+		goto end;
+	}
 	pack_bytes[ms_pack_part] = byte;
 	if(ms_pack_part == 2){
 		mouse_packet_t* pack = kmalloc(sizeof(mouse_packet_t));
-		pack->x_mov = pack_bytes[1] - ((pack_bytes[0] << 4) & 0x100);
-		pack->y_mov = pack_bytes[2] - ((pack_bytes[0] << 3) & 0x100);
+		pack->x_mov = (int32_t)pack_bytes[1];
+		if(pack->x_mov && (pack_bytes[0] & (1 << 4))){
+			pack->x_mov -= 0x100;
+		}
+		pack->y_mov = (int32_t)pack_bytes[2];
+		if(pack->y_mov && (pack_bytes[0] & (1 << 5))){
+			pack->y_mov -= 0x100;
+		}
+		if (pack_bytes[0] & (1 << 6) || pack_bytes[0] & (1 << 7)) {
+			/* Overflow */
+			pack->x_mov = 0;
+			pack->y_mov = 0;
+		}
 		pack->buttons = pack_bytes[0] & 0b00000111;
+		//kinfo("BTNS: %b\n",pack->buttons);
 		kwrite(mouse_dev,0,sizeof(mouse_packet_t),pack);
 		kfree(pack);
 		ms_pack_part = 0;
 	}else{
 		ms_pack_part++;
 	}
-	irq_end(12);
+	end:
+		irq_end(12);
 }
 
 uint8_t init_ps2_mouse(){
@@ -326,6 +342,7 @@ uint8_t init_ps2_mouse(){
 		kinfo("Mouse not found!\n");
 		return 0;
 	}
+	asm("cli");
 	ps2_device_send(ps2_mouse,PS2_MS_CMD_DEFAULT);
 	ps2_device_read();
 	irq_set_handler(12,ps2_mouse_int_handler);
@@ -333,6 +350,7 @@ uint8_t init_ps2_mouse(){
 	ps2_device_read();
 	mouse_dev = pipe_create("/dev/mouse",3072); //256 mouse packets
 	kinfo("Mouse initialized\n");
+	asm("sti");
 	return 1;
 }
 

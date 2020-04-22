@@ -43,7 +43,7 @@ void __memcpy_opt(uint32_t* dest,uint32_t* src,uint32_t size){
 
 void fb_swapbuffers(){
 	if(back_buffer){
-		__memcpy_opt(0xFD000000,src,1024*768);
+		__memcpy_opt(0xFD000000,back_buffer,1024*768);
 	}
 }
 
