@@ -227,17 +227,6 @@ void setup_ctx(regs_t ctx,regs_t r,uint32_t pd,uint32_t ks){
 
 void save_ctx(regs_t ctx,regs_t r){
 	
-	/*kinfo("Saving up context: %p into %p\n",r,ctx);
-	
-	kinfo("[0]Context dump: \n");
-	kinfo("\t EIP-> %p \n",r->eip);
-	kinfo("\t EBP-> %p \n",r->ebp);
-	kinfo("\t ESP-> %p \n",r->useresp);
-	kinfo("---------------\n");
-	kinfo("\tC EIP-> %p \n",ctx->eip);
-	kinfo("\tC EBP-> %p \n",ctx->ebp);
-	kinfo("\tC ESP-> %p \n",ctx->useresp);*/
-	
 	ctx->eax = r->eax;
 	ctx->ebx = r->ebx;
 	ctx->ecx = r->ecx;
@@ -245,25 +234,10 @@ void save_ctx(regs_t ctx,regs_t r){
 	
 	ctx->edi = r->edi;
 	ctx->esi = r->esi;
-	
-	//ctx->eflags = r->eflags;
-	 
+
 	ctx->useresp = r->useresp;
 	ctx->ebp     = r->ebp;
 	ctx->eip     = r->eip;
-	
-	/*r->eip = 0xFFFFFFFF;
-	
-	kinfo("[1]Context dump: \n");
-	kinfo("\t EIP-> %p \n",r->eip);
-	kinfo("\t EBP-> %p \n",r->ebp);
-	kinfo("\t ESP-> %p \n",r->useresp);
-	kinfo("---------------\n");
-	kinfo("\tC EIP-> %p \n",ctx->eip);
-	kinfo("\tC EBP-> %p \n",ctx->ebp);
-	kinfo("\tC ESP-> %p \n",ctx->useresp);*/
-	
-	//kinfo("EIP <- %a\n",r->eip);
 }
 
 
@@ -344,16 +318,12 @@ proc_t* create_process(const char* name, proc_t* parent){
 	strcpy(new_proc->name,name);
 	new_proc->heap = USER_HEAP;
 	
-	
-	
 	set_page_directory(new_proc->pdir,0);
-	for(uint32_t i=0;i<USER_HEAP_SIZE;i+=4096){
-		knpalloc(USER_HEAP + i);
-	}
+	kralloc(USER_HEAP,USER_HEAP+USER_HEAP_SIZE);
+	
 	new_proc->heap_size = USER_HEAP_SIZE;
-	for(uint32_t i = 0;i<USER_STACK_PER_PROCESS;i+=4096){
-		knpalloc(USER_STACK+i);
-	}
+	kralloc(USER_STACK,USER_STACK+USER_STACK_PER_PROCESS);
+	
 	if(current_process){
 		set_page_directory(current_process->pdir,0);
 	}
@@ -361,9 +331,6 @@ proc_t* create_process(const char* name, proc_t* parent){
 	new_proc->thread->state->useresp = USER_STACK + USER_STACK_PER_PROCESS;
 	new_proc->thread->state->ebp = new_proc->thread->state->useresp;
 	new_proc->thread->state->eip = 0;
-	
-
-	
 	
 	if(parent){
 		if(parent->child_count){
@@ -596,6 +563,7 @@ void schedule(regs_t reg,uint8_t save){
 		}
 		if(!reg && current_process && validate(current_process->thread->syscall_state)){
 			reg = current_process->thread->syscall_state;
+			//kinfo("Restored state from syscall\n");
 		}else if(!reg){
 			//kinfo("No valid registers - skipping tick\n");
 			return;
@@ -874,22 +842,21 @@ void process_create_thread(proc_t* parent,uint32_t entry){
 	new->thread = kmalloc(sizeof(thread_t));
 	memset(new->thread,0,sizeof(thread_t)); //TODO calloc for setting memory to zero on allocation
 	
-	uint32_t cpd = current_page_directory;
 	set_page_directory(kernel_page_directory,0);
 	new->pdir = copy_page_directory(parent->pdir);
-	set_page_directory(cpd,0);
-	
+	set_page_directory(new->pdir,0);
+	kralloc(USER_THREAD_STACK,USER_THREAD_STACK+USER_STACK_PER_PROCESS);
+	set_page_directory(current_process->pdir,0);
+	//kinfo("In %p: %p",current_process->pdir,virtual2physical(USER_STACK));
 	new->thread->state = kmalloc(sizeof(struct registers));
 	memset(new->thread->state,0,sizeof(struct registers));
 	
-	new->thread->state->useresp = USER_STACK + USER_STACK_PER_PROCESS; 
+	new->thread->state->useresp = USER_THREAD_STACK + USER_STACK_PER_PROCESS;
 	new->thread->state->ebp = new->thread->state->useresp;
 	new->thread->state->eip = entry;
+	new->thread->syscall_state = 0;
 	new->thread->kernel_stack = (uint32_t)kvalloc(KERNEL_STACK_PER_PROCESS,4096) + KERNEL_STACK_PER_PROCESS;
 	memset((uint32_t)new->thread->kernel_stack-KERNEL_STACK_PER_PROCESS,0,KERNEL_STACK_PER_PROCESS);
-	
-	new->thread->syscall_state = 0;
-	
 
 	processes[pid] = new;
 	total_prcs++;

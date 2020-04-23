@@ -8,14 +8,14 @@
 
 #include <stdlib.h>
 #include <kernel/memory/memory.h>
+#include <kernel/proc/sync.h>
 #include <sys/syscall.h>
 
 #ifndef __smplos_libk
 
-
-
 static uint32_t* heap_start = USER_HEAP;
 static uint32_t heap_size = USER_HEAP_SIZE;
+
 
 #define VALIDATE_PTR(ptr) (USER_HEAP<=ptr && ptr<= USER_HEAP+heap_size)
 #define validate VALIDATE_PTR 
@@ -124,7 +124,23 @@ void fix_user_heap(){
 
 #endif
 
-void* malloc(size_t size){
+static uint8_t volatile memory_lock = 0;
+
+static void lock(){
+	#ifndef __smplos_libk
+	while(__sync_lock_test_and_set(&memory_lock, 0x01)) {
+		sys_yield();
+	}
+	#endif
+}
+
+static void unlock(){
+	#ifndef __smplos_libk
+	__sync_lock_release(&memory_lock);
+	#endif
+}
+
+void* __attribute__ ((malloc)) __unsafe_malloc(size_t size){
 	#ifdef __smplos_libk 
 		return (void*)kmalloc(size);
 	#else
@@ -158,16 +174,31 @@ void* malloc(size_t size){
 	#endif
 	return 0;
 }
-
-void* valloc(size_t size,uint32_t alig){
+void* __attribute__ ((malloc)) __unsafe_realloc(uint32_t* ptr,size_t size){
+	#ifdef __smplos_libk
+		return (void*)krealloc(ptr,size);
+	#else
+		uint32_t* new_alloc = __unsafe_malloc(size);
+		memmove(new_alloc,ptr,header(ptr)->size >= size?size:header(ptr)->size);
+		__unsafe_free(ptr);
+		return new_alloc;
+	#endif
+}
+void* __attribute__ ((malloc)) __unsafe_calloc(uint32_t num,size_t size){
+	void* ret = __unsafe_malloc(num*size);
+	memset(ret,0,num*size);
+	return ret;
+}
+void* __attribute__ ((malloc)) __unsafe_valloc(uint32_t size,size_t alig){
 	#ifdef __smplos_libk
 		return (void*)kvalloc(size,alig);
 	#else
-		return malloc(size);
+		return __unsafe_malloc(size);
 	#endif
 	return 0;
 }
-void free(void* mem){
+
+void __unsafe_free(void* mem){
 	#ifdef __smplos_libk
 		return kfree(mem);
 	#else
@@ -188,21 +219,38 @@ void free(void* mem){
 		free_insert(block);
 	#endif
 }
-void* realloc(uint32_t* ptr,size_t size){
-	#ifdef __smplos_libk
-		return (void*)krealloc(ptr,size);
-	#else
-		uint32_t* new_alloc = malloc(size);
-		memmove(new_alloc,ptr,header(ptr)->size >= size?size:header(ptr)->size);
-		free(ptr);
-		return new_alloc;
-	#endif
-	return 0;
-}
 
-
-void* calloc(uint32_t num,size_t size){
-	void* ret = malloc(num*size);
-	memset(ret,0,num*size);
+void* __attribute__ ((malloc)) malloc(size_t size){
+	lock();
+	void* ret =  __unsafe_malloc(size);
+	unlock();
 	return ret;
 }
+
+void* __attribute__ ((malloc)) valloc(size_t size,uint32_t alig){
+	lock();
+	void* ret =  __unsafe_valloc(size,alig);
+	unlock();
+	return ret;
+}
+void free(void* mem){
+	lock();
+	__unsafe_free(mem);
+	unlock();
+}
+void* __attribute__ ((malloc)) realloc(uint32_t* ptr,size_t size){
+	lock();
+	void* ret =  __unsafe_realloc(ptr,size);
+	unlock();
+	return ret;
+}
+
+
+void* __attribute__ ((malloc)) calloc(uint32_t num,size_t size){
+	lock();
+	void* ret =  __unsafe_calloc(num,size);
+	unlock();
+	return ret;
+}
+
+

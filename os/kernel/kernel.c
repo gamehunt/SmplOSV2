@@ -112,7 +112,7 @@ void kernel_main(multiboot_info_t *mbt,uint32_t magic){
 	init_pmm(mbt);
 	init_paging();
 	init_kheap();
-	
+	//while(1);
 	init_symtable();
   	init_pci();
 	init_pit();

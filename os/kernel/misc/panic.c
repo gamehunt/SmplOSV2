@@ -23,7 +23,7 @@ void kpanic(crash_info_t crash){
 		regs_t regs = crash.regs;
 		kerr("EDI=%p | ESI=%p | EBP=%p\n EBX=%p | EDX=%p | ECX=%p | EAX=%p\n",regs->edi,regs->esi,regs->ebp,regs->ebx,regs->edx,regs->ecx,regs->eax);
 		kerr("GS=%p |  FS=%p |  ES=%p | DS=%p\n",regs->gs,regs->fs,regs->es,regs->ds);		
-		kerr("EIP=%p | ESP=%p\n",regs->eip,regs->esp);	
+		kerr("EIP=%p | ESP=%p\n",regs->eip,regs->useresp);	
 		kerr("TSS[SS:ESP0]: %p %p\n",tss_entry.ss0,tss_entry.esp0);
 	}else{
 		kerr("Unavailable\n");

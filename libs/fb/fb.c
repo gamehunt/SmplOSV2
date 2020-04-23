@@ -74,10 +74,85 @@ uint8_t fb_init(char* fb,uint16_t xres,uint16_t yres,uint8_t double_buffer){
 	return 0;
 }
 
-void fb_fill(int x,int y,int sx,int sy,uint32_t color){
-	for(int i=0;i<sx;i++){
-		for(int j=0;j<sy;j++){
-			fb_pixel(x+i,y+j,color);
+//Bresenham algo
+void    fb_line(int x0,int y0, int x1,int y1,uint32_t color){
+	if(x0 == x1){
+		
+		for(int i=y0;i<=y1;i++){
+			fb_pixel(x0,i,color);
 		}
+		
+		return;
+	}
+	 int deltax = abs(x1 - x0);
+     int deltay = abs(y1 - y0);
+     int error = 0;
+     int deltaerr = (deltay + 1);
+     int y = y0;
+     int diry = y1 - y0;
+     if (diry > 0) {
+         diry = 1;
+     }
+     if (diry < 0) {
+         diry = -1;
+     }
+     for(int x = x0; x<=x1;x++){
+         fb_pixel(x,y,color);
+         error += deltaerr;
+         if(error >= (deltax + 1)){
+             y += diry;
+             error -= (deltax + 1);
+         }
+     }
+}
+
+void    fb_circle(int X1,int Y1,int R,uint32_t color,uint8_t fill){
+   int x = 0;
+   int y = R;
+   int delta = 1 - 2 * R;
+   int error = 0;
+   while (y >= 0){
+	   if(!fill){
+			fb_pixel(X1 + x, Y1 + y, color);
+			fb_pixel(X1 + x, Y1 - y, color);
+			fb_pixel(X1 - x, Y1 + y, color);
+			fb_pixel(X1 - x, Y1 - y, color);
+	   }else{
+		    fb_line(X1 - x, Y1 + y,X1 + x,Y1 + y,color);
+		    fb_line(X1 - x, Y1 - y,X1 + x,Y1 - y,color);
+	   }
+       error = 2 * (delta + y) - 1;
+       if ((delta < 0) && (error <= 0)){
+           delta += 2 * (++x) + 1;
+           continue;
+       }
+       if ((delta > 0) && (error > 0)){
+           delta -= 2 * (--y) + 1;
+           continue;
+       }
+       delta += 2 * (++x - y--);
+	}
+}
+
+void fb_rect(int x,int y,int sx,int sy,uint32_t color,uint8_t filled){
+	if(filled){
+		for(int j=0;j<sy;j++){
+			fb_line(x,y+j,x+sx,y+j,color);
+		}
+	}else{
+		fb_line(x,y,x+sx,y,color);
+		fb_line(x+sx,y,x+sx,y+sy,color);
+		fb_line(x,y,x,y+sy,color);
+		fb_line(x,y+sx,x+sx,y+sx,color);
+	}
+}
+
+void    fb_triangle(int x,int y,int x1,int y1,int x2,int y2,uint32_t color,uint8_t fill){
+	if(!fill){
+		fb_line(x,y,x1,y1,color);
+		fb_line(x1,y1,x2,y2,color);
+		fb_line(x,y,x2,y2,color);
+	}else{
+		//TODO
 	}
 }

@@ -1,10 +1,8 @@
 
 /*	
-
     Copyright (C) 2020
      
     Author: gamehunt 
-
 */
 
 //PDE
@@ -23,7 +21,8 @@
 extern uint32_t k_end;
 
 
-uint32_t table_mappings[1024] __attribute__((aligned(4096))); // mappings for pte's is last pte
+uint32_t table_mappings[1024] __attribute__((aligned(4096))); // TODO this must be mapped dynamically, at the moment i can't remap address in copied pdir because of this
+
 
 uint8_t paging_flag = 0;
 

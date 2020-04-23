@@ -44,9 +44,9 @@ CSWidget* widget_from_id(int id){
 
 void render(){
 	while(1){
-		fb_fill(0,0,1024,768,0x00000000);
-		CServer::S_Tick();
-		/* --mouse test code
+		fb_rect(0,0,1024,768,0x00000000,1);
+		//CServer::S_Tick();
+		///* --mouse test code
 		char num[32];
 		memset(num,0,32);
 		sprintf(num,"X: %d",mx);
@@ -64,8 +64,9 @@ void render(){
 			fb_char(num[i],10*(i+1),70,0x00FF0000,0x00000000);
 		}
 		fb_char('A',mx,my,0x0000FF00,0x00000000);
-		*/
+		//*/
 		fb_swapbuffers();
+		//sys_echo("Thread tick\n");
 	}
 }
 
@@ -159,7 +160,7 @@ int main(int argc,char** argv){
 	//while(1);
 	
 	
-	//sys_thread((uint32_t)&render);
+	sys_thread((uint32_t)&render);
 	
 	uint32_t node = 0;
 	
@@ -200,6 +201,15 @@ int main(int argc,char** argv){
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}
 		process_packet();
+		/*fb_rect(0,0,1024,768,0x00000000,1);
+		fb_line(0,0,1024,768,0x00FF0000);
+		fb_rect(100,50,200,80,0x00FF00FF,1);
+		fb_circle(400,500,20,0x0000FFFF,0);
+		fb_circle(900,400,50,0x00FFFF00,1);
+		fb_rect(600,600,100,100,0x0000FF00,0);
+		fb_triangle(100,500,200,600,400,400,0x00AAFFEE,0);
+		
+		fb_swapbuffers();*/
 	}
 	
 	return 0;
