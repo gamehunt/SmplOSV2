@@ -21,3 +21,9 @@ void CSWidget::SetX(int x){
 void CSWidget::SetY(int y){
 	this->y = y;
 }
+void CSWidget::SetSizeX(int sx){
+	this->sx = sx;
+}
+void CSWidget::SetSizeY(int sy){
+	this->sy = sy;
+}

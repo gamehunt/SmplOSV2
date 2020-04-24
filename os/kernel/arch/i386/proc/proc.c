@@ -845,13 +845,13 @@ void process_create_thread(proc_t* parent,uint32_t entry){
 	set_page_directory(kernel_page_directory,0);
 	new->pdir = copy_page_directory(parent->pdir);
 	set_page_directory(new->pdir,0);
-	kralloc(USER_THREAD_STACK,USER_THREAD_STACK+USER_STACK_PER_PROCESS);
+	kralloc(USER_STACK,USER_STACK+USER_STACK_PER_PROCESS);
 	set_page_directory(current_process->pdir,0);
 	//kinfo("In %p: %p",current_process->pdir,virtual2physical(USER_STACK));
 	new->thread->state = kmalloc(sizeof(struct registers));
 	memset(new->thread->state,0,sizeof(struct registers));
 	
-	new->thread->state->useresp = USER_THREAD_STACK + USER_STACK_PER_PROCESS;
+	new->thread->state->useresp = USER_STACK + USER_STACK_PER_PROCESS;
 	new->thread->state->ebp = new->thread->state->useresp;
 	new->thread->state->eip = entry;
 	new->thread->syscall_state = 0;

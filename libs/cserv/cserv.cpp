@@ -169,3 +169,10 @@ void CSProcess::SetupFilter(bool(*filter)(CSPacket*)){
 void CSProcess::AddWidget(CSWidget* w){
 	widgets.push_back(w);
 }
+
+CSWidget* CSProcess::GetWidget(int id){
+	if(id < 0 || id > widgets.size()){
+		return 0;
+	}
+	return widgets.at(id);
+}

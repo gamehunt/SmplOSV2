@@ -21,7 +21,7 @@
 extern uint32_t k_end;
 
 
-uint32_t table_mappings[1024] __attribute__((aligned(4096))); // TODO this must be mapped dynamically, at the moment i can't remap address in copied pdir because of this
+uint32_t* table_mappings;
 
 
 uint8_t paging_flag = 0;
@@ -108,8 +108,35 @@ uint32_t virtual2physical(uint32_t v_addr){
 
 uint32_t* copy_page_directory(uint32_t* src){
 	uint32_t* new_pdir = kvalloc(4096,4096);
-	memcpy(new_pdir,src,4096);
-	//return paging_flag?virtual2physical(new_pdir):new_pdir;
+	memcpy(new_pdir,kernel_page_directory,4096);
+	if(src == kernel_page_directory){
+		return;
+	}
+	
+	
+	uint32_t* pt_map = kvalloc(4096,4096);
+	new_pdir[1023] = pd_entry(virtual2physical(pt_map),PAGE_PRESENT | PAGE_RW);
+	
+	set_page_directory(kernel_page_directory,0);
+	memcpy(pt_map,0xFFFFF000,4096);
+	pt_map[1023] = pt_entry(virtual2physical(pt_map),PAGE_PRESENT | PAGE_RW);
+	
+	set_page_directory(src,0);
+	for(int i=0;i<1023;i++){
+		for(int j=0;j<1024;j++){
+			uint32_t addr = (i << 22) | (j << 12) | (0);
+			if(addr < 0x80000000 || addr > 0xF0000000){
+				continue;
+			}
+				uint32_t real = virtual2physical(addr);
+				if(real){
+					set_page_directory(new_pdir,0);
+					kmpalloc(addr,real,0);
+					set_page_directory(src,0);
+				}
+			
+		}
+	}
 	return new_pdir;
 }
 
@@ -233,8 +260,10 @@ void set_page_directory(uint32_t pdir,uint8_t phys){
 void init_paging(){
 	asm("cli");
 	kernel_page_directory = (uint32_t*)kfalloc();
+	table_mappings = (uint32_t*)kfalloc();
 	current_page_directory = kernel_page_directory;
-	kernel_page_directory[1023] = pd_entry(&table_mappings,PAGE_PRESENT | PAGE_RW);
+	kernel_page_directory[1023] = pd_entry(table_mappings,PAGE_PRESENT | PAGE_RW);
+	table_mappings[1023] = pt_entry(table_mappings,PAGE_PRESENT|PAGE_RW);
 	kmpalloc((uint32_t)kernel_page_directory,0,0);
 	extern uint32_t k_frame_stack_size;
 	for(int i=0;i<0x400000;i+=4096){
@@ -242,9 +271,14 @@ void init_paging(){
 	}
 	set_page_directory((uint32_t)kernel_page_directory,1);
 	enable_paging();
+	table_mappings = 0xFFFFF000;
 	isr_set_handler(14,pagefault_handler);
 	paging_flag = 1;
 	kinfo("Paging initialized\n");
+	//kmpalloc(0xAA000000,0x1,0);
+	//while(1);
+	
+	
 	asm("sti");
 	//while(1);
 }

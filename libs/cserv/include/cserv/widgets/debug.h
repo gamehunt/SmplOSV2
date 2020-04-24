@@ -1,7 +1,10 @@
+#pragma once
+
 #include <cserv/widgets/widget.h>
 
 class CSDebugWidget:public CSWidget{
 	public:
 		CSDebugWidget(int x,int y):CSWidget(x,y){;}
 		virtual void Draw();
+		virtual void Update(void* ctx){;}
 };

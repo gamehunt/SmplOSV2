@@ -30,7 +30,6 @@
 #define KHEAP_SIZE  (KHEAP_END-KHEAP_START)
 
 #define USER_STACK   	   0xC0000000
-#define USER_THREAD_STACK   0xCF000000
 #define USER_HEAP    0xD0000000
 #define USER_HEAP_SIZE 64*1024 //base 64 kib heap per process
 

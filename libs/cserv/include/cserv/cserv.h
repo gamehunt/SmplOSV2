@@ -6,7 +6,6 @@
 #define CS_TYPE_TERMINATE        4
 #define CS_TYPE_WIDGET           5
 #define CS_TYPE_MOUSE            6
-#define CS_TYPE_REDRAW           7
 
 
 #include <vector>
@@ -22,6 +21,7 @@ class CSPacket{
 		CSPacket(int type);
 		~CSPacket();
 		uint8_t* GetBuffer();
+		void ResizePacket(int new_size);
 		int GetType();
 		static CSPacket* CreatePacket(int type);
 	private:
@@ -35,6 +35,7 @@ class CSProcess{
 		CSProcess(pid_t pid);
 		void ProcessEvents();
 		void AddWidget(CSWidget* widget);
+		CSWidget* GetWidget(int id);
 		static CSProcess* CreateProcess(pid_t pid);
 		pid_t GetPid();
 		bool ApplyFilter(CSPacket* packet);
@@ -43,10 +44,6 @@ class CSProcess{
 		pid_t pid;
 		std::vector<CSWidget*> widgets;
 		bool (*packet_filter)(CSPacket*);
-		int canvas_size_x;
-		int canvas_size_y;
-		int canvas_offs_x; // Canvas offset from absolute (0,0)
-		int canvas_offs_y;
 };
 
 

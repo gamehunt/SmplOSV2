@@ -21,6 +21,9 @@ int fputc(char c, FILE* f){
 	int res = fwrite(buffer,1,1,f);
 	return res?res:EOF;
 }
+int putc(int ch, FILE *stream){
+	return fputc(ch,stream);
+}
 #endif
 
 int putchar(char c){

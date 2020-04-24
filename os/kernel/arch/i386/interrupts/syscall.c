@@ -81,7 +81,7 @@ uint32_t sys_write(uint32_t fd,uint32_t offs_high,uint32_t offs_low,uint32_t siz
 		return 0;
 	}
 	uint64_t offs = (uint64_t)offs_high << 32 | offs_low;
-	//kinfo("[SYS_WRITE] %s(%d): %d %e %d %a\n",node->name,node->fsid,fd,offs,size,buffer);
+	//kinfo("[SYS_WRITE] %s(%d): %d %ld %d %p\n",node->name,node->fsid,fd,offs,size,buffer);
 	return kwrite((fs_node_t*)node,offs,size,(uint8_t*)buffer);
 }
 

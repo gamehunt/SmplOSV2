@@ -42,7 +42,7 @@ extern FILE* stdin;
 #define SEEK_END  2
 #define EOF       (-1)
 
-#define putc fputc
+
 
 #endif
 
@@ -75,6 +75,7 @@ long ftell(FILE*);
 size_t fwrite(const void*, size_t, size_t, FILE*);
 void setbuf(FILE*, char*);
 int fputc(char,FILE*);
+int putc(int ch, FILE *stream);
 int fputs(const char*, FILE*);
 char *fgets(char *str, int num, FILE *stream);
 int getc(FILE *stream);

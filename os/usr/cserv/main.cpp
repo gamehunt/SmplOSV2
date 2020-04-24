@@ -17,6 +17,7 @@
 #include <cserv/cserv.h>
 #include <cserv/widgets/widget.h>
 #include <cserv/widgets/debug.h>
+#include <cserv/widgets/text_screen.h>
 
 FILE* keyboard;
 FILE* mouse;
@@ -38,6 +39,8 @@ CSWidget* widget_from_id(int id){
 	switch(id){
 		case 0:
 			return new CSDebugWidget(0,0);
+		case 1:
+			return new CSTextScreenWidget(0,0);
 	}
 	return 0;
 }
@@ -45,28 +48,29 @@ CSWidget* widget_from_id(int id){
 void render(){
 	while(1){
 		fb_rect(0,0,1024,768,0x00000000,1);
-		//CServer::S_Tick();
-		///* --mouse test code
+		CServer::S_Tick();
+		/* --mouse debug code
 		char num[32];
 		memset(num,0,32);
 		sprintf(num,"X: %d",mx);
-		for(int i=0;i<32;i++){
+		for(int i=0;i<strlen(num);i++){
 			fb_char(num[i],10*(i+1),16,0x00FF0000,0x00000000);
 		}
 		memset(num,0,32);
 		sprintf(num,"Y: %d",my);
-		for(int i=0;i<32;i++){
+		for(int i=0;i<strlen(num);i++){
 			fb_char(num[i],10*(i+1),33,0x00FF0000,0x00000000);
 		}
 		memset(num,0,32);
 		sprintf(num,"Clicks: %d",clks);
-		for(int i=0;i<32;i++){
+		for(int i=0;i<strlen(num);i++){
 			fb_char(num[i],10*(i+1),70,0x00FF0000,0x00000000);
 		}
+		* */
 		fb_char('A',mx,my,0x0000FF00,0x00000000);
-		//*/
 		fb_swapbuffers();
-		//sys_echo("Thread tick\n");
+		
+		sys_sleep(5); //We need this to allow lower priority process schedule
 	}
 }
 
@@ -89,10 +93,32 @@ int process_packet(){
 		}else if(packet->GetType() == CS_TYPE_WIDGET){
 				pid_t pid = ((pid_t*)packet->GetBuffer())[0];
 				CSProcess* proc = CServer::S_GetProcess(pid);
+				uint32_t type = ((uint32_t*)packet->GetBuffer())[1];
 				if(proc){
-						CSWidget* wid = widget_from_id(((uint32_t*)packet->GetBuffer())[1]);
-						if(wid){
-							proc->AddWidget(wid);
+						
+						if(type == WIDGET_PACK_ADD){
+							CSWidget* wid = widget_from_id(((uint32_t*)packet->GetBuffer())[2]);
+							if(wid){
+								proc->AddWidget(wid);
+							}
+						}else if(type == WIDGET_PACK_UPD){
+							CSWidget* wid = proc->GetWidget(((uint32_t*)packet->GetBuffer())[2]);
+							if(wid){
+								wid->Update((void*)(&(((uint32_t*)packet->GetBuffer())[3])));
+							}
+						}else if(type == WIDGET_PACK_MOV){
+							CSWidget* wid = proc->GetWidget(((uint32_t*)packet->GetBuffer())[2]);
+							if(wid){
+								wid->SetX(((uint32_t*)packet->GetBuffer())[3]);
+								wid->SetY(((uint32_t*)packet->GetBuffer())[4]);
+							}
+						}else if(type == WIDGET_PACK_RES){
+							CSWidget* wid = proc->GetWidget(((uint32_t*)packet->GetBuffer())[2]);
+							if(wid){
+								wid->SetSizeX(((uint32_t*)packet->GetBuffer())[3]);
+								wid->SetSizeY(((uint32_t*)packet->GetBuffer())[4]);
+							}
+							
 						}
 				}
 		}else if(packet->GetType() == CS_TYPE_KEY && active_process && !active_process->ApplyFilter(packet)){
@@ -201,15 +227,6 @@ int main(int argc,char** argv){
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}
 		process_packet();
-		/*fb_rect(0,0,1024,768,0x00000000,1);
-		fb_line(0,0,1024,768,0x00FF0000);
-		fb_rect(100,50,200,80,0x00FF00FF,1);
-		fb_circle(400,500,20,0x0000FFFF,0);
-		fb_circle(900,400,50,0x00FFFF00,1);
-		fb_rect(600,600,100,100,0x0000FF00,0);
-		fb_triangle(100,500,200,600,400,400,0x00AAFFEE,0);
-		
-		fb_swapbuffers();*/
 	}
 	
 	return 0;
