@@ -121,7 +121,7 @@ void dump_node(fs_node_t* node,uint32_t tabs){
 	for(int i=0;i<tabs;i++){
 		printf("-");
 	}
-	printf("%s %a\n",node->name,node->entry->childs);
+	printf("%s %p\n",node->name,node->inode);
 	for(int i=0;i<node->entry->child_count;i++){
 		dump_node(node->entry->childs[i],tabs+1);
 	}

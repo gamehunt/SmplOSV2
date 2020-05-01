@@ -110,7 +110,7 @@ uint32_t pipe_read(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buff
 }
 
 void pipe_notify_waiters(fs_node_t* pipe){
-	
+
 	pipe_info_t* inf = (pipe_info_t*)pipe->inode;
 	for(uint32_t i=0;i<inf->waiters_cnt;i++){
 			if(validate(inf->waiters[i])){
@@ -121,7 +121,28 @@ void pipe_notify_waiters(fs_node_t* pipe){
 
 uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buffer){
 	
+	
+	
+	if(!validate(node)){
+		kerr("Tried to write to invalid pipe!\n");
+		return 0;
+	}
+	
+	if(!validate(buffer)){
+		kerr("Tried to write from invalid buffer %p!\n",buffer);
+		//while(1);
+		//return 0;
+	}
+	
 	pipe_info_t* inf = (pipe_info_t*)node->inode;
+	
+	if(!validate(inf)){
+		kerr("Tried to write to invalid pipe!\n");
+		return 0;
+	}
+
+	//kinfo("Writing to %s %d when %d available\n",node->name,size,pipe_available(inf));
+	
 	lock_spin(&inf->lock);
 	uint32_t write = 0;
 	for(uint32_t i = 0; i<size; i++){

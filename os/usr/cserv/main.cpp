@@ -67,7 +67,7 @@ void render(){
 			fb_char(num[i],10*(i+1),70,0x00FF0000,0x00000000);
 		}
 		* */
-		fb_char('A',mx,my,0x0000FF00,0x00000000);
+		//fb_char('A',mx,my,0x0000FF00,0x00000000);
 		fb_swapbuffers();
 		
 		sys_sleep(5); //We need this to allow lower priority process schedule
@@ -122,14 +122,17 @@ int process_packet(){
 						}
 				}
 		}else if(packet->GetType() == CS_TYPE_KEY && active_process && !active_process->ApplyFilter(packet)){
+				
 				for(uint8_t i=0;i<128&&packet->GetBuffer()[i];i++){
-					key_t* key = (key_t*)malloc(sizeof(key));
+					key_t* key = (key_t*)malloc(sizeof(key_t));
 					kbd_key_event(key,packet->GetBuffer()[i]);
 					if(key->key && key->state == KEY_ACTION_DOWN){
+						
 						char buffer[64];
 						sprintf(buffer,"/proc/%d/stdin",active_process->GetPid());
 						FILE* in = fopen(buffer,"w");
 						if(in){
+							
 							fwrite(&key->key,1,1,in);
 							fclose(in);
 						}
@@ -155,15 +158,20 @@ int main(int argc,char** argv){
 	
 	if(CServer::Init("/dev/cserver")){
 		sys_echo("[CSRV] Failed to initialize server!\n");
+		return 1;
 	}
 	
 	keyboard = fopen("/dev/kbd","r");
 	mouse    = fopen("/dev/mouse","r");
 	
-	if(!keyboard || !mouse){
-		sys_echo("[CSRV] Failed to open input devices!\n");
-		return 1;
-	}
+	//if(!keyboard || !mouse){
+	//	sys_echo("[CSRV] Failed to open input devices!\n");
+	//	return 1;
+	//}
+	
+	uint8_t buffer[3072];
+	fread(buffer,1,128,keyboard);
+	fread(buffer,1,3072,mouse);
 
 	sys_echo("[CSRV] Setting up framebuffer...\n");
 
@@ -172,6 +180,7 @@ int main(int argc,char** argv){
 	if(fb){
 		sys_ioctl(fb->fd,0x10,args);
 	}else{
+		sys_echo("[CSRV] Failed to initialize framebuffer\n");
 		return 1;
 	}
 	
@@ -189,14 +198,20 @@ int main(int argc,char** argv){
 	sys_thread((uint32_t)&render);
 	
 	uint32_t node = 0;
+	uint32_t* fds = new uint32_t[3]{keyboard->fd,mouse->fd,CServer::GetServerPipe()->fd};
 	
 	while(1){
-		node = sys_fswait(new uint32_t[3]{keyboard->fd,mouse->fd,CServer::GetServerPipe()->fd},3);
+		
+		node = sys_fswait(fds,3);
+		
 		if(node == 0){
 			CSPacket* pack = CSPacket::CreatePacket(CS_TYPE_KEY);
+			//sys_echo("%d\n",sizeof(CSPacket));
+			
 			fread(pack->GetBuffer(),1,128,keyboard);
-			rewind(keyboard);
+			//rewind(keyboard);
 			CServer::C_SendPacket(pack);
+			
 		}
 		if(node == 1){
 			 mouse_packet_t* packets = new mouse_packet_t[256];
@@ -227,6 +242,8 @@ int main(int argc,char** argv){
 			//TODO send CS_TYPE_MOUSE to anywhere
 		}
 		process_packet();
+		//mem_check();
+		//while(1);
 	}
 	
 	return 0;

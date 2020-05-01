@@ -1,17 +1,16 @@
 #include <cserv/widgets/text_screen.h>
 #include <sys/syscall.h>
 #include <fb.h>
-
-//Test widget, moves on key press or new packet received in cserver
+#include <cstring>
 
 void CSTextScreenWidget::Draw(){
 	int lx = 0;
 	int ly = 0;
 	for(char c : text){
+		//sys_echo("%d %d\n",sx,sy);
 		if(ly >= sy){
 			break;
 		}
-		fb_char(c,x+lx,y+ly,0x00FFFFFF,0x00000000);
 		if(c == '\t'){
 			lx += 30;
 		}else if(c == '\n'){
@@ -19,6 +18,7 @@ void CSTextScreenWidget::Draw(){
 			ly += 20;
 		}else{
 			lx+=10;
+			fb_char(c,x+lx,y+ly,0x00FFFFFF,0x00000000);
 		}
 		if(lx >= sx){
 			lx = 0;
@@ -28,6 +28,12 @@ void CSTextScreenWidget::Draw(){
 }
 
 void CSTextScreenWidget::Update(void* data){
-	const char* str = (const char*)data;
-	text = str;
+	uint8_t type = *(uint8_t*)data;
+	const char* str = (const char*)((uint8_t*)data+1);
+	//sys_echo("%d %s\n",type,str);
+	if(type){
+		text = str;
+	}else{
+		text += str;
+	}
 }

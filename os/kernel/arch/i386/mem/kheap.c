@@ -26,6 +26,7 @@ static uint32_t stat_alloc,stat_free,stat_merges,stat_alloc_total,stat_freed_tot
 #define VALIDATE(x) (validate(x) && x <= KHEAP_END && x>= KHEAP_START)
 
 
+
 void init_kheap(){
 	kinfo("Allocating kernel heap...\n");
 	kralloc(KHEAP_START,KHEAP_END);
@@ -267,10 +268,18 @@ void mem_check(){
 	while(validate(block) && block < heap_start){
 		next_block = (uint32_t)block + sizeof(mem_t) + block->size;
 		if(block->guard != KHEAP_GUARD_VALUE || block->size > max_allocation){
-			kerr("\t [B] -- block: %p/%p [%p %d %p %p]\n",block,heap_start,block->guard,block->size,block->prev,block->next);
+			kerr("\t [B] -- block: %p/%p [%p %d %p %p] - invalid guard\n",block,heap_start,block->guard,block->size,block->prev,block->next);
 			errors++;
 		}else if(next_block < heap_start && (next_block->guard != KHEAP_GUARD_VALUE || next_block->size > max_allocation)){
-			kwarn("\t [O] -- block: %p/%p [%p %d %p %p]\n",block,heap_start,block->guard,block->size,block->prev,block->next);
+			kwarn("\t [O] -- block: %p/%p [%p %d %p %p] - possible overflow\n",block,heap_start,block->guard,block->size,block->prev,block->next);
+			errors++;
+		}
+		if((block->next && block->next != 0xAABBCCDD && !validate(block->next)) || (block->prev && block->prev != 0xAABBCCDD && !validate(block->prev))){
+			kwarn("\t [B] -- block: %p/%p [%p %d %p %p] - Invalid references\n",block,heap_start,block->guard,block->size,block->prev,block->next);
+			errors++;
+		}
+		if((block->next != 0xAABBCCDD && block->prev != 0xAABBCCDD) && ( (block->next && (block->next < block)) || (block->prev && (block->prev > block)))){
+			kwarn("\t [C] -- block: %p/%p [%p %d %p %p] - Possible cycle\n",block,heap_start,block->guard,block->size,block->prev,block->next);
 			errors++;
 		}
 		if(!block->size){

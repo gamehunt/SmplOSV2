@@ -42,7 +42,7 @@ size_t fwrite(const void* ptr, size_t sz, size_t block_count, FILE* f){
 	uint32_t real_size = sz * block_count;
 	uint32_t writen = sys_write(f->fd,f->offset,real_size,ptr);
 	f->offset += writen;
-	if(f->offset >= f->size){
+	if(f->size && f->offset >= f->size){
 		f->eof = 1;
 	}
 	return writen / sz;
@@ -55,7 +55,7 @@ size_t fread(void* ptr, size_t sz, size_t block_count, FILE* f){
 	uint32_t real_size = sz * block_count;
 	uint32_t readen = sys_read(f->fd,f->offset,real_size,ptr);
 	f->offset += readen;
-	if(f->offset >= f->size){
+	if(f->size && f->offset >= f->size){
 		f->eof = 1;
 	}
 	return  readen / sz;
@@ -64,6 +64,8 @@ size_t fread(void* ptr, size_t sz, size_t block_count, FILE* f){
 //TODO more modes
 FILE* fopen(const char* name,const char* mode){
 	FILE* f = malloc(sizeof(FILE));
+	memset(f,0,sizeof(FILE));
+	//sys_echo("%d\n",sizeof(stat_t));
 	uint8_t flags = 0;
 	if(!strcmp(mode,"r")){
 		flags |= F_READ;

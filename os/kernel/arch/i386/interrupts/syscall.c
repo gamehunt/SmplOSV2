@@ -94,7 +94,7 @@ uint32_t sys_fstat(uint32_t fd,uint32_t stat,uint32_t a,uint32_t b,uint32_t c){
 	}
 	fs_node_t* node = get_current_process()->f_descs[fd];
 	if(validate(node)){
-		((stat_t*)stat)->st_size = node->size;
+		((stat_t*)stat)->st_size = node->fsid == 1?0:node->size;
 		return 0;
 	}else{
 		return 1;
@@ -221,7 +221,7 @@ uint32_t sys_fswait(uint32_t fds,uint32_t cnt,uint32_t a,uint32_t b,uint32_t c){
 	//kinfo("[FSWAIT] Allocd %d \n",cnt);
 	uint32_t j = 0;
 	for(uint32_t i=0;i<cnt;i++){
-		//kinfo("Trying to add: %d\n",fds_ptr[i]);
+		//kinfo("Trying to add: %d(%d/%d)\n",fds_ptr[i],i,cnt);
 		if(fds_ptr[i] < get_current_process()->f_descs_cnt){
 			nodes[j] = get_current_process()->f_descs[fds_ptr[i]];
 			j++;

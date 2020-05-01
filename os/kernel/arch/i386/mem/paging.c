@@ -80,7 +80,7 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
-		kwarn("Trying to remap %p from %p to %p...\n",v_addr,virtual2physical(v_addr),p_addr);
+		//kwarn("Trying to remap %p from %p to %p...\n",v_addr,virtual2physical(v_addr),p_addr);
 	}
 	k_pt[pte] = pt_entry(p_addr, _flags );
 	if(paging_flag){
@@ -90,6 +90,7 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 }
 
 uint32_t virtual2physical(uint32_t v_addr){
+	v_addr = v_addr & 0xFFFFF000;
 	uint32_t pde = v_addr_to_pde(v_addr);
 	uint32_t pte = v_addr_to_pte(v_addr);
 	uint32_t i_pd_entry = current_page_directory[pde];

@@ -29,7 +29,6 @@ class CSPacket{
 		uint8_t buffer[128]; 
 };
 
-
 class CSProcess{
 	public:
 		CSProcess(pid_t pid);

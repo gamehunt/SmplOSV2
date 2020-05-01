@@ -74,7 +74,7 @@ int system(const char *str);
 void srand( unsigned seed );
 int rand( void );
 
-
+void mem_check();
 
 void fix_user_heap();
 #endif

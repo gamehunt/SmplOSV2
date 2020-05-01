@@ -51,7 +51,7 @@ int sig_child(){
 	}
 	in_exec = 0;
 	printf("\n[process exited]\n");
-	printf("[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
+	printf("[%s %d]>> ",(getcwd(cwdbuffer,256)?cwdbuffer:"ERROR"),getuid());
 	sys_sigexit();
 }
 
@@ -186,11 +186,11 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 int main(int argc,char** argv,char** envp){
 	uint8_t* cmd_buffer  = malloc(2048);
 	char cwd[256];
-	sys_signal(SIG_CHILD,sig_child);
+	//sys_signal(SIG_CHILD,sig_child);
 	
-	printf("Launched interactive shell session\n");
-	printf("[%s %d]>> ",getcwd(cwdbuffer,256)?cwdbuffer:"ERROR",getuid());
-	
+	printf("Launched interactive shell session\n\n");
+	printf("[%s %d]>> ",(getcwd(cwdbuffer,256)?cwdbuffer:"ERROR"),getuid());
+
 	while(1){
 		
 		uint32_t readen = 0;

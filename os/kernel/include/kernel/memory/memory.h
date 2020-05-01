@@ -31,7 +31,7 @@
 
 #define USER_STACK   	   0xC0000000
 #define USER_HEAP    0xD0000000
-#define USER_HEAP_SIZE 64*1024 //base 64 kib heap per process
+#define USER_HEAP_SIZE 256*1024 //base 64 kib heap per process
 
 #define KERNEL_PT_MAP 0xFFC00000
 #define ACPICA_BASE_ADDRESS 0x40000000
@@ -41,8 +41,8 @@
 
 #define KHEAP_GUARD_VALUE   0xED
 
-#define KERNEL_STACK_PER_PROCESS 8*4096
-#define USER_STACK_PER_PROCESS 16*4096
+#define KERNEL_STACK_PER_PROCESS 32*4096
+#define USER_STACK_PER_PROCESS 32*4096
 
 struct gdt_entry {
   uint16_t limit;

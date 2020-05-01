@@ -99,6 +99,7 @@ void init_symtable(){
 	symbol_export("vfs_set_flag",&vfs_set_flag);
 	symbol_export("vfs_check_flag",&vfs_check_flag);
 	symbol_export("vfs_clear_flag",&vfs_clear_flag);
+	symbol_export("dump_vfs",&dump_vfs);
 	
 	symbol_export("pipe_create",&pipe_create);
 	

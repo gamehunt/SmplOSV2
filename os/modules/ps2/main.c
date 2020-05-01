@@ -82,8 +82,8 @@ static uint8_t ps2_mouse = 0xFF;
 
 static uint8_t ms_pack_part = 0;
 
-fs_node_t* kbd_device;
-fs_node_t* mouse_dev;
+static fs_node_t* kbd_device = 0;
+static fs_node_t* mouse_dev = 0;
 
 uint8_t pack_bytes[3];//[0] =  yo|xo|ys|xs|ao|bm|br|bl [1] = xm [2] = ym
 
@@ -264,13 +264,14 @@ void ps2_map_devices(uint8_t dual){
 }
 
 void ps2_kbd_int_handler(regs_t regs){
-	//kinfo("KBD\n");
+	//kinfo("KBD: %s\n",kbd_device->name);
 	char scancode = inb(PS2_IOPORT_DATA);
 	kwrite(kbd_device,0,1,&scancode);
 	irq_end(ps2_kbd?1:12);
 }
 
 uint8_t init_ps2_kbd(){
+	asm("cli");
 	if(ps2_kbd == 0xFF){
 		kinfo("Keyboard not found!\n");
 		return 0;
@@ -296,16 +297,21 @@ uint8_t init_ps2_kbd(){
 	}else{
 		kinfo("Failed to get keyboard scancode set\n");
 	}
-	kbd_device = pipe_create("/dev/kbd",128);
+	pipe_create("/dev/kbd",128);
+	kbd_device = kopen("/dev/kbd");
 	irq_set_handler(ps2_kbd?1:12,ps2_kbd_int_handler);
 	ps2_device_send(ps2_kbd,PS2_KBD_CMD_ENABLE);
 	ps2_device_read();
+	kinfo("Keyboard initialized\n");
+	asm("sti");
 	//while(1);
 	return 1;
 }
 
 void ps2_mouse_int_handler(regs_t r){
+	
 	uint8_t byte = inb(PS2_IOPORT_DATA);
+	//return;
 	if(!ms_pack_part && !(byte & (1 << 3))){
 		goto end;
 	}
@@ -338,18 +344,20 @@ void ps2_mouse_int_handler(regs_t r){
 }
 
 uint8_t init_ps2_mouse(){
-	if(ps2_mouse == 0xFF){
+	//if(ps2_mouse == 0xFF){
 		kinfo("Mouse not found!\n");
 		return 0;
-	}
+	//}
 	asm("cli");
 	ps2_device_send(ps2_mouse,PS2_MS_CMD_DEFAULT);
 	ps2_device_read();
 	irq_set_handler(12,ps2_mouse_int_handler);
 	ps2_device_send(ps2_mouse,PS2_MS_CMD_ENABLE);
 	ps2_device_read();
-	mouse_dev = pipe_create("/dev/mouse",3072); //256 mouse packets
+	pipe_create("/dev/mouse",3072); //256 mouse packets
+	mouse_dev = kopen("/dev/mouse");
 	kinfo("Mouse initialized\n");
+
 	asm("sti");
 	return 1;
 }

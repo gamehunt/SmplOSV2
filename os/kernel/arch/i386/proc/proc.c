@@ -255,6 +255,7 @@ uint32_t free_pid(){
 proc_t* create_process(const char* name, proc_t* parent){
 	
 	kinfo("Allocating process structures\n");
+
 	
 	proc_t* new_proc = kmalloc(sizeof(proc_t));
 	memset(new_proc,0,sizeof(proc_t));
@@ -410,6 +411,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	//Here we manually manage memory blocks in user heap
 	if(argc){
 		allocation = USER_HEAP;
+		allocation->guard = KHEAP_GUARD_VALUE;
 		allocation->size =  sizeof(char*)*argc;
 		allocation->prev = 0xAABBCCDD;
 		allocation->next = 0xAABBCCDD;
@@ -417,6 +419,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		for(uint32_t i=0;i<argc;i++){
 			
 			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
+			allocation->guard = KHEAP_GUARD_VALUE;
 			allocation->size = strlen(argv_copy[i])+1;
 			allocation->prev = 0xAABBCCDD;
 			allocation->next = 0xAABBCCDD;
@@ -427,12 +430,14 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	}
 	if(envp){
 		allocation = argc?(mem_t*)((uint32_t)allocation + sizeof(mem_t)+ allocation->size):USER_HEAP;
+		allocation->guard = KHEAP_GUARD_VALUE;
 		allocation->size =  sizeof(char*)*envsize;
 		allocation->prev = 0xAABBCCDD;
 		allocation->next = 0xAABBCCDD;
 		usr_envp = (char**)((uint32_t)allocation + sizeof(mem_t));
 		for(uint32_t i=0;i<envsize;i++){
 			allocation = (mem_t*)((uint32_t)allocation + sizeof(mem_t) + allocation->size);
+			allocation->guard = KHEAP_GUARD_VALUE;
 			allocation->size = strlen(envp_copy[i])+1;
 			allocation->prev = 0xAABBCCDD;
 			allocation->next = 0xAABBCCDD;
@@ -589,7 +594,7 @@ void schedule(regs_t reg,uint8_t save){
 		}
 		
 		
-		//kinfo("Scheduling: %d\n",current_process->pid);
+	//	kinfo("Scheduling: %d\n",current_process->pid);
 		
 		if(current_process){
 			if(current_process->in_sig){
@@ -675,7 +680,9 @@ void process_fswait(proc_t* proc,fs_node_t** nodes, uint32_t cnt){
 		proc->fswait_nodes = nodes;
 		proc->fswait_nodes_cnt = cnt;
 		for(uint32_t i=0;i<proc->fswait_nodes_cnt;i++){
-			pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs
+			if(validate(proc->fswait_nodes[i])){
+				pipe_add_waiter(proc->fswait_nodes[i],proc); //TODO select_fs
+			}
 		}
 		if(proc->status == PROC_READY){
 			ready_remove(proc);

@@ -10,7 +10,7 @@ std::vector<CSProcess*> CServer::processes;
 int CServer::Init(const char* path){
 	server_pipe = fopen(path,"r");
 	if(!server_pipe){
-		sys_pipe((char*)path,4096);
+		sys_pipe((char*)path,50*1024);
 	}else{
 		fclose(server_pipe);
 	}
@@ -19,6 +19,7 @@ int CServer::Init(const char* path){
 		sys_echo("[CSRV] Failed to open server!\n");
 		return 1;
 	}
+//	sys_echo("Server FD: %d\n",server_pipe->fd);
 	char sock_path[128];
 	sprintf(sock_path,"/proc/%d/cssock",getpid());
 	client_pipe = fopen(sock_path,"r");
@@ -34,10 +35,12 @@ int CServer::Init(const char* path){
 }
 
 void CServer::C_SendPacket(CSPacket* packet){
+		//sys_echo("C_SendPacket\n");
 		if(server_pipe){
 			if(!fwrite(packet,sizeof(CSPacket),1,server_pipe)){
 				//printf("Failed to send packet: unknown write failure\n");
-				sys_echo("[CSRV] Failed to send packet: unknown write failure\n");
+				sys_echo("[CSRV] Failed to send packet: unknown write failure in %d\n",getpid());
+				sys_echo("[CSRV] Server_pipe: %d\n",server_pipe->fd);
 			}
 			rewind(server_pipe);
 		}else{
