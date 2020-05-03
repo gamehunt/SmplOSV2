@@ -2,6 +2,31 @@
 #include <unistd.h>
 #include <cstring>
 
+const char* art = "   #@@@@@@@@                            &@@@@@@@&   \n"          
+                  "     @@@@@@@@@                        ,@@@@@@@@     \n"          
+                  "       @@@@@@@@                      @@@@@@@@,      \n"          
+                  "        #@@@@@@@@                  &@@@@@@@&        \n"          
+                  "          @@@@@@@@@              *@@@@@@@@          \n"          
+                  "            @@@@@@@@            @@@@@@@@,           \n"          
+                  "             #@@@@@@@@        &@@@@@@@~             \n"          
+                  "               @@@@@@@@(    @@@@@@@@@               \n"          
+                  "                .@@@@@@@@. @@@@@@@@,                \n"          
+                  "                  #@@@@@@@@@@@@@@~                  \n"          
+                  "                    @@@@@@@@@@@@                    \n"          
+                  "                    ,@@@@@@@@@*                     \n"          
+                  "                   @@@@@@@@@@@@@                    \n"          
+                  "                 ~@@@@@@@@@@@@@@@#                  \n"          
+                  "               ,@@@@@@@@  .@@@@@@@@.                \n"          
+                  "              @@@@@@@@*     #@@@@@@@@               \n"          
+                  "            ~@@@@@@@&         @@@@@@@@#             \n"          
+                  "          ,@@@@@@@@            .@@@@@@@@.           \n"          
+                  "         @@@@@@@@,               ~@@@@@@@@          \n"          
+                  "       &@@@@@@@&                   @@@@@@@@(        \n"          
+                  "     ,@@@@@@@@                      ,@@@@@@@@       \n"          
+                  "    @@@@@@@@,                         ~@@@@@@@@     \n"          
+                  "  &@@@@@@@&                             @@@@@@@@*   \n"          
+                  ",@@@@@@@@                                ,@@@@@@@@  \n"; 
+
 int main(){
 	CServer::C_InitClient();
 	
@@ -22,15 +47,17 @@ int main(){
 	((uint32_t*)p->GetBuffer())[3] = 1024;
 	((uint32_t*)p->GetBuffer())[4] = 768;
 	CServer::C_SendPacket(p);
-	while(1){
+	int iter = 0;
+	while(iter < strlen(art)){
 		((uint32_t*)p->GetBuffer())[1] = WIDGET_PACK_UPD;
 		((uint32_t*)p->GetBuffer())[2] = 0;
 		char* text = reinterpret_cast<char*>(&(((uint32_t*)p->GetBuffer())[3]));
-		const char* str = "ABC";
+		memset(text,0,128);
+		const char* str = &art[iter];
 		text[0] = 0;
-		std::memcpy(text+1,str,strlen(str));
+		std::memcpy(text+1,str,127);
+		iter+=127;
 		CServer::C_SendPacket(p);
-		//sys_yield();
 	}
 	while(1);
 	return 0;

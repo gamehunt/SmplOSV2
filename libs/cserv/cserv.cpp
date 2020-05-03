@@ -39,11 +39,11 @@ void CServer::C_SendPacket(CSPacket* packet){
 		if(server_pipe){
 			if(!fwrite(packet,sizeof(CSPacket),1,server_pipe)){
 				//printf("Failed to send packet: unknown write failure\n");
-				sys_echo("[CSRV] Failed to send packet: unknown write failure in %d\n",getpid());
+				sys_echo("[CSRV] Failed to send packet: unknown write failure in %d; Server overloaded?\n",getpid());
 				sys_echo("[CSRV] Server_pipe: %d\n",server_pipe->fd);
 			}
 			rewind(server_pipe);
-			sys_yield();
+			//sys_yield();
 		}else{
 				//printf("Failed to send packet: cserver not available\n");
 				sys_echo("[CSRV] Failed to send packet: cserver not available\n");
