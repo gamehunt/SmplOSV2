@@ -249,14 +249,25 @@ uint32_t sys_sbrk(uint32_t size,uint32_t a,uint32_t b,uint32_t c,uint32_t d){
 	UNUSED(c);
 	UNUSED(d);
 	
-	proc_t* proc = get_current_process();
 	
-	for(uint32_t i=0;i<size;i+=4096){
-		knpalloc((uint32_t)proc->heap + proc->heap_size);
-		proc->heap_size += 4096;
+	
+	uint32_t frame = kfalloc();
+	thread_group_t* group = get_current_process()->group;
+	
+	for(uint32_t i=0;i<group->group_size;i++){
+		if(!group->processes[i]){
+			continue;
+		}
+		proc_t* proc = group->processes[i];
+		//kinfo("SBRK FOR %s(%d)\n",proc->name,proc->pid);
+		for(uint32_t i=0;i<size;i+=4096){
+			set_page_directory(proc->pdir,0);
+			kmpalloc((uint32_t)proc->heap + proc->heap_size,frame,0);
+			proc->heap_size += 4096;
+		}
 	}
-	
-	return proc->heap;
+	set_page_directory(get_current_process()->pdir,0);
+	return get_current_process()->heap;
 }
 
 uint32_t sys_assign(uint32_t fd_dest,uint32_t fd_src,uint32_t a,uint32_t b,uint32_t c){
@@ -469,11 +480,11 @@ uint32_t sys_prior(uint32_t req, uint32_t who,uint32_t which,uint32_t prior,uint
 	if(req){
 		if(!get_current_process()->uid){
 			ready_remove(get_current_process());
-			get_current_process()->priority = prior;
+			get_current_process()->group->priority = prior;
 			ready_insert(get_current_process());
 		}
 	}else{
-		return get_current_process()->priority;
+		return get_current_process()->group->priority;
 	}
 	return 0;
 }

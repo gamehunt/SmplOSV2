@@ -34,6 +34,8 @@ void libc_init(int argc, char** argv, char** envp){
 	sprintf(path,"/proc/%d/stdin",getpid());
 	sys_open(path,F_READ);
 	int resp = main(argc,argv,envp);
+	//sys_echo("Exiting 1...");
 	sys_sleep(2);
+	//sys_echo("Exiting 2...");
 	exit(resp);
 }

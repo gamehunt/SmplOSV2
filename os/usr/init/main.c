@@ -30,7 +30,7 @@ int main(){
 	//TODO this should be readen from some file
 	execv("/usr/bin/cserv.smp",0);
 	while(!cserv_exec); //Wait unitl cserver send us SIGCHILD
-	execv("/usr/bin/term.smp",0);
+	execv("/usr/bin/ctst.smp",0);
 	
 	while(1);
 	return 0;

@@ -129,7 +129,7 @@ uint32_t pipe_write(fs_node_t* node,uint64_t offset, uint32_t size, uint8_t* buf
 	}
 	
 	if(!validate(buffer)){
-		kerr("Tried to write from invalid buffer %p!\n",buffer);
+	//	kerr("Tried to write from invalid buffer %p!\n",buffer);
 		//while(1);
 		//return 0;
 	}

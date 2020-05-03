@@ -207,7 +207,7 @@ uint32_t* kmalloc(uint32_t size){
 //frees memory. 
 void kfree(uint32_t* addr){
 
-	//return;
+	return;
 
 	if(!VALIDATE(addr)){
 		return;

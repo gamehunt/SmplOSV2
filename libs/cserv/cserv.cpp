@@ -10,7 +10,7 @@ std::vector<CSProcess*> CServer::processes;
 int CServer::Init(const char* path){
 	server_pipe = fopen(path,"r");
 	if(!server_pipe){
-		sys_pipe((char*)path,50*1024);
+		sys_pipe((char*)path,1000*132);
 	}else{
 		fclose(server_pipe);
 	}
@@ -43,10 +43,12 @@ void CServer::C_SendPacket(CSPacket* packet){
 				sys_echo("[CSRV] Server_pipe: %d\n",server_pipe->fd);
 			}
 			rewind(server_pipe);
+			sys_yield();
 		}else{
 				//printf("Failed to send packet: cserver not available\n");
 				sys_echo("[CSRV] Failed to send packet: cserver not available\n");
 		}
+		
 }
 
 FILE* CServer::GetServerPipe(){

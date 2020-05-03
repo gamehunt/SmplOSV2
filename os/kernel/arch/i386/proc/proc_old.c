@@ -13,6 +13,8 @@
 
 static proc_t* processes[MAX_PROCESSES];
 
+static proc_t* ready_procs_high[MAX_PROCESSES]; //Move this to separate type, really
+static proc_t* ready_procs_low[MAX_PROCESSES];
 static proc_t* killed_procs[MAX_PROCESSES];
 static proc_t* sleep_procs[MAX_PROCESSES];
 
@@ -20,107 +22,102 @@ static proc_t* current_process =0;
 static proc_t* init_process = 0;
 static uint32_t total_prcs = 0;
 
+static uint32_t ready_procs_pointer_high = 0;
+static uint32_t ready_procs_pointer_low  = 0;
+
+static uint32_t ready_procs_size_high = 0;
+static uint32_t ready_procs_size_low  = 0;
+
 static uint32_t sleep_procs_size = 0;
 static uint32_t killed_procs_size = 0;
 
 static sig_t* proc_signals[MAX_SIG];
-
-static thread_group_t* groups[MAX_PROCESSES];
-static uint32_t groups_size = 0;
-static uint32_t groups_ptr = 0;
 
 #define PUSH(esp,type,value)\
 	 esp -= sizeof(type);\
 	*((type*)esp) = value; \
 	 
 
-thread_group_t* get_group(uint8_t prior){
-	if(groups_size == 0){
+proc_t* get_ready_high(){
+	if(ready_procs_size_high == 0){
 		return 0;
 	}
-	uint32_t first = groups_ptr;
-	thread_group_t* gr = 0;
-	while(!gr || gr->priority != prior || !gr->ready_count){
-		gr = groups[groups_ptr];
-		groups_ptr++;
-		if(groups_ptr >= groups_size){
-			groups_ptr = 0;
+	uint32_t first = ready_procs_pointer_high;
+	proc_t* proc = 0;
+	while(!proc){
+		proc = ready_procs_high[ready_procs_pointer_high];
+		ready_procs_pointer_high++;
+		if(ready_procs_pointer_high >= ready_procs_size_high){
+			ready_procs_pointer_high = 0;
 		}
-		if(first == groups_ptr){
+		if(first == ready_procs_pointer_high){
 			break;
 		}
 	}
-	if(gr && gr->priority == prior && gr->ready_count){
-		return gr;
-	}
-	return 0;
+	return proc;
 }
 
-proc_t* get_ready(){
-	
-	thread_group_t* grp = get_group(PROC_PRIORITY_HIGH);
-	if(!grp){
-		grp = get_group(PROC_PRIORITY_LOW);
-		if(!grp){
-			return 0;
-		}
+
+proc_t* get_ready_low(){
+	if(ready_procs_size_low == 0){
+		return 0;
 	}
-	
-	proc_t** queue = grp->queue;
-	uint32_t ptr = grp->pointer;
-	
-	uint32_t first = ptr;
-	
+	uint32_t first = ready_procs_pointer_low;
 	proc_t* proc = 0;
-	
 	while(!proc){
-		proc = queue[ptr];
-		ptr++;
-		if(ptr>=grp->queue_size){
-			ptr=0;
+		//kinfo("Testing %d(%d)\n",ready_procs_pointer_low,ready_procs_size_low);
+		proc = ready_procs_low[ready_procs_pointer_low];
+		//kinfo("At %d: %p(%s)\n",ready_procs_pointer_low,proc,(proc?proc->name:"none"));
+		ready_procs_pointer_low++;
+		if(ready_procs_pointer_low >= ready_procs_size_low){
+			ready_procs_pointer_low = 0;
 		}
-		if(ptr==first){
+		if(first == ready_procs_pointer_low){
 			break;
 		}
 	}
-	
-	grp->pointer = ptr;
-	
 	return proc;
 }
 
 void ready_insert(proc_t* proc){
 	proc->status = PROC_READY;
-	proc_t** queue = proc->group->queue;
-	proc->group->ready_count++;
-	for(uint32_t i=0;i<proc->group->queue_size;i++){
-		if(!queue[i]){
-			proc->queue_idx = i;
-			queue[i] = proc;
-			return;
+	if(proc->priority == PROC_PRIORITY_HIGH){
+		for(uint32_t i =0;i<ready_procs_size_high;i++){
+			if(!ready_procs_high[i]){
+				ready_procs_high[i]= proc;
+				proc->queue_idx = i;
+				return;
+			}
+		}
+		if(ready_procs_size_high < MAX_PROCESSES){
+			proc->queue_idx = ready_procs_size_high;
+			ready_procs_high[ready_procs_size_high] = proc;
+			ready_procs_size_high++;
+		}
+	}else{
+		for(uint32_t i =0;i<ready_procs_size_low;i++){
+			if(!ready_procs_low[i]){
+				ready_procs_low[i]= proc;
+				proc->queue_idx = i;
+				return;
+			}
+		}
+		if(ready_procs_size_low < MAX_PROCESSES){
+//			kinfo("Inserted %s: %d\n",proc->name,ready_procs_size_low);
+			proc->queue_idx = ready_procs_size_low;
+			ready_procs_low[ready_procs_size_low] = proc;
+			ready_procs_size_low++;
 		}
 	}
-	
-	proc->group->queue_size+=1;
-	proc->group->queue = krealloc(proc->group->queue,proc->group->queue_size*sizeof(proc_t*));
-	proc->group->queue[proc->group->queue_size-1] = proc;
-	proc->queue_idx = proc->group->queue_size-1;
-}
-
-void group_insert(proc_t* proc){
-	thread_group_t* gr= proc->group;
-	gr->processes = krealloc(gr->processes,(gr->group_size+1)*(sizeof(proc_t*)));
-	gr->processes[gr->group_size] = proc;
-	gr->group_size++;
-}
-
-void group_remove(proc_t* proc){
-	//TODO?
 }
 
 void ready_remove(proc_t* proc){
-	proc->group->ready_count--;
-	proc->group->queue[proc->queue_idx] = 0;
+	if(proc->priority == PROC_PRIORITY_HIGH){
+		ready_procs_high[proc->queue_idx] = 0;
+	}else{
+//		kinfo("Removed %s from ready\n",proc->name);
+		ready_procs_low[proc->queue_idx] = 0;
+	}
 }
 
 void wait_insert(proc_t* proc){
@@ -278,16 +275,6 @@ proc_t* create_process(const char* name, proc_t* parent){
 	memset((uint32_t)new_proc->thread->kernel_stack-KERNEL_STACK_PER_PROCESS,0,KERNEL_STACK_PER_PROCESS);
 	set_page_directory(cpdir,0);
 	
-	new_proc->group = kmalloc(sizeof(thread_group_t));
-	memset(new_proc->group,0,sizeof(thread_group_t));
-	new_proc->group->queue = kmalloc(sizeof(proc_t*));
-	new_proc->group->processes = kmalloc(sizeof(proc_t*));
-	new_proc->group->processes[0] = new_proc;
-	new_proc->group->group_size++;
-	new_proc->group->queue[0] = 0;
-	new_proc->group->priority = PROC_PRIORITY_LOW;
-	groups[groups_size] = new_proc->group;
-	groups_size++;
 	
 	uint32_t pid = free_pid();
 	if(!pid){
@@ -312,6 +299,9 @@ proc_t* create_process(const char* name, proc_t* parent){
 	memset(path,0,64);
 	sprintf(path,"/proc/%d/stdin",new_proc->pid);
 	pipe_create(path,256); 
+	
+	new_proc->priority = parent?parent->priority:PROC_PRIORITY_LOW;
+	
 	new_proc->sig_stack_esp = -1;
 	
 	new_proc->uid = parent?parent->uid:PROC_ROOT_UID;
@@ -371,7 +361,6 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		return 0;
 	}
 	kinfo("Creating process from node %s; args: %p %p\n",node->name,argv,envp);
-	
 	uint8_t* buffer = kmalloc(node->size); //TODO load only header
 	if(!kread(node,0,node->size,buffer)){
 		kerr("Failed to read exec file\n");
@@ -492,7 +481,7 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 		jump_usermode(entry);
 	}
 	
-	
+
 	
 	
 	return proc;
@@ -535,7 +524,6 @@ void clean_process(proc_t* proc){
 	}
 	kinfo("Cleaning process: %s(%d) - %p - pwait=%d\n",proc->name,proc->pid,proc,proc->pwait);
 
-	group_remove(proc);
 	//kffree(processes[proc->pid]->state->cr3);
 	kvfree(processes[proc->pid]->thread->kernel_stack);
 	kfree(processes[proc->pid]->thread->state);
@@ -594,13 +582,21 @@ void schedule(regs_t reg,uint8_t save){
 				save_ctx(current_process->thread->state,reg);
 			}
 		}
+		proc_t* high = get_ready_high();
+		proc_t* low  = get_ready_low();
 		
-		proc_t* old = current_process;
-		current_process = get_ready();
-		if(!current_process){
-			current_process = old;
+		if(high){
+			//kinfo("Scheduling high\n");
+			current_process = high;	
+		}else if(low){
+			//kinfo("Scheduling low\n");
+			
+			current_process = low;
 		}
-
+		
+		
+	//	kinfo("Scheduling: %d\n",current_process->pid);
+		
 		if(current_process){
 			if(current_process->in_sig){
 				setup_ctx(current_process->signal_state,reg,current_process->pdir,current_process->thread->kernel_stack);
@@ -854,8 +850,7 @@ void process_create_thread(proc_t* parent,uint32_t entry){
 	new->pid = pid;
 	new->thread = kmalloc(sizeof(thread_t));
 	memset(new->thread,0,sizeof(thread_t)); //TODO calloc for setting memory to zero on allocation
-	new->group = parent->group;
-	group_insert(new);
+	
 	set_page_directory(kernel_page_directory,0);
 	new->pdir = copy_page_directory(parent->pdir);
 	set_page_directory(new->pdir,0);

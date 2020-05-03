@@ -37,6 +37,7 @@ FILE* stderr = &_stderr;
 
 size_t fwrite(const void* ptr, size_t sz, size_t block_count, FILE* f){
 	if(f->eof){
+	//	sys_echo("EOF\n");
 		return 0;
 	}
 	uint32_t real_size = sz * block_count;

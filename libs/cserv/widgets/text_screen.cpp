@@ -7,23 +7,37 @@ void CSTextScreenWidget::Draw(){
 	int lx = 0;
 	int ly = 0;
 	for(char c : text){
-		//sys_echo("%d %d\n",sx,sy);
+	//	sys_echo("%d %d\n",sx,sy);
 		if(ly >= sy){
 			break;
 		}
 		if(c == '\t'){
 			lx += 30;
+			if(lx >= sx){
+				lx = 0;
+				ly += 20;
+				if(ly >= sy){
+					break;
+				}
+			}
 		}else if(c == '\n'){
 			lx = 0;
 			ly += 20;
+			if(ly >= sy){
+				break;
+			}
 		}else{
 			lx+=10;
+			if(lx >= sx){
+				lx = 0;
+				ly += 20;
+				if(ly >= sy){
+					break;
+				}
+			}
 			fb_char(c,x+lx,y+ly,0x00FFFFFF,0x00000000);
 		}
-		if(lx >= sx){
-			lx = 0;
-			ly += 20;
-		}
+		
 	}
 }
 

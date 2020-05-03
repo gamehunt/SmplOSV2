@@ -53,8 +53,22 @@ typedef struct{
 	uint32_t kernel_stack;
 }thread_t;
 
+
+struct process;
+
+typedef struct{
+	uint8_t priority;
+	struct process** processes;
+	struct process** queue;
+	uint32_t pointer;
+	uint32_t ready_count;
+	uint32_t queue_size;
+	uint32_t group_size;
+}thread_group_t;
+
 struct process{
 	uint32_t pid;
+	thread_group_t* group;
 	char name[64];
 	fs_node_t* node;
 	thread_t* thread;
@@ -65,7 +79,6 @@ struct process{
 	uint32_t* sig_stack; //stack of signals
 	long      sig_stack_esp;
 	uint8_t in_sig; //Are we handling signal?
-	uint8_t priority;
 	uint8_t* heap;
 	uint32_t heap_size;
 	uint8_t sig_ret_state; //Status to which we return after signal;

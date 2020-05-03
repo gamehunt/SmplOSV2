@@ -48,16 +48,20 @@ void term_scroll(){
 
 void term_putchar(char c){
 	//sys_echo("Putting %c(%d)\n",c,c);
-	screen_buffer[ty*X_CELL_RES + tx] = c;
-	tx++;
-	if(tx >= X_CELL_RES){
-		tx = 0;
-		ty++;
-	}
-	if(ty >= Y_CELL_RES){
-		//TODO
-	}
-
+		screen_buffer[ty*X_CELL_RES + tx] = c;
+//	if(c=='\n'){
+//		ty++;
+//		tx = 0;
+//	}else{
+		tx++;
+		if(tx >= X_CELL_RES){
+			tx = 0;
+			ty++;
+		}
+		if(ty >= Y_CELL_RES){
+			//TODO
+		}
+//	}
 	
 }
 
@@ -89,6 +93,8 @@ int term_init(int argc,char** argv){
 	((uint32_t*)p->GetBuffer())[4] = 768;
 	CServer::C_SendPacket(p);
 	delete p;
+	
+	//memset(screen_buffer,0,X_CELL_RES*Y_CELL_RES);
 	
 	tx = 0;
 	ty = 0;
@@ -151,7 +157,7 @@ int main(int argc, char** argv){
 		
 		uint32_t who = sys_fswait(fds,2);
 		
-		if(!who){
+		//if(!who){
 			//sys_echo("INPUT\n");
 			uint32_t readen = fread(buffer,1,256,stdin);
 			while(readen){
@@ -160,16 +166,16 @@ int main(int argc, char** argv){
 				}
 				readen = fread(buffer,1,256,stdin);
 			}
-		}else{
-		
-			uint32_t readen = fread(buffer,1,256,second_in);
+		//}else{
+		memset(buffer,0,256);
+			readen = fread(buffer,1,256,second_in);
 			while(readen){
 				for(uint32_t i=0;i<readen;i++){
 					term_putchar(buffer[i]);
 				}
 				readen = fread(buffer,1,256,second_in);
 			}
-		}
+		//}
 		
 		CSPacket* p = new CSPacket(CS_TYPE_WIDGET);
 		((uint32_t*)p->GetBuffer())[0] = getpid();
