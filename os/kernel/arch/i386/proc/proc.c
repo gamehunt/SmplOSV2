@@ -34,6 +34,22 @@ static uint32_t groups_ptr = 0;
 	*((type*)esp) = value; \
 	 
 
+void add_group(thread_group_t* group){
+	for(uint32_t i=0;i<groups_size;i++){
+		if(!groups[i]){
+			groups[i] = group;
+			group->gid = i;
+			return;
+		}
+	}
+	groups[groups_size] = group;
+	groups_size++;
+}
+
+void remove_group(thread_group_t* group){
+	groups[group->gid] = 0;
+}
+
 thread_group_t* get_group(uint8_t prior){
 	if(groups_size == 0){
 		return 0;
@@ -109,13 +125,29 @@ void ready_insert(proc_t* proc){
 
 void group_insert(proc_t* proc){
 	thread_group_t* gr= proc->group;
+	gr->proc_count++;
+	for(uint32_t i=0;i<gr->group_size;i++){
+		if(!gr->processes[i]){
+			gr->processes[i] = proc;
+			proc->gid = i;
+			return;
+		}
+	}
 	gr->processes = krealloc(gr->processes,(gr->group_size+1)*(sizeof(proc_t*)));
 	gr->processes[gr->group_size] = proc;
+	proc->gid = gr->group_size;
 	gr->group_size++;
 }
 
 void group_remove(proc_t* proc){
-	//TODO?
+	thread_group_t* gr = proc->group;
+	gr->proc_count--;
+	if(gr->proc_count <= 0){
+		remove_group(gr);
+		kfree(gr);
+	}else{
+		gr->processes[proc->gid] = 0;
+	}
 }
 
 void ready_remove(proc_t* proc){
@@ -286,8 +318,7 @@ proc_t* create_process(const char* name, proc_t* parent){
 	new_proc->group->group_size++;
 	new_proc->group->queue[0] = 0;
 	new_proc->group->priority = PROC_PRIORITY_LOW;
-	groups[groups_size] = new_proc->group;
-	groups_size++;
+	add_group(new_proc->group);
 	
 	uint32_t pid = free_pid();
 	if(!pid){
@@ -335,6 +366,8 @@ proc_t* create_process(const char* name, proc_t* parent){
 	new_proc->heap_size = USER_HEAP_SIZE;
 	kralloc(USER_STACK,USER_STACK+USER_STACK_PER_PROCESS);
 	
+	kralloc(SHARED_MEMORY_START,SHARED_MEMORY_END);
+	
 	if(current_process){
 		set_page_directory(current_process->pdir,0);
 	}
@@ -353,6 +386,8 @@ proc_t* create_process(const char* name, proc_t* parent){
 		parent->childs[parent->child_count-1] = new_proc;
 		new_proc->parent = parent;
 	}
+	
+	
 	processes[new_proc->pid] = new_proc;
 	total_prcs++;
 	ready_insert(new_proc);
@@ -878,3 +913,41 @@ void process_create_thread(proc_t* parent,uint32_t entry){
 	
 	kinfo("Thread created in %s with entry %p - %d\n",parent->name,entry,pid);
 }
+
+uint32_t process_create_shared(proc_t* proc,uint32_t buffer_size){
+	if(!proc->shmem_size){
+		proc->shmem_blocks = kmalloc(sizeof(shmem_block_t*));
+	}else{
+		proc->shmem_blocks = krealloc(proc->shmem_blocks,sizeof(shmem_block_t*)*(proc->shmem_size+1));
+	}
+	proc->shmem_blocks[proc->shmem_size] = kmalloc(sizeof(shmem_block_t));
+	shmem_block_t* block = proc->shmem_blocks[proc->shmem_size];
+	proc->shmem_size++;
+	block->size = buffer_size;
+	block->offset = proc->shmem_bytes - SHARED_MEMORY_START;
+	proc->shmem_bytes += buffer_size;
+	return proc->shmem_size-1;
+}
+shmem_block_t* process_get_shared(proc_t* proc,uint32_t id){
+	if(id < proc->shmem_size){
+		return proc->shmem_blocks[id];
+	}
+	return 0;
+}
+void process_reset_shmem(proc_t* proc){
+	for(uint32_t i=0;i<proc->shmem_size;i++){
+		kfree(proc->shmem_blocks[i]);
+	}
+	kfree(proc->shmem_blocks);
+	proc->shmem_size = 0;
+	kralloc(SHARED_MEMORY_START,SHARED_MEMORY_END);
+}
+
+uint32_t process_open_shmem(proc_t* proc,proc_t* target,uint32_t id){
+	shmem_block_t* bl = process_get_shared(target,id);
+	uint32_t id1 = process_create_shared(proc,bl->size);
+	shmem_block_t* own_bl = process_get_shared(proc,id1);
+	copy_region(target->pdir,proc->pdir,SHARED_MEMORY_START+bl->offset,bl->size,SHARED_MEMORY_START+own_bl->offset);
+	return id1;
+}
+

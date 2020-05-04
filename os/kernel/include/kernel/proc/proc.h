@@ -57,6 +57,7 @@ typedef struct{
 struct process;
 
 typedef struct{
+	uint32_t gid;
 	uint8_t priority;
 	struct process** processes;
 	struct process** queue;
@@ -64,11 +65,19 @@ typedef struct{
 	uint32_t ready_count;
 	uint32_t queue_size;
 	uint32_t group_size;
+	uint32_t proc_count;
 }thread_group_t;
+
+typedef struct{
+	uint32_t size;
+	uint32_t offset;
+}shmem_block_t;
+
 
 struct process{
 	uint32_t pid;
 	thread_group_t* group;
+	uint32_t gid;
 	char name[64];
 	fs_node_t* node;
 	thread_t* thread;
@@ -95,6 +104,9 @@ struct process{
 	fs_node_t* work_dir;
 	uint32_t uid; //User id
 	uint32_t sleep_time; //TIme until awake (usually delta in sleep queue);
+	shmem_block_t** shmem_blocks;
+	uint32_t shmem_size;
+	uint32_t shmem_bytes;
 };
 
 typedef struct process proc_t;
@@ -129,3 +141,8 @@ void exit_sig(proc_t* proc);
 void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig);
 
 void process_create_thread(proc_t* parent,uint32_t entry);
+
+uint32_t process_create_shared(proc_t* proc,uint32_t buffer_size);
+shmem_block_t* process_get_shared(proc_t* proc,uint32_t id);
+uint32_t process_open_shmem(proc_t* proc,proc_t* target,uint32_t id);
+void  process_reset_shmem(proc_t* proc);

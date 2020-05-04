@@ -287,3 +287,16 @@ void init_paging(){
 uint8_t validate(uint32_t ptr){
 	return (ptr != 0) && (virtual2physical(ptr) != 0);
 }
+
+void copy_region(uint32_t pd1,uint32_t pd2,uint32_t region_start,uint32_t size,uint32_t fin_start){
+	uint32_t aligned_start = region_start & 0xFFFFF000;
+	uint32_t aligned_end   = (region_start + size) & 0xFFFFF000 + 0x1000;
+	uint32_t cpd = current_page_directory;
+	for(uint32_t i=aligned_start;i<aligned_end;i+=4096){
+		set_page_directory(pd1,0);
+		uint32_t frame = virtual2physical(aligned_start);
+		set_page_directory(pd2,0);
+		kmpalloc(fin_start+i-aligned_start,frame,0);
+	}
+	set_page_directory(cpd,0);
+}

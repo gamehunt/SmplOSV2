@@ -15,34 +15,37 @@
 
 #include <kernel/misc/stat.h>
 
-#define PAGE_PRESENT   0x1
-#define PAGE_RW        0x2
-#define PAGE_USER      0x4
-#define PAGE_WTHROUGH  0x8
-#define PAGE_D_NOCACHE 0x10
-#define PAGE_CACHED    0x10
-#define PAGE_ACCESSED  0x20
-#define PAGE_DIRTY     0x40
-#define PAGE_SIZE      0x80
+#define PAGE_PRESENT             0x1
+#define PAGE_RW                  0x2
+#define PAGE_USER                0x4
+#define PAGE_WTHROUGH            0x8
+#define PAGE_D_NOCACHE           0x10
+#define PAGE_CACHED              0x10
+#define PAGE_ACCESSED            0x20
+#define PAGE_DIRTY               0x40
+#define PAGE_SIZE                0x80
 
-#define KHEAP_START 0x02000000
-#define KHEAP_END   0x20000000
-#define KHEAP_SIZE  (KHEAP_END-KHEAP_START)
+#define KHEAP_START              0x02000000
+#define KHEAP_END                0x20000000
+#define KHEAP_SIZE               (KHEAP_END-KHEAP_START)
 
-#define USER_STACK   	   0xC0000000
-#define USER_HEAP    0xD0000000
-#define USER_HEAP_SIZE 256*1024 //base 64 kib heap per process
+#define USER_STACK   	        0xC0000000
+#define USER_HEAP                0xD0000000
+#define USER_HEAP_SIZE           256*1024 //base 64 kib heap per process
 
-#define KERNEL_PT_MAP 0xFFC00000
-#define ACPICA_BASE_ADDRESS 0x40000000
-#define DMA_REGION_START    0x30000000 //Physical frame
-#define DMA_REGION_SIZE     1024*1024  //1MB
-#define DMA_REGION_BLOCK    64*1024
+#define KERNEL_PT_MAP            0xFFC00000
+#define ACPICA_BASE_ADDRESS      0x40000000
+#define DMA_REGION_START         0x30000000 //Physical frame
+#define DMA_REGION_SIZE          1024*1024  //1MB
+#define DMA_REGION_BLOCK         64*1024
 
-#define KHEAP_GUARD_VALUE   0xED
+#define KHEAP_GUARD_VALUE        0xED
 
 #define KERNEL_STACK_PER_PROCESS 32*4096
-#define USER_STACK_PER_PROCESS 32*4096
+#define USER_STACK_PER_PROCESS   32*4096
+
+#define SHARED_MEMORY_START      0xEA000000
+#define SHARED_MEMORY_END        0xEB000000
 
 struct gdt_entry {
   uint16_t limit;
@@ -104,6 +107,8 @@ struct mem_block{
 }__attribute__((packed));
 typedef struct mem_block mem_t;
 
+
+
 uint32_t* kernel_page_directory;
 uint32_t* current_page_directory;
 extern void enable_paging();
@@ -138,7 +143,8 @@ void kpfree_virtual(uint32_t v_addr);
 void kfree(uint32_t* addr);
 //frees aligned memory.
 void kvfree(uint32_t* addr);
-
+//Allocates region
+void kralloc(uint32_t region_start,uint32_t region_end);
 //allocates aligned memory !! Wastes lot's of memory if alignment is large
 uint32_t* kvalloc(uint32_t size,uint32_t alignment);
 
@@ -156,4 +162,7 @@ void pmm_free_dma(uint32_t frame);
 
 void mem_check();
 
-void kralloc(uint32_t region_start,uint32_t region_end);
+//Copies virtual region of pd1 to pd2
+void copy_region(uint32_t pd1,uint32_t pd2,uint32_t region_start,uint32_t size,uint32_t fin_start);
+
+

@@ -498,6 +498,32 @@ uint32_t sys_thread(uint32_t entry, uint32_t a,uint32_t b,uint32_t c,uint32_t d)
 	process_create_thread(get_current_process(),entry);
 	return 0;
 }
+uint32_t sys_shmem_create(uint32_t size, uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
+	
+	return process_create_shared(get_current_process(),size);
+}
+uint32_t sys_shmem_open(uint32_t pid, uint32_t sh_id,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	
+	
+	return process_open_shmem(get_current_process(),get_process_by_pid(pid),sh_id);;
+}
+uint32_t sys_shmem_reset(uint32_t e, uint32_t a,uint32_t b,uint32_t c,uint32_t d){
+	UNUSED(a);
+	UNUSED(b);
+	UNUSED(c);
+	UNUSED(d);
+	UNUSED(e);
+	process_reset_shmem(get_current_process());
+	return 0;
+}
 
 void init_syscalls(){
 	isr_set_handler(127,&syscall_handler);
@@ -534,4 +560,7 @@ void init_syscalls(){
 	register_syscall(SYS_FSSTAT,&sys_fstat);
 	register_syscall(SYS_PRIOR,&sys_prior);
 	register_syscall(SYS_THREAD,&sys_thread);
+	register_syscall(SYS_SHMEM_CREATE,&sys_shmem_create);
+	register_syscall(SYS_SHMEM_OPEN,&sys_shmem_open);
+	register_syscall(SYS_SHMEM_RESET,&sys_shmem_reset);
 }
