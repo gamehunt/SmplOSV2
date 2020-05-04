@@ -7,6 +7,8 @@
 #define CS_TYPE_WIDGET           5
 #define CS_TYPE_MOUSE            6
 
+#define CS_PACK_FLAG_EXTENDED    1
+
 
 #include <vector>
 
@@ -21,11 +23,13 @@ class CSPacket{
 		CSPacket(int type);
 		~CSPacket();
 		uint8_t* GetBuffer();
-		void ResizePacket(int new_size);
 		int GetType();
+		uint8_t GetFlags();
+		void SetFlags(uint8_t new_flags);
 		static CSPacket* CreatePacket(int type);
 	private:
 		int type;
+		uint8_t flags;
 		uint8_t buffer[128]; 
 };
 

@@ -507,13 +507,16 @@ uint32_t sys_shmem_create(uint32_t size, uint32_t a,uint32_t b,uint32_t c,uint32
 	
 	return process_create_shared(get_current_process(),size);
 }
-uint32_t sys_shmem_open(uint32_t pid, uint32_t sh_id,uint32_t b,uint32_t c,uint32_t d){
-	UNUSED(b);
+uint32_t sys_shmem_open(uint32_t pid, uint32_t sh_id,uint32_t bl,uint32_t c,uint32_t d){
+	
 	UNUSED(c);
 	UNUSED(d);
 	
+	shmem_block_t* b = bl;
+	 
+	memcpy(b,process_open_shmem(get_current_process(),get_process_by_pid(pid),sh_id),sizeof(shmem_block_t));
 	
-	return process_open_shmem(get_current_process(),get_process_by_pid(pid),sh_id);;
+	return 0;
 }
 uint32_t sys_shmem_reset(uint32_t e, uint32_t a,uint32_t b,uint32_t c,uint32_t d){
 	UNUSED(a);

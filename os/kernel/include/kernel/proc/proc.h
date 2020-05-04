@@ -144,5 +144,5 @@ void process_create_thread(proc_t* parent,uint32_t entry);
 
 uint32_t process_create_shared(proc_t* proc,uint32_t buffer_size);
 shmem_block_t* process_get_shared(proc_t* proc,uint32_t id);
-uint32_t process_open_shmem(proc_t* proc,proc_t* target,uint32_t id);
+shmem_block_t* process_open_shmem(proc_t* proc,proc_t* target,uint32_t id);
 void  process_reset_shmem(proc_t* proc);

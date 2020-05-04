@@ -143,5 +143,17 @@ static inline uint8_t sys_thread(uint32_t entry){
 	return sys_call(SYS_THREAD,entry,0,0,0,0);
 }
 
+static inline void sys_shmem_reset(){
+	sys_call(SYS_SHMEM_RESET,0,0,0,0,0);
+}
+
+static inline uint32_t sys_shmem_create(uint32_t sz){
+	return sys_call(SYS_SHMEM_CREATE,sz,0,0,0,0);
+}
+
+static inline void sys_shmem_open(uint32_t pid,uint32_t bid,shmem_block_t* block){
+	sys_call(SYS_SHMEM_OPEN,pid,bid,(uint32_t)block,0,0);
+}
+
 #endif
 CH_END

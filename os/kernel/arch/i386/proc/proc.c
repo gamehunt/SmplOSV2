@@ -896,6 +896,9 @@ void process_create_thread(proc_t* parent,uint32_t entry){
 	set_page_directory(new->pdir,0);
 	kralloc(USER_STACK,USER_STACK+USER_STACK_PER_PROCESS);
 	set_page_directory(current_process->pdir,0);
+	memcpy(new->shmem_blocks,parent->shmem_blocks,parent->shmem_size);
+	new->shmem_size = parent->shmem_size;
+	new->shmem_bytes = parent->shmem_size;
 	//kinfo("In %p: %p",current_process->pdir,virtual2physical(USER_STACK));
 	new->thread->state = kmalloc(sizeof(struct registers));
 	memset(new->thread->state,0,sizeof(struct registers));
@@ -943,11 +946,11 @@ void process_reset_shmem(proc_t* proc){
 	kralloc(SHARED_MEMORY_START,SHARED_MEMORY_END);
 }
 
-uint32_t process_open_shmem(proc_t* proc,proc_t* target,uint32_t id){
+shmem_block_t* process_open_shmem(proc_t* proc,proc_t* target,uint32_t id){
 	shmem_block_t* bl = process_get_shared(target,id);
 	uint32_t id1 = process_create_shared(proc,bl->size);
 	shmem_block_t* own_bl = process_get_shared(proc,id1);
 	copy_region(target->pdir,proc->pdir,SHARED_MEMORY_START+bl->offset,bl->size,SHARED_MEMORY_START+own_bl->offset);
-	return id1;
+	return own_bl;
 }
 

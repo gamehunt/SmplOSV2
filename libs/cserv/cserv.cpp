@@ -146,6 +146,14 @@ CSPacket* CSPacket::CreatePacket(int t){
 	return new CSPacket(t);
 }
 
+uint8_t CSPacket::GetFlags(){
+	return this->flags;
+}
+
+void CSPacket::SetFlags(uint8_t nw){
+	this->flags = nw;
+}
+
 CSProcess::CSProcess(pid_t pid){
 	this->pid = pid;
 	this->packet_filter = [](CSPacket* p){return false;};
@@ -181,3 +189,5 @@ CSWidget* CSProcess::GetWidget(int id){
 	}
 	return widgets.at(id);
 }
+
+

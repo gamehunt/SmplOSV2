@@ -19,6 +19,8 @@
 #include <cserv/widgets/debug.h>
 #include <cserv/widgets/text_screen.h>
 
+#include <kernel/memory/memory.h>
+
 FILE* keyboard;
 FILE* mouse;
 
@@ -104,7 +106,17 @@ int process_packet(){
 						}else if(type == WIDGET_PACK_UPD){
 							CSWidget* wid = proc->GetWidget(((uint32_t*)packet->GetBuffer())[2]);
 							if(wid){
-								wid->Update((void*)(&(((uint32_t*)packet->GetBuffer())[3])));
+								void* buffer = (void*)(&(((uint32_t*)packet->GetBuffer())[3]));
+								if(!packet->GetFlags() & CS_PACK_FLAG_EXTENDED){
+									wid->Update(buffer);
+								}else{
+									uint32_t bid = ((uint32_t*)buffer)[0];
+									shmem_block_t* own_b = (shmem_block_t*)malloc(sizeof(shmem_block_t));
+									sys_shmem_open(pid,bid,own_b);
+									void* shared_buffer = (void*)(SHARED_MEMORY_START + own_b->offset);
+									wid->Update(shared_buffer);
+									sys_shmem_reset();
+								}
 							}
 						}else if(type == WIDGET_PACK_MOV){
 							CSWidget* wid = proc->GetWidget(((uint32_t*)packet->GetBuffer())[2]);
