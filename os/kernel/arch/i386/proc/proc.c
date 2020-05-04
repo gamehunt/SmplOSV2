@@ -924,7 +924,7 @@ uint32_t process_create_shared(proc_t* proc,uint32_t buffer_size){
 	shmem_block_t* block = proc->shmem_blocks[proc->shmem_size];
 	proc->shmem_size++;
 	block->size = buffer_size;
-	block->offset = proc->shmem_bytes - SHARED_MEMORY_START;
+	block->offset = proc->shmem_bytes;
 	proc->shmem_bytes += buffer_size;
 	return proc->shmem_size-1;
 }
