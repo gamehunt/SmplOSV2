@@ -1,0 +1,760 @@
+Configuring system...
+Set up target i686-smplos
+Compiling with:
+i686-smplos-gcc
+i686-smplos-ar
+i686-smplos-as
+i686-smplos-ld
+Default assembler: nasm
+Final CC for kernel: i686-smplos-gcc -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+Configuring system...
+Set up target i686-smplos
+Compiling with:
+i686-smplos-gcc
+i686-smplos-ar
+i686-smplos-as
+i686-smplos-ld
+Default assembler: nasm
+Final CC for kernel: i686-smplos-gcc -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+Cleaning libc
+rm -f libc.a
+rm -f libk.a
+rm /home/gamehunt/SmplOSV2/sysroot/lib/libk.a
+rm /home/gamehunt/SmplOSV2/sysroot/lib/libc.a
+rm -f string/strlen.o string/memcpy.o string/memset.o string/memmove.o string/memcmp.o string/strcat.o string/strcmp.o string/strncmp.o string/strncat.o string/strncpy.o string/substr.o string/strcpy.o string/strchr.o string/strtok.o stdio/putchar.o stdio/puts.o stdio/vprintf.o stdio/printf.o stdio/vsprintf.o stdio/sprintf.o ctype/isdigit.o ctype/isxdigit.o ctype/isprint.o ctype/isspace.o ctype/tolower.o ctype/toupper.o stdlib/abort.o stdlib/alloc.o stdlib/atoi.o time/clock.o time/time.o  libc_init.o syscall.o stdio/stdio.o stdio/fgets.o stdio/getc.o stdlib/exit.o dirent/dirent.o unistd/exec.o unistd/getcwd.o unistd/chdir.o unistd/getpid.o unistd/uid.o unistd/io.o stdlib/env.o  string/strlen.libk.o string/memcpy.libk.o string/memset.libk.o string/memmove.libk.o string/memcmp.libk.o string/strcat.libk.o string/strcmp.libk.o string/strncmp.libk.o string/strncat.libk.o string/strncpy.libk.o string/substr.libk.o string/strcpy.libk.o string/strchr.libk.o string/strtok.libk.o stdio/putchar.libk.o stdio/puts.libk.o stdio/vprintf.libk.o stdio/printf.libk.o stdio/vsprintf.libk.o stdio/sprintf.libk.o ctype/isdigit.libk.o ctype/isxdigit.libk.o ctype/isprint.libk.o ctype/isspace.libk.o ctype/tolower.libk.o ctype/toupper.libk.o stdlib/abort.libk.o stdlib/alloc.libk.o stdlib/atoi.libk.o time/clock.libk.o time/time.libk.o *.o */*.o */*/*.o
+rm -f string/strlen.d string/memcpy.d string/memset.d string/memmove.d string/memcmp.d string/strcat.d string/strcmp.d string/strncmp.d string/strncat.d string/strncpy.d string/substr.d string/strcpy.d string/strchr.d string/strtok.d stdio/putchar.d stdio/puts.d stdio/vprintf.d stdio/printf.d stdio/vsprintf.d stdio/sprintf.d ctype/isdigit.d ctype/isxdigit.d ctype/isprint.d ctype/isspace.d ctype/tolower.d ctype/toupper.d stdlib/abort.d stdlib/alloc.d stdlib/atoi.d time/clock.d time/time.d libc_init.d syscall.d stdio/stdio.d stdio/fgets.d stdio/getc.d stdlib/exit.d dirent/dirent.d unistd/exec.d unistd/getcwd.d unistd/chdir.d unistd/getpid.d unistd/uid.d unistd/io.d stdlib/env.d string/strlen.libk.d string/memcpy.libk.d string/memset.libk.d string/memmove.libk.d string/memcmp.libk.d string/strcat.libk.d string/strcmp.libk.d string/strncmp.libk.d string/strncat.libk.d string/strncpy.libk.d string/substr.libk.d string/strcpy.libk.d string/strchr.libk.d string/strtok.libk.d stdio/putchar.libk.d stdio/puts.libk.d stdio/vprintf.libk.d stdio/printf.libk.d stdio/vsprintf.libk.d stdio/sprintf.libk.d ctype/isdigit.libk.d ctype/isxdigit.libk.d ctype/isprint.libk.d ctype/isspace.libk.d ctype/tolower.libk.d ctype/toupper.libk.d stdlib/abort.libk.d stdlib/alloc.libk.d stdlib/atoi.libk.d time/clock.libk.d time/time.libk.d *.d */*.d */*/*.d
+rm -f crt0.o crti.o crtn.o 
+Cleaning libs
+./clean_all.sh
+Cleaning kbd...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/kbd'
+rm -f kbd.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libkbd.a
+rm -f kbd.o  *.o */*.o */*/*.o
+rm -f kbd.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/kbd'
+Cleaning gdi...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/gdi'
+rm -f gdi.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libgdi.a
+rm -f gdi.o  *.o */*.o */*/*.o
+rm -f gdi.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/gdi'
+Cleaning cserv...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/cserv'
+rm -f cserv.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libcserv.a
+rm -f cserv.o  *.o */*.o */*/*.o
+rm -f cserv.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/cserv'
+Cleaning libm...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/libm'
+rm -f libm.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libm.a
+rm -f libm.o  *.o */*.o */*/*.o
+rm -f libm.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/libm'
+Cleaning os
+make -C kernel clean
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/kernel'
+rm -f smplos.kernel
+rm -f /home/gamehunt/SmplOSV2/sysroot/boot/kernel.bin
+rm -f arch/i386/boot.o kernel.o io/io.o dev/serial.o dev/eld.o misc/log.o misc/panic.o misc/stat.o misc/types/queue.o misc/types/dyn_array.o arch/i386/mem/memstat.o arch/i386/mem/gdt.o arch/i386/mem/gdt_asm.o arch/i386/mem/pmm.o arch/i386/mem/paging.o arch/i386/mem/paging_asm.o arch/i386/mem/kheap.o arch/i386/interrupts/idt.o arch/i386/interrupts/idt_asm.o arch/i386/interrupts/isr.o arch/i386/interrupts/isr_asm.o arch/i386/interrupts/irq.o arch/i386/interrupts/irq_asm.o arch/i386/interrupts/pic.o arch/i386/interrupts/syscall.o dev/pci.o dev/pit.o dev/cmos.o dev/rtc.o fs/vfs.o fs/tar.o fs/pipe.o arch/i386/proc/proc_asm.o arch/i386/proc/proc.o arch/i386/proc/sync.o module/symtable.o module/module.o module/ramdisk.o module/elf.o  *.o */*.o */*/*.o
+rm -f arch/i386/boot.d kernel.d io/io.d dev/serial.d dev/eld.d misc/log.d misc/panic.d misc/stat.d misc/types/queue.d misc/types/dyn_array.d arch/i386/mem/memstat.d arch/i386/mem/gdt.d arch/i386/mem/gdt_asm.d arch/i386/mem/pmm.d arch/i386/mem/paging.d arch/i386/mem/paging_asm.d arch/i386/mem/kheap.d arch/i386/interrupts/idt.d arch/i386/interrupts/idt_asm.d arch/i386/interrupts/isr.d arch/i386/interrupts/isr_asm.d arch/i386/interrupts/irq.d arch/i386/interrupts/irq_asm.d arch/i386/interrupts/pic.d arch/i386/interrupts/syscall.d dev/pci.d dev/pit.d dev/cmos.d dev/rtc.d fs/vfs.d fs/tar.d fs/pipe.d arch/i386/proc/proc_asm.d arch/i386/proc/proc.d arch/i386/proc/sync.d module/symtable.d module/module.d module/ramdisk.d module/elf.d *.d */*.d */*/*.d
+rm -f dev/acpica/tables/tbutils.acpica.o dev/acpica/tables/tbxfroot.acpica.o dev/acpica/tables/tbxface.acpica.o dev/acpica/tables/tbfind.acpica.o dev/acpica/tables/tbprint.acpica.o dev/acpica/tables/tbinstal.acpica.o dev/acpica/tables/tbfadt.acpica.o dev/acpica/tables/tbdata.acpica.o dev/acpica/tables/tbxfload.acpica.o dev/acpica/resources/rsmisc.acpica.o dev/acpica/resources/rsinfo.acpica.o dev/acpica/resources/rsio.acpica.o dev/acpica/resources/rsaddr.acpica.o dev/acpica/resources/rsdumpinfo.acpica.o dev/acpica/resources/rscreate.acpica.o dev/acpica/resources/rsutils.acpica.o dev/acpica/resources/rscalc.acpica.o dev/acpica/resources/rsserial.acpica.o dev/acpica/resources/rsmemory.acpica.o dev/acpica/resources/rslist.acpica.o dev/acpica/resources/rsdump.acpica.o dev/acpica/resources/rsirq.acpica.o dev/acpica/resources/rsxface.acpica.o dev/acpica/namespace/nseval.acpica.o dev/acpica/namespace/nsobject.acpica.o dev/acpica/namespace/nsarguments.acpica.o dev/acpica/namespace/nsinit.acpica.o dev/acpica/namespace/nssearch.acpica.o dev/acpica/namespace/nsparse.acpica.o dev/acpica/namespace/nsrepair.acpica.o dev/acpica/namespace/nsload.acpica.o dev/acpica/namespace/nswalk.acpica.o dev/acpica/namespace/nsxfeval.acpica.o dev/acpica/namespace/nsdumpdv.acpica.o dev/acpica/namespace/nsxfobj.acpica.o dev/acpica/namespace/nsconvert.acpica.o dev/acpica/namespace/nspredef.acpica.o dev/acpica/namespace/nsutils.acpica.o dev/acpica/namespace/nsxfname.acpica.o dev/acpica/namespace/nsnames.acpica.o dev/acpica/namespace/nsalloc.acpica.o dev/acpica/namespace/nsrepair2.acpica.o dev/acpica/namespace/nsaccess.acpica.o dev/acpica/namespace/nsdump.acpica.o dev/acpica/namespace/nsprepkg.acpica.o dev/acpica/hardware/hwacpi.acpica.o dev/acpica/hardware/hwregs.acpica.o dev/acpica/hardware/hwpci.acpica.o dev/acpica/hardware/hwgpe.acpica.o dev/acpica/hardware/hwsleep.acpica.o dev/acpica/hardware/hwxfsleep.acpica.o dev/acpica/hardware/hwtimer.acpica.o dev/acpica/hardware/hwxface.acpica.o dev/acpica/hardware/hwvalid.acpica.o dev/acpica/hardware/hwesleep.acpica.o dev/acpica/smplos_osl.acpica.o dev/acpica/parser/psargs.acpica.o dev/acpica/parser/pswalk.acpica.o dev/acpica/parser/psopcode.acpica.o dev/acpica/parser/psxface.acpica.o dev/acpica/parser/psscope.acpica.o dev/acpica/parser/psobject.acpica.o dev/acpica/parser/psloop.acpica.o dev/acpica/parser/psutils.acpica.o dev/acpica/parser/psopinfo.acpica.o dev/acpica/parser/pstree.acpica.o dev/acpica/parser/psparse.acpica.o dev/acpica/dispatcher/dsopcode.acpica.o dev/acpica/dispatcher/dscontrol.acpica.o dev/acpica/dispatcher/dsfield.acpica.o dev/acpica/dispatcher/dsmethod.acpica.o dev/acpica/dispatcher/dspkginit.acpica.o dev/acpica/dispatcher/dsargs.acpica.o dev/acpica/dispatcher/dswstate.acpica.o dev/acpica/dispatcher/dsinit.acpica.o dev/acpica/dispatcher/dsdebug.acpica.o dev/acpica/dispatcher/dsobject.acpica.o dev/acpica/dispatcher/dswexec.acpica.o dev/acpica/dispatcher/dswscope.acpica.o dev/acpica/dispatcher/dswload.acpica.o dev/acpica/dispatcher/dsutils.acpica.o dev/acpica/dispatcher/dswload2.acpica.o dev/acpica/dispatcher/dsmthdat.acpica.o dev/acpica/events/evgpeutil.acpica.o dev/acpica/events/evxfregn.acpica.o dev/acpica/events/evgpeblk.acpica.o dev/acpica/events/evevent.acpica.o dev/acpica/events/evhandler.acpica.o dev/acpica/events/evmisc.acpica.o dev/acpica/events/evregion.acpica.o dev/acpica/events/evxface.acpica.o dev/acpica/events/evxfevnt.acpica.o dev/acpica/events/evsci.acpica.o dev/acpica/events/evrgnini.acpica.o dev/acpica/events/evxfgpe.acpica.o dev/acpica/events/evgpe.acpica.o dev/acpica/events/evglock.acpica.o dev/acpica/events/evgpeinit.acpica.o dev/acpica/executer/exconcat.acpica.o dev/acpica/executer/exserial.acpica.o dev/acpica/executer/exresop.acpica.o dev/acpica/executer/exnames.acpica.o dev/acpica/executer/exdebug.acpica.o dev/acpica/executer/exstorob.acpica.o dev/acpica/executer/exfldio.acpica.o dev/acpica/executer/extrace.acpica.o dev/acpica/executer/exconvrt.acpica.o dev/acpica/executer/exoparg3.acpica.o dev/acpica/executer/exregion.acpica.o dev/acpica/executer/excreate.acpica.o dev/acpica/executer/exstoren.acpica.o dev/acpica/executer/exoparg1.acpica.o dev/acpica/executer/exmisc.acpica.o dev/acpica/executer/exoparg2.acpica.o dev/acpica/executer/exresolv.acpica.o dev/acpica/executer/exconfig.acpica.o dev/acpica/executer/exutils.acpica.o dev/acpica/executer/exdump.acpica.o dev/acpica/executer/exsystem.acpica.o dev/acpica/executer/exoparg6.acpica.o dev/acpica/executer/exmutex.acpica.o dev/acpica/executer/exstore.acpica.o dev/acpica/executer/exprep.acpica.o dev/acpica/executer/exfield.acpica.o dev/acpica/executer/exresnte.acpica.o dev/acpica/utilities/utdelete.acpica.o dev/acpica/utilities/utstring.acpica.o dev/acpica/utilities/utobject.acpica.o dev/acpica/utilities/utcopy.acpica.o dev/acpica/utilities/utdecode.acpica.o dev/acpica/utilities/utnonansi.acpica.o dev/acpica/utilities/utalloc.acpica.o dev/acpica/utilities/utstate.acpica.o dev/acpica/utilities/utmisc.acpica.o dev/acpica/utilities/utlock.acpica.o dev/acpica/utilities/utascii.acpica.o dev/acpica/utilities/utosi.acpica.o dev/acpica/utilities/utclib.acpica.o dev/acpica/utilities/utmutex.acpica.o dev/acpica/utilities/utbuffer.acpica.o dev/acpica/utilities/utdebug.acpica.o dev/acpica/utilities/utstrtoul64.acpica.o dev/acpica/utilities/utownerid.acpica.o dev/acpica/utilities/utresrc.acpica.o dev/acpica/utilities/utstrsuppt.acpica.o dev/acpica/utilities/utinit.acpica.o dev/acpica/utilities/utglobal.acpica.o dev/acpica/utilities/uterror.acpica.o dev/acpica/utilities/utresdecode.acpica.o dev/acpica/utilities/utmath.acpica.o dev/acpica/utilities/utxfmutex.acpica.o dev/acpica/utilities/utuuid.acpica.o dev/acpica/utilities/utids.acpica.o dev/acpica/utilities/utaddress.acpica.o dev/acpica/utilities/uthex.acpica.o dev/acpica/utilities/uttrack.acpica.o dev/acpica/utilities/utxface.acpica.o dev/acpica/utilities/utprint.acpica.o dev/acpica/utilities/utxferror.acpica.o dev/acpica/utilities/uteval.acpica.o dev/acpica/utilities/utpredef.acpica.o dev/acpica/utilities/utcache.acpica.o dev/acpica/utilities/utexcep.acpica.o dev/acpica/utilities/utxfinit.acpica.o *.acpica.o */*.acpica.o
+rm -f dev/acpica/tables/tbutils.acpica.d dev/acpica/tables/tbxfroot.acpica.d dev/acpica/tables/tbxface.acpica.d dev/acpica/tables/tbfind.acpica.d dev/acpica/tables/tbprint.acpica.d dev/acpica/tables/tbinstal.acpica.d dev/acpica/tables/tbfadt.acpica.d dev/acpica/tables/tbdata.acpica.d dev/acpica/tables/tbxfload.acpica.d dev/acpica/resources/rsmisc.acpica.d dev/acpica/resources/rsinfo.acpica.d dev/acpica/resources/rsio.acpica.d dev/acpica/resources/rsaddr.acpica.d dev/acpica/resources/rsdumpinfo.acpica.d dev/acpica/resources/rscreate.acpica.d dev/acpica/resources/rsutils.acpica.d dev/acpica/resources/rscalc.acpica.d dev/acpica/resources/rsserial.acpica.d dev/acpica/resources/rsmemory.acpica.d dev/acpica/resources/rslist.acpica.d dev/acpica/resources/rsdump.acpica.d dev/acpica/resources/rsirq.acpica.d dev/acpica/resources/rsxface.acpica.d dev/acpica/namespace/nseval.acpica.d dev/acpica/namespace/nsobject.acpica.d dev/acpica/namespace/nsarguments.acpica.d dev/acpica/namespace/nsinit.acpica.d dev/acpica/namespace/nssearch.acpica.d dev/acpica/namespace/nsparse.acpica.d dev/acpica/namespace/nsrepair.acpica.d dev/acpica/namespace/nsload.acpica.d dev/acpica/namespace/nswalk.acpica.d dev/acpica/namespace/nsxfeval.acpica.d dev/acpica/namespace/nsdumpdv.acpica.d dev/acpica/namespace/nsxfobj.acpica.d dev/acpica/namespace/nsconvert.acpica.d dev/acpica/namespace/nspredef.acpica.d dev/acpica/namespace/nsutils.acpica.d dev/acpica/namespace/nsxfname.acpica.d dev/acpica/namespace/nsnames.acpica.d dev/acpica/namespace/nsalloc.acpica.d dev/acpica/namespace/nsrepair2.acpica.d dev/acpica/namespace/nsaccess.acpica.d dev/acpica/namespace/nsdump.acpica.d dev/acpica/namespace/nsprepkg.acpica.d dev/acpica/hardware/hwacpi.acpica.d dev/acpica/hardware/hwregs.acpica.d dev/acpica/hardware/hwpci.acpica.d dev/acpica/hardware/hwgpe.acpica.d dev/acpica/hardware/hwsleep.acpica.d dev/acpica/hardware/hwxfsleep.acpica.d dev/acpica/hardware/hwtimer.acpica.d dev/acpica/hardware/hwxface.acpica.d dev/acpica/hardware/hwvalid.acpica.d dev/acpica/hardware/hwesleep.acpica.d dev/acpica/smplos_osl.acpica.d dev/acpica/parser/psargs.acpica.d dev/acpica/parser/pswalk.acpica.d dev/acpica/parser/psopcode.acpica.d dev/acpica/parser/psxface.acpica.d dev/acpica/parser/psscope.acpica.d dev/acpica/parser/psobject.acpica.d dev/acpica/parser/psloop.acpica.d dev/acpica/parser/psutils.acpica.d dev/acpica/parser/psopinfo.acpica.d dev/acpica/parser/pstree.acpica.d dev/acpica/parser/psparse.acpica.d dev/acpica/dispatcher/dsopcode.acpica.d dev/acpica/dispatcher/dscontrol.acpica.d dev/acpica/dispatcher/dsfield.acpica.d dev/acpica/dispatcher/dsmethod.acpica.d dev/acpica/dispatcher/dspkginit.acpica.d dev/acpica/dispatcher/dsargs.acpica.d dev/acpica/dispatcher/dswstate.acpica.d dev/acpica/dispatcher/dsinit.acpica.d dev/acpica/dispatcher/dsdebug.acpica.d dev/acpica/dispatcher/dsobject.acpica.d dev/acpica/dispatcher/dswexec.acpica.d dev/acpica/dispatcher/dswscope.acpica.d dev/acpica/dispatcher/dswload.acpica.d dev/acpica/dispatcher/dsutils.acpica.d dev/acpica/dispatcher/dswload2.acpica.d dev/acpica/dispatcher/dsmthdat.acpica.d dev/acpica/events/evgpeutil.acpica.d dev/acpica/events/evxfregn.acpica.d dev/acpica/events/evgpeblk.acpica.d dev/acpica/events/evevent.acpica.d dev/acpica/events/evhandler.acpica.d dev/acpica/events/evmisc.acpica.d dev/acpica/events/evregion.acpica.d dev/acpica/events/evxface.acpica.d dev/acpica/events/evxfevnt.acpica.d dev/acpica/events/evsci.acpica.d dev/acpica/events/evrgnini.acpica.d dev/acpica/events/evxfgpe.acpica.d dev/acpica/events/evgpe.acpica.d dev/acpica/events/evglock.acpica.d dev/acpica/events/evgpeinit.acpica.d dev/acpica/executer/exconcat.acpica.d dev/acpica/executer/exserial.acpica.d dev/acpica/executer/exresop.acpica.d dev/acpica/executer/exnames.acpica.d dev/acpica/executer/exdebug.acpica.d dev/acpica/executer/exstorob.acpica.d dev/acpica/executer/exfldio.acpica.d dev/acpica/executer/extrace.acpica.d dev/acpica/executer/exconvrt.acpica.d dev/acpica/executer/exoparg3.acpica.d dev/acpica/executer/exregion.acpica.d dev/acpica/executer/excreate.acpica.d dev/acpica/executer/exstoren.acpica.d dev/acpica/executer/exoparg1.acpica.d dev/acpica/executer/exmisc.acpica.d dev/acpica/executer/exoparg2.acpica.d dev/acpica/executer/exresolv.acpica.d dev/acpica/executer/exconfig.acpica.d dev/acpica/executer/exutils.acpica.d dev/acpica/executer/exdump.acpica.d dev/acpica/executer/exsystem.acpica.d dev/acpica/executer/exoparg6.acpica.d dev/acpica/executer/exmutex.acpica.d dev/acpica/executer/exstore.acpica.d dev/acpica/executer/exprep.acpica.d dev/acpica/executer/exfield.acpica.d dev/acpica/executer/exresnte.acpica.d dev/acpica/utilities/utdelete.acpica.d dev/acpica/utilities/utstring.acpica.d dev/acpica/utilities/utobject.acpica.d dev/acpica/utilities/utcopy.acpica.d dev/acpica/utilities/utdecode.acpica.d dev/acpica/utilities/utnonansi.acpica.d dev/acpica/utilities/utalloc.acpica.d dev/acpica/utilities/utstate.acpica.d dev/acpica/utilities/utmisc.acpica.d dev/acpica/utilities/utlock.acpica.d dev/acpica/utilities/utascii.acpica.d dev/acpica/utilities/utosi.acpica.d dev/acpica/utilities/utclib.acpica.d dev/acpica/utilities/utmutex.acpica.d dev/acpica/utilities/utbuffer.acpica.d dev/acpica/utilities/utdebug.acpica.d dev/acpica/utilities/utstrtoul64.acpica.d dev/acpica/utilities/utownerid.acpica.d dev/acpica/utilities/utresrc.acpica.d dev/acpica/utilities/utstrsuppt.acpica.d dev/acpica/utilities/utinit.acpica.d dev/acpica/utilities/utglobal.acpica.d dev/acpica/utilities/uterror.acpica.d dev/acpica/utilities/utresdecode.acpica.d dev/acpica/utilities/utmath.acpica.d dev/acpica/utilities/utxfmutex.acpica.d dev/acpica/utilities/utuuid.acpica.d dev/acpica/utilities/utids.acpica.d dev/acpica/utilities/utaddress.acpica.d dev/acpica/utilities/uthex.acpica.d dev/acpica/utilities/uttrack.acpica.d dev/acpica/utilities/utxface.acpica.d dev/acpica/utilities/utprint.acpica.d dev/acpica/utilities/utxferror.acpica.d dev/acpica/utilities/uteval.acpica.d dev/acpica/utilities/utpredef.acpica.d dev/acpica/utilities/utcache.acpica.d dev/acpica/utilities/utexcep.acpica.d dev/acpica/utilities/utxfinit.acpica.d *.acpica.d */*.acpica.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/kernel'
+make -C modules clean 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/modules'
+./clean_all.sh
+Cleaning test_disk...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/test_disk'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/tdsk.smod
+rm main.o
+rm -rf test_disk.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/test_disk'
+Cleaning qemu_video...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/qemu_video'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/qvideo.smod
+rm main.o
+rm -rf qvideo.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/qemu_video'
+Cleaning ps2...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ps2'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/ps2.smod
+rm main.o
+rm -rf ps2.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ps2'
+Cleaning null...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/null'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/null.smod
+rm main.o
+rm -rf null.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/null'
+Cleaning rand...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/rand'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/rand.smod
+rm main.o
+rm rdrand.o
+rm -rf rand.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/rand'
+Cleaning testmod...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/test.smod
+rm main.o
+rm -rf test.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod'
+Cleaning testmod1...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod1'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/test1.smod
+rm main.o
+rm -rf test1.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod1'
+Cleaning ata...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/ata'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/ata.smod
+rm main.o
+rm -rf ata.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/ata'
+Cleaning fat...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/fat'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/fat.smod
+rm main.o
+rm -rf fat.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/fat'
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules'
+make -C usr clean 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/usr'
+./clean_all.sh
+Cleaning init...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/init'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/init.smp
+rm main.o
+rm -rf init.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/init'
+Cleaning cserv...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/cserv'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/cserv.smp
+rm main.o
+rm -rf cserv.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/cserv'
+Cleaning terminal...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/terminal'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/term.smp
+rm main.o
+rm -rf term.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/terminal'
+Cleaning login...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/login'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/login.smp
+rm main.o
+rm -rf login.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/login'
+Cleaning shell...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/shell'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/shell.smp
+rm main.o
+rm -rf shell.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/shell'
+Cleaning echo...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/echo'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/echo.smp
+rm main.o
+rm -rf echo.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/echo'
+Cleaning ls...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/ls'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/ls.smp
+rm main.o
+rm -rf ls.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/ls'
+Cleaning reboot...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/reboot'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/reboot.smp
+rm main.o
+rm -rf reboot.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/reboot'
+Cleaning shutdown...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/shutdown'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/shutdown.smp
+rm main.o
+rm -rf shutdown.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/shutdown'
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr'
+make -C test_exec clean 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/test_exec'
+rm main.o
+rm test.smp
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/test_exec'
+Installing headers for libc
+rsync -a include/ /home/gamehunt/SmplOSV2/sysroot/include/
+Installing headers for libs
+make: Nothing to be done for 'install-headers'.
+Installing headers for os
+make -C kernel install-headers
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/kernel'
+rsync -a include/ /home/gamehunt/SmplOSV2/sysroot/include/
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/kernel'
+Building libc
+i686-smplos-gcc -MD -c string/strlen.c -o string/strlen.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/memcpy.c -o string/memcpy.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/memset.c -o string/memset.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/memmove.c -o string/memmove.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/memcmp.c -o string/memcmp.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strcat.c -o string/strcat.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strcmp.c -o string/strcmp.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strncmp.c -o string/strncmp.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strncat.c -o string/strncat.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strncpy.c -o string/strncpy.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/substr.c -o string/substr.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strcpy.c -o string/strcpy.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strchr.c -o string/strchr.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c string/strtok.c -o string/strtok.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdio/putchar.c -o stdio/putchar.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdio/puts.c -o stdio/puts.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdio/vprintf.c -o stdio/vprintf.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdio/printf.c -o stdio/printf.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdio/vsprintf.c -o stdio/vsprintf.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdio/sprintf.c -o stdio/sprintf.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c ctype/isdigit.c -o ctype/isdigit.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c ctype/isxdigit.c -o ctype/isxdigit.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c ctype/isprint.c -o ctype/isprint.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c ctype/isspace.c -o ctype/isspace.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c ctype/tolower.c -o ctype/tolower.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c ctype/toupper.c -o ctype/toupper.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdlib/abort.c -o stdlib/abort.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdlib/alloc.c -o stdlib/alloc.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c stdlib/atoi.c -o stdlib/atoi.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c time/clock.c -o time/clock.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-gcc -MD -c time/time.c -o time/time.libk.o -std=gnu11 -Iinclude -std=gnu99 -ffreestanding -O2 -Wall -Wextra -D__smplos_libk
+i686-smplos-ar rcs libk.a string/strlen.libk.o string/memcpy.libk.o string/memset.libk.o string/memmove.libk.o string/memcmp.libk.o string/strcat.libk.o string/strcmp.libk.o string/strncmp.libk.o string/strncat.libk.o string/strncpy.libk.o string/substr.libk.o string/strcpy.libk.o string/strchr.libk.o string/strtok.libk.o stdio/putchar.libk.o stdio/puts.libk.o stdio/vprintf.libk.o stdio/printf.libk.o stdio/vsprintf.libk.o stdio/sprintf.libk.o ctype/isdigit.libk.o ctype/isxdigit.libk.o ctype/isprint.libk.o ctype/isspace.libk.o ctype/tolower.libk.o ctype/toupper.libk.o stdlib/abort.libk.o stdlib/alloc.libk.o stdlib/atoi.libk.o time/clock.libk.o time/time.libk.o
+i686-smplos-gcc -MD -c string/strlen.c -o string/strlen.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/memcpy.c -o string/memcpy.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/memset.c -o string/memset.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/memmove.c -o string/memmove.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/memcmp.c -o string/memcmp.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strcat.c -o string/strcat.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strcmp.c -o string/strcmp.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strncmp.c -o string/strncmp.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strncat.c -o string/strncat.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strncpy.c -o string/strncpy.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/substr.c -o string/substr.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strcpy.c -o string/strcpy.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strchr.c -o string/strchr.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c string/strtok.c -o string/strtok.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/putchar.c -o stdio/putchar.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/puts.c -o stdio/puts.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/vprintf.c -o stdio/vprintf.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/printf.c -o stdio/printf.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/vsprintf.c -o stdio/vsprintf.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/sprintf.c -o stdio/sprintf.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c ctype/isdigit.c -o ctype/isdigit.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c ctype/isxdigit.c -o ctype/isxdigit.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c ctype/isprint.c -o ctype/isprint.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c ctype/isspace.c -o ctype/isspace.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c ctype/tolower.c -o ctype/tolower.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c ctype/toupper.c -o ctype/toupper.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdlib/abort.c -o stdlib/abort.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdlib/alloc.c -o stdlib/alloc.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdlib/atoi.c -o stdlib/atoi.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c time/clock.c -o time/clock.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c time/time.c -o time/time.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c libc_init.c -o libc_init.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+nasm -f elf32 syscall.asm -o syscall.o
+i686-smplos-gcc -MD -c stdio/stdio.c -o stdio/stdio.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/fgets.c -o stdio/fgets.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdio/getc.c -o stdio/getc.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdlib/exit.c -o stdlib/exit.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c dirent/dirent.c -o dirent/dirent.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c unistd/exec.c -o unistd/exec.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c unistd/getcwd.c -o unistd/getcwd.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c unistd/chdir.c -o unistd/chdir.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c unistd/getpid.c -o unistd/getpid.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c unistd/uid.c -o unistd/uid.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c unistd/io.c -o unistd/io.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-gcc -MD -c stdlib/env.c -o stdlib/env.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-ar rcs libc.a string/strlen.o string/memcpy.o string/memset.o string/memmove.o string/memcmp.o string/strcat.o string/strcmp.o string/strncmp.o string/strncat.o string/strncpy.o string/substr.o string/strcpy.o string/strchr.o string/strtok.o stdio/putchar.o stdio/puts.o stdio/vprintf.o stdio/printf.o stdio/vsprintf.o stdio/sprintf.o ctype/isdigit.o ctype/isxdigit.o ctype/isprint.o ctype/isspace.o ctype/tolower.o ctype/toupper.o stdlib/abort.o stdlib/alloc.o stdlib/atoi.o time/clock.o time/time.o  libc_init.o syscall.o stdio/stdio.o stdio/fgets.o stdio/getc.o stdlib/exit.o dirent/dirent.o unistd/exec.o unistd/getcwd.o unistd/chdir.o unistd/getpid.o unistd/uid.o unistd/io.o stdlib/env.o 
+nasm -f elf32 crt0.asm -o crt0.o
+nasm -f elf32 crti.asm -o crti.o
+nasm -f elf32 crtn.asm -o crtn.o
+cp libk.a /home/gamehunt/SmplOSV2/sysroot/lib/libk.a
+cp libc.a /home/gamehunt/SmplOSV2/sysroot/lib/libc.a
+cp crt0.o /home/gamehunt/SmplOSV2/sysroot/lib/crt0.o
+cp crti.o /home/gamehunt/SmplOSV2/sysroot/lib/crti.o
+cp crtn.o /home/gamehunt/SmplOSV2/sysroot/lib/crtn.o
+Building libs
+make: 'all' is up to date.
+./build_all.sh
+Building libraries...
+Building kbd...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/kbd'
+rm -f kbd.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libkbd.a
+rm -f kbd.o  *.o */*.o */*/*.o
+rm -f kbd.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/kbd'
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/kbd'
+i686-smplos-gcc -MD -c kbd.c -o kbd.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-ar rcs kbd.a kbd.o 
+cp kbd.a /home/gamehunt/SmplOSV2/libs/bin/libkbd.a
+rsync -a include/ ../include
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/kbd'
+Building gdi...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/gdi'
+rm -f gdi.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libgdi.a
+rm -f gdi.o  *.o */*.o */*/*.o
+rm -f gdi.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/gdi'
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/gdi'
+i686-smplos-gcc -MD -c gdi.c -o gdi.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-ar rcs gdi.a gdi.o 
+cp gdi.a /home/gamehunt/SmplOSV2/libs/bin/libgdi.a
+rsync -a include/ ../include
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/gdi'
+Building cserv...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/cserv'
+rm -f cserv.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libcserv.a
+rm -f cserv.o  *.o */*.o */*/*.o
+rm -f cserv.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/cserv'
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/cserv'
+i686-smplos-gcc -MD -c cserv.c -o cserv.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/cserv'
+Building libm...
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/libm'
+rm -f libm.a
+rm -f /home/gamehunt/SmplOSV2/libs/bin/libm.a
+rm -f libm.o  *.o */*.o */*/*.o
+rm -f libm.d *.d */*.d */*/*.d
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/libm'
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/libs/libm'
+i686-smplos-gcc -MD -c libm.c -o libm.o -std=gnu11 -Iinclude -std=gnu99 -O2 -Wall -Wextra -D__smplos_libc 
+i686-smplos-ar rcs libm.a libm.o 
+cp libm.a /home/gamehunt/SmplOSV2/libs/bin/libm.a
+rsync -a include/ ../include
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/libs/libm'
+Building os
+make -C kernel all
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/kernel'
+i686-smplos-gcc -MD -c arch/i386/boot.S -o arch/i386/boot.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c kernel.c -o kernel.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c io/io.c -o io/io.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/serial.c -o dev/serial.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/eld.c -o dev/eld.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c misc/log.c -o misc/log.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c misc/panic.c -o misc/panic.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c misc/stat.c -o misc/stat.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c misc/types/queue.c -o misc/types/queue.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c misc/types/dyn_array.c -o misc/types/dyn_array.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c arch/i386/mem/memstat.c -o arch/i386/mem/memstat.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c arch/i386/mem/gdt.c -o arch/i386/mem/gdt.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+nasm -f elf32 arch/i386/mem/gdt_asm.asm -o arch/i386/mem/gdt_asm.o
+i686-smplos-gcc -MD -c arch/i386/mem/pmm.c -o arch/i386/mem/pmm.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c arch/i386/mem/paging.c -o arch/i386/mem/paging.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+nasm -f elf32 arch/i386/mem/paging_asm.asm -o arch/i386/mem/paging_asm.o
+i686-smplos-gcc -MD -c arch/i386/mem/kheap.c -o arch/i386/mem/kheap.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c arch/i386/interrupts/idt.c -o arch/i386/interrupts/idt.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+nasm -f elf32 arch/i386/interrupts/idt_asm.asm -o arch/i386/interrupts/idt_asm.o
+i686-smplos-gcc -MD -c arch/i386/interrupts/isr.c -o arch/i386/interrupts/isr.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+nasm -f elf32 arch/i386/interrupts/isr_asm.asm -o arch/i386/interrupts/isr_asm.o
+i686-smplos-gcc -MD -c arch/i386/interrupts/irq.c -o arch/i386/interrupts/irq.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+nasm -f elf32 arch/i386/interrupts/irq_asm.asm -o arch/i386/interrupts/irq_asm.o
+i686-smplos-gcc -MD -c arch/i386/interrupts/pic.c -o arch/i386/interrupts/pic.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c arch/i386/interrupts/syscall.c -o arch/i386/interrupts/syscall.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/pci.c -o dev/pci.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/pit.c -o dev/pit.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/cmos.c -o dev/cmos.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/rtc.c -o dev/rtc.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c fs/vfs.c -o fs/vfs.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c fs/tar.c -o fs/tar.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c fs/pipe.c -o fs/pipe.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+nasm -f elf32 arch/i386/proc/proc_asm.asm -o arch/i386/proc/proc_asm.o
+i686-smplos-gcc -MD -c arch/i386/proc/proc.c -o arch/i386/proc/proc.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c arch/i386/proc/sync.c -o arch/i386/proc/sync.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c module/symtable.c -o module/symtable.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c module/module.c -o module/module.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c module/ramdisk.c -o module/ramdisk.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c module/elf.c -o module/elf.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbutils.c -o dev/acpica/tables/tbutils.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbxfroot.c -o dev/acpica/tables/tbxfroot.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbxface.c -o dev/acpica/tables/tbxface.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbfind.c -o dev/acpica/tables/tbfind.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbprint.c -o dev/acpica/tables/tbprint.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbinstal.c -o dev/acpica/tables/tbinstal.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbfadt.c -o dev/acpica/tables/tbfadt.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbdata.c -o dev/acpica/tables/tbdata.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/tables/tbxfload.c -o dev/acpica/tables/tbxfload.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsmisc.c -o dev/acpica/resources/rsmisc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsinfo.c -o dev/acpica/resources/rsinfo.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsio.c -o dev/acpica/resources/rsio.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsaddr.c -o dev/acpica/resources/rsaddr.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsdumpinfo.c -o dev/acpica/resources/rsdumpinfo.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rscreate.c -o dev/acpica/resources/rscreate.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsutils.c -o dev/acpica/resources/rsutils.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rscalc.c -o dev/acpica/resources/rscalc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsserial.c -o dev/acpica/resources/rsserial.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsmemory.c -o dev/acpica/resources/rsmemory.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rslist.c -o dev/acpica/resources/rslist.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsdump.c -o dev/acpica/resources/rsdump.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsirq.c -o dev/acpica/resources/rsirq.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/resources/rsxface.c -o dev/acpica/resources/rsxface.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nseval.c -o dev/acpica/namespace/nseval.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsobject.c -o dev/acpica/namespace/nsobject.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsarguments.c -o dev/acpica/namespace/nsarguments.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsinit.c -o dev/acpica/namespace/nsinit.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nssearch.c -o dev/acpica/namespace/nssearch.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsparse.c -o dev/acpica/namespace/nsparse.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsrepair.c -o dev/acpica/namespace/nsrepair.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsload.c -o dev/acpica/namespace/nsload.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nswalk.c -o dev/acpica/namespace/nswalk.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsxfeval.c -o dev/acpica/namespace/nsxfeval.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsdumpdv.c -o dev/acpica/namespace/nsdumpdv.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsxfobj.c -o dev/acpica/namespace/nsxfobj.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsconvert.c -o dev/acpica/namespace/nsconvert.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nspredef.c -o dev/acpica/namespace/nspredef.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsutils.c -o dev/acpica/namespace/nsutils.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsxfname.c -o dev/acpica/namespace/nsxfname.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsnames.c -o dev/acpica/namespace/nsnames.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsalloc.c -o dev/acpica/namespace/nsalloc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsrepair2.c -o dev/acpica/namespace/nsrepair2.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsaccess.c -o dev/acpica/namespace/nsaccess.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsdump.c -o dev/acpica/namespace/nsdump.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/namespace/nsprepkg.c -o dev/acpica/namespace/nsprepkg.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwacpi.c -o dev/acpica/hardware/hwacpi.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwregs.c -o dev/acpica/hardware/hwregs.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwpci.c -o dev/acpica/hardware/hwpci.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwgpe.c -o dev/acpica/hardware/hwgpe.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwsleep.c -o dev/acpica/hardware/hwsleep.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwxfsleep.c -o dev/acpica/hardware/hwxfsleep.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwtimer.c -o dev/acpica/hardware/hwtimer.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwxface.c -o dev/acpica/hardware/hwxface.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwvalid.c -o dev/acpica/hardware/hwvalid.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/hardware/hwesleep.c -o dev/acpica/hardware/hwesleep.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/smplos_osl.c -o dev/acpica/smplos_osl.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psargs.c -o dev/acpica/parser/psargs.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/pswalk.c -o dev/acpica/parser/pswalk.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psopcode.c -o dev/acpica/parser/psopcode.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psxface.c -o dev/acpica/parser/psxface.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psscope.c -o dev/acpica/parser/psscope.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psobject.c -o dev/acpica/parser/psobject.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psloop.c -o dev/acpica/parser/psloop.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psutils.c -o dev/acpica/parser/psutils.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psopinfo.c -o dev/acpica/parser/psopinfo.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/pstree.c -o dev/acpica/parser/pstree.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/parser/psparse.c -o dev/acpica/parser/psparse.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsopcode.c -o dev/acpica/dispatcher/dsopcode.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dscontrol.c -o dev/acpica/dispatcher/dscontrol.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsfield.c -o dev/acpica/dispatcher/dsfield.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsmethod.c -o dev/acpica/dispatcher/dsmethod.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dspkginit.c -o dev/acpica/dispatcher/dspkginit.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsargs.c -o dev/acpica/dispatcher/dsargs.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dswstate.c -o dev/acpica/dispatcher/dswstate.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsinit.c -o dev/acpica/dispatcher/dsinit.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsdebug.c -o dev/acpica/dispatcher/dsdebug.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsobject.c -o dev/acpica/dispatcher/dsobject.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dswexec.c -o dev/acpica/dispatcher/dswexec.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dswscope.c -o dev/acpica/dispatcher/dswscope.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dswload.c -o dev/acpica/dispatcher/dswload.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsutils.c -o dev/acpica/dispatcher/dsutils.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dswload2.c -o dev/acpica/dispatcher/dswload2.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/dispatcher/dsmthdat.c -o dev/acpica/dispatcher/dsmthdat.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evgpeutil.c -o dev/acpica/events/evgpeutil.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evxfregn.c -o dev/acpica/events/evxfregn.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evgpeblk.c -o dev/acpica/events/evgpeblk.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evevent.c -o dev/acpica/events/evevent.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evhandler.c -o dev/acpica/events/evhandler.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evmisc.c -o dev/acpica/events/evmisc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evregion.c -o dev/acpica/events/evregion.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evxface.c -o dev/acpica/events/evxface.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evxfevnt.c -o dev/acpica/events/evxfevnt.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evsci.c -o dev/acpica/events/evsci.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evrgnini.c -o dev/acpica/events/evrgnini.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evxfgpe.c -o dev/acpica/events/evxfgpe.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evgpe.c -o dev/acpica/events/evgpe.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evglock.c -o dev/acpica/events/evglock.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/events/evgpeinit.c -o dev/acpica/events/evgpeinit.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exconcat.c -o dev/acpica/executer/exconcat.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exserial.c -o dev/acpica/executer/exserial.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exresop.c -o dev/acpica/executer/exresop.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exnames.c -o dev/acpica/executer/exnames.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exdebug.c -o dev/acpica/executer/exdebug.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exstorob.c -o dev/acpica/executer/exstorob.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exfldio.c -o dev/acpica/executer/exfldio.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/extrace.c -o dev/acpica/executer/extrace.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exconvrt.c -o dev/acpica/executer/exconvrt.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exoparg3.c -o dev/acpica/executer/exoparg3.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exregion.c -o dev/acpica/executer/exregion.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/excreate.c -o dev/acpica/executer/excreate.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exstoren.c -o dev/acpica/executer/exstoren.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exoparg1.c -o dev/acpica/executer/exoparg1.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exmisc.c -o dev/acpica/executer/exmisc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exoparg2.c -o dev/acpica/executer/exoparg2.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exresolv.c -o dev/acpica/executer/exresolv.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exconfig.c -o dev/acpica/executer/exconfig.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exutils.c -o dev/acpica/executer/exutils.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exdump.c -o dev/acpica/executer/exdump.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exsystem.c -o dev/acpica/executer/exsystem.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exoparg6.c -o dev/acpica/executer/exoparg6.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exmutex.c -o dev/acpica/executer/exmutex.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exstore.c -o dev/acpica/executer/exstore.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exprep.c -o dev/acpica/executer/exprep.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exfield.c -o dev/acpica/executer/exfield.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/executer/exresnte.c -o dev/acpica/executer/exresnte.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utdelete.c -o dev/acpica/utilities/utdelete.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utstring.c -o dev/acpica/utilities/utstring.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utobject.c -o dev/acpica/utilities/utobject.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utcopy.c -o dev/acpica/utilities/utcopy.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utdecode.c -o dev/acpica/utilities/utdecode.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utnonansi.c -o dev/acpica/utilities/utnonansi.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utalloc.c -o dev/acpica/utilities/utalloc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utstate.c -o dev/acpica/utilities/utstate.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utmisc.c -o dev/acpica/utilities/utmisc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utlock.c -o dev/acpica/utilities/utlock.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utascii.c -o dev/acpica/utilities/utascii.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utosi.c -o dev/acpica/utilities/utosi.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utclib.c -o dev/acpica/utilities/utclib.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utmutex.c -o dev/acpica/utilities/utmutex.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utbuffer.c -o dev/acpica/utilities/utbuffer.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utdebug.c -o dev/acpica/utilities/utdebug.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utstrtoul64.c -o dev/acpica/utilities/utstrtoul64.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utownerid.c -o dev/acpica/utilities/utownerid.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utresrc.c -o dev/acpica/utilities/utresrc.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utstrsuppt.c -o dev/acpica/utilities/utstrsuppt.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utinit.c -o dev/acpica/utilities/utinit.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utglobal.c -o dev/acpica/utilities/utglobal.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/uterror.c -o dev/acpica/utilities/uterror.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utresdecode.c -o dev/acpica/utilities/utresdecode.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utmath.c -o dev/acpica/utilities/utmath.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utxfmutex.c -o dev/acpica/utilities/utxfmutex.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utuuid.c -o dev/acpica/utilities/utuuid.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utids.c -o dev/acpica/utilities/utids.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utaddress.c -o dev/acpica/utilities/utaddress.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/uthex.c -o dev/acpica/utilities/uthex.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/uttrack.c -o dev/acpica/utilities/uttrack.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utxface.c -o dev/acpica/utilities/utxface.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utprint.c -o dev/acpica/utilities/utprint.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utxferror.c -o dev/acpica/utilities/utxferror.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/uteval.c -o dev/acpica/utilities/uteval.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utpredef.c -o dev/acpica/utilities/utpredef.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utcache.c -o dev/acpica/utilities/utcache.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utexcep.c -o dev/acpica/utilities/utexcep.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -MD -c dev/acpica/utilities/utxfinit.c -o dev/acpica/utilities/utxfinit.acpica.o -std=gnu11 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -Iinclude/kernel/dev/acpica -Iinclude/kernel/dev/acpica/platform -D__smplos_kernel -D'ARCH="i386"' -D'__ARCH=i386'
+i686-smplos-gcc -T arch/i386/linker.ld -o smplos.kernel -std=gnu99 -ffreestanding -O2 -Wall -Wextra arch/i386/boot.o kernel.o io/io.o dev/serial.o dev/eld.o misc/log.o misc/panic.o misc/stat.o misc/types/queue.o misc/types/dyn_array.o arch/i386/mem/memstat.o arch/i386/mem/gdt.o arch/i386/mem/gdt_asm.o arch/i386/mem/pmm.o arch/i386/mem/paging.o arch/i386/mem/paging_asm.o arch/i386/mem/kheap.o arch/i386/interrupts/idt.o arch/i386/interrupts/idt_asm.o arch/i386/interrupts/isr.o arch/i386/interrupts/isr_asm.o arch/i386/interrupts/irq.o arch/i386/interrupts/irq_asm.o arch/i386/interrupts/pic.o arch/i386/interrupts/syscall.o dev/pci.o dev/pit.o dev/cmos.o dev/rtc.o fs/vfs.o fs/tar.o fs/pipe.o arch/i386/proc/proc_asm.o arch/i386/proc/proc.o arch/i386/proc/sync.o module/symtable.o module/module.o module/ramdisk.o module/elf.o  dev/acpica/tables/tbutils.acpica.o dev/acpica/tables/tbxfroot.acpica.o dev/acpica/tables/tbxface.acpica.o dev/acpica/tables/tbfind.acpica.o dev/acpica/tables/tbprint.acpica.o dev/acpica/tables/tbinstal.acpica.o dev/acpica/tables/tbfadt.acpica.o dev/acpica/tables/tbdata.acpica.o dev/acpica/tables/tbxfload.acpica.o dev/acpica/resources/rsmisc.acpica.o dev/acpica/resources/rsinfo.acpica.o dev/acpica/resources/rsio.acpica.o dev/acpica/resources/rsaddr.acpica.o dev/acpica/resources/rsdumpinfo.acpica.o dev/acpica/resources/rscreate.acpica.o dev/acpica/resources/rsutils.acpica.o dev/acpica/resources/rscalc.acpica.o dev/acpica/resources/rsserial.acpica.o dev/acpica/resources/rsmemory.acpica.o dev/acpica/resources/rslist.acpica.o dev/acpica/resources/rsdump.acpica.o dev/acpica/resources/rsirq.acpica.o dev/acpica/resources/rsxface.acpica.o dev/acpica/namespace/nseval.acpica.o dev/acpica/namespace/nsobject.acpica.o dev/acpica/namespace/nsarguments.acpica.o dev/acpica/namespace/nsinit.acpica.o dev/acpica/namespace/nssearch.acpica.o dev/acpica/namespace/nsparse.acpica.o dev/acpica/namespace/nsrepair.acpica.o dev/acpica/namespace/nsload.acpica.o dev/acpica/namespace/nswalk.acpica.o dev/acpica/namespace/nsxfeval.acpica.o dev/acpica/namespace/nsdumpdv.acpica.o dev/acpica/namespace/nsxfobj.acpica.o dev/acpica/namespace/nsconvert.acpica.o dev/acpica/namespace/nspredef.acpica.o dev/acpica/namespace/nsutils.acpica.o dev/acpica/namespace/nsxfname.acpica.o dev/acpica/namespace/nsnames.acpica.o dev/acpica/namespace/nsalloc.acpica.o dev/acpica/namespace/nsrepair2.acpica.o dev/acpica/namespace/nsaccess.acpica.o dev/acpica/namespace/nsdump.acpica.o dev/acpica/namespace/nsprepkg.acpica.o dev/acpica/hardware/hwacpi.acpica.o dev/acpica/hardware/hwregs.acpica.o dev/acpica/hardware/hwpci.acpica.o dev/acpica/hardware/hwgpe.acpica.o dev/acpica/hardware/hwsleep.acpica.o dev/acpica/hardware/hwxfsleep.acpica.o dev/acpica/hardware/hwtimer.acpica.o dev/acpica/hardware/hwxface.acpica.o dev/acpica/hardware/hwvalid.acpica.o dev/acpica/hardware/hwesleep.acpica.o dev/acpica/smplos_osl.acpica.o dev/acpica/parser/psargs.acpica.o dev/acpica/parser/pswalk.acpica.o dev/acpica/parser/psopcode.acpica.o dev/acpica/parser/psxface.acpica.o dev/acpica/parser/psscope.acpica.o dev/acpica/parser/psobject.acpica.o dev/acpica/parser/psloop.acpica.o dev/acpica/parser/psutils.acpica.o dev/acpica/parser/psopinfo.acpica.o dev/acpica/parser/pstree.acpica.o dev/acpica/parser/psparse.acpica.o dev/acpica/dispatcher/dsopcode.acpica.o dev/acpica/dispatcher/dscontrol.acpica.o dev/acpica/dispatcher/dsfield.acpica.o dev/acpica/dispatcher/dsmethod.acpica.o dev/acpica/dispatcher/dspkginit.acpica.o dev/acpica/dispatcher/dsargs.acpica.o dev/acpica/dispatcher/dswstate.acpica.o dev/acpica/dispatcher/dsinit.acpica.o dev/acpica/dispatcher/dsdebug.acpica.o dev/acpica/dispatcher/dsobject.acpica.o dev/acpica/dispatcher/dswexec.acpica.o dev/acpica/dispatcher/dswscope.acpica.o dev/acpica/dispatcher/dswload.acpica.o dev/acpica/dispatcher/dsutils.acpica.o dev/acpica/dispatcher/dswload2.acpica.o dev/acpica/dispatcher/dsmthdat.acpica.o dev/acpica/events/evgpeutil.acpica.o dev/acpica/events/evxfregn.acpica.o dev/acpica/events/evgpeblk.acpica.o dev/acpica/events/evevent.acpica.o dev/acpica/events/evhandler.acpica.o dev/acpica/events/evmisc.acpica.o dev/acpica/events/evregion.acpica.o dev/acpica/events/evxface.acpica.o dev/acpica/events/evxfevnt.acpica.o dev/acpica/events/evsci.acpica.o dev/acpica/events/evrgnini.acpica.o dev/acpica/events/evxfgpe.acpica.o dev/acpica/events/evgpe.acpica.o dev/acpica/events/evglock.acpica.o dev/acpica/events/evgpeinit.acpica.o dev/acpica/executer/exconcat.acpica.o dev/acpica/executer/exserial.acpica.o dev/acpica/executer/exresop.acpica.o dev/acpica/executer/exnames.acpica.o dev/acpica/executer/exdebug.acpica.o dev/acpica/executer/exstorob.acpica.o dev/acpica/executer/exfldio.acpica.o dev/acpica/executer/extrace.acpica.o dev/acpica/executer/exconvrt.acpica.o dev/acpica/executer/exoparg3.acpica.o dev/acpica/executer/exregion.acpica.o dev/acpica/executer/excreate.acpica.o dev/acpica/executer/exstoren.acpica.o dev/acpica/executer/exoparg1.acpica.o dev/acpica/executer/exmisc.acpica.o dev/acpica/executer/exoparg2.acpica.o dev/acpica/executer/exresolv.acpica.o dev/acpica/executer/exconfig.acpica.o dev/acpica/executer/exutils.acpica.o dev/acpica/executer/exdump.acpica.o dev/acpica/executer/exsystem.acpica.o dev/acpica/executer/exoparg6.acpica.o dev/acpica/executer/exmutex.acpica.o dev/acpica/executer/exstore.acpica.o dev/acpica/executer/exprep.acpica.o dev/acpica/executer/exfield.acpica.o dev/acpica/executer/exresnte.acpica.o dev/acpica/utilities/utdelete.acpica.o dev/acpica/utilities/utstring.acpica.o dev/acpica/utilities/utobject.acpica.o dev/acpica/utilities/utcopy.acpica.o dev/acpica/utilities/utdecode.acpica.o dev/acpica/utilities/utnonansi.acpica.o dev/acpica/utilities/utalloc.acpica.o dev/acpica/utilities/utstate.acpica.o dev/acpica/utilities/utmisc.acpica.o dev/acpica/utilities/utlock.acpica.o dev/acpica/utilities/utascii.acpica.o dev/acpica/utilities/utosi.acpica.o dev/acpica/utilities/utclib.acpica.o dev/acpica/utilities/utmutex.acpica.o dev/acpica/utilities/utbuffer.acpica.o dev/acpica/utilities/utdebug.acpica.o dev/acpica/utilities/utstrtoul64.acpica.o dev/acpica/utilities/utownerid.acpica.o dev/acpica/utilities/utresrc.acpica.o dev/acpica/utilities/utstrsuppt.acpica.o dev/acpica/utilities/utinit.acpica.o dev/acpica/utilities/utglobal.acpica.o dev/acpica/utilities/uterror.acpica.o dev/acpica/utilities/utresdecode.acpica.o dev/acpica/utilities/utmath.acpica.o dev/acpica/utilities/utxfmutex.acpica.o dev/acpica/utilities/utuuid.acpica.o dev/acpica/utilities/utids.acpica.o dev/acpica/utilities/utaddress.acpica.o dev/acpica/utilities/uthex.acpica.o dev/acpica/utilities/uttrack.acpica.o dev/acpica/utilities/utxface.acpica.o dev/acpica/utilities/utprint.acpica.o dev/acpica/utilities/utxferror.acpica.o dev/acpica/utilities/uteval.acpica.o dev/acpica/utilities/utpredef.acpica.o dev/acpica/utilities/utcache.acpica.o dev/acpica/utilities/utexcep.acpica.o dev/acpica/utilities/utxfinit.acpica.o -nostdlib  -lk -lgcc  
+grub-file --is-x86-multiboot smplos.kernel
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/kernel'
+make -C modules all 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/modules'
+make[1]: 'all' is up to date.
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules'
+make -C test_exec all 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/test_exec'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  
+i686-smplos-ld main.o -o test.smp
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/test_exec'
+make -C usr all 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/usr'
+make[1]: 'all' is up to date.
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr'
+make -C kernel install
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/kernel'
+cp smplos.kernel /home/gamehunt/SmplOSV2/sysroot/boot/kernel.bin
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/kernel'
+make -C modules install
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/modules'
+./build_all.sh
+Building modules...
+Building test_disk...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/test_disk'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/tdsk.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/test_disk'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/test_disk'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0   
+i686-smplos-ld -r main.o -o test_disk.smod 
+cp test_disk.smod /home/gamehunt/SmplOSV2/os/modules/bin/tdsk.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/test_disk'
+Building qemu_video...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/qemu_video'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/qvideo.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/qemu_video'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/qemu_video'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  
+i686-smplos-ld -r main.o -o qvideo.smod 
+cp qvideo.smod /home/gamehunt/SmplOSV2/os/modules/bin/qvideo.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/qemu_video'
+Building ps2...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ps2'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/ps2.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ps2'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ps2'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  -I/home/gamehunt/SmplOSV2/sysroot/include 
+i686-smplos-ld -r main.o -o ps2.smod 
+cp ps2.smod /home/gamehunt/SmplOSV2/os/modules/bin/ps2.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ps2'
+Building null...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/null'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/null.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/null'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/null'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  
+i686-smplos-ld -r main.o -o null.smod 
+cp null.smod /home/gamehunt/SmplOSV2/os/modules/bin/null.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/null'
+Building rand...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/rand'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/bin/rand.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/rand'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/rand'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  
+nasm -f elf32 rdrand.asm
+i686-smplos-ld -r main.o rdrand.o -o rand.smod 
+cp rand.smod /home/gamehunt/SmplOSV2/os/modules/bin/rand.smod
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/rand'
+Building ramdisk modules...
+Building testmod...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/test.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  
+i686-smplos-ld -r main.o -o test.smod 
+cp test.smod /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod'
+Building testmod1...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod1'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/test1.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod1'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod1'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0  
+i686-smplos-ld -r main.o -o test1.smod 
+cp test1.smod /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/testmod1'
+Building ata...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/ata'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/ata.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/ata'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/ata'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0   
+i686-smplos-ld -r main.o -o ata.smod
+cp ata.smod /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/ata'
+Building fat...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/fat'
+rm -rf /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin/fat.smod
+rm main.o
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/fat'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/fat'
+i686-smplos-gcc -c main.c  -ffreestanding -nostdlib -Wall -Wextra -O0   
+i686-smplos-ld -r main.o -o fat.smod 
+cp fat.smod /home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/bin
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules/ramdisk_modules/fat'
+Finished!
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/modules'
+make -C test_exec install 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/test_exec'
+make[1]: Nothing to be done for 'install'.
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/test_exec'
+make -C usr install 
+make[1]: Entering directory '/home/gamehunt/SmplOSV2/os/usr'
+./build_all.sh
+Building userspace apps...
+Building init...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/init'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/init.smp
+rm main.o
+rm -rf init.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/init'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/init'
+i686-smplos-gcc -o init.smp main.c    
+cp init.smp /home/gamehunt/SmplOSV2/os/usr/bin/init.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/init'
+Building cserv...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/cserv'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/cserv.smp
+rm main.o
+rm -rf cserv.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/cserv'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/cserv'
+i686-smplos-gcc -o cserv.smp main.c     -lgdi
+cp cserv.smp /home/gamehunt/SmplOSV2/os/usr/bin/cserv.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/cserv'
+Building terminal...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/terminal'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/term.smp
+rm main.o
+rm -rf term.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/terminal'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/terminal'
+i686-smplos-gcc -o term.smp main.c     -lgdi -lkbd
+cp term.smp /home/gamehunt/SmplOSV2/os/usr/bin/term.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/terminal'
+Building login...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/login'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/login.smp
+rm main.o
+rm -rf login.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/login'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/login'
+i686-smplos-gcc -o login.smp main.c    
+cp login.smp /home/gamehunt/SmplOSV2/os/usr/bin/login.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/login'
+Building shell...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/shell'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/shell.smp
+rm main.o
+rm -rf shell.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/shell'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/shell'
+i686-smplos-gcc -o shell.smp main.c    -lkbd
+cp shell.smp /home/gamehunt/SmplOSV2/os/usr/bin/shell.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/shell'
+Building echo...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/echo'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/echo.smp
+rm main.o
+rm -rf echo.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/echo'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/echo'
+i686-smplos-gcc -o echo.smp main.c    
+cp echo.smp /home/gamehunt/SmplOSV2/os/usr/bin/echo.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/echo'
+Building ls...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/ls'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/ls.smp
+rm main.o
+rm -rf ls.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/ls'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/ls'
+i686-smplos-gcc -o ls.smp main.c    
+cp ls.smp /home/gamehunt/SmplOSV2/os/usr/bin/ls.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/ls'
+Building reboot...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/reboot'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/reboot.smp
+rm main.o
+rm -rf reboot.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/reboot'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/reboot'
+i686-smplos-gcc -o reboot.smp main.c    
+cp reboot.smp /home/gamehunt/SmplOSV2/os/usr/bin/reboot.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/reboot'
+Building shutdown...
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/shutdown'
+rm -rf /home/gamehunt/SmplOSV2/os/usr/bin/shutdown.smp
+rm main.o
+rm -rf shutdown.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/shutdown'
+make[2]: Entering directory '/home/gamehunt/SmplOSV2/os/usr/shutdown'
+i686-smplos-gcc -o shutdown.smp main.c    
+cp shutdown.smp /home/gamehunt/SmplOSV2/os/usr/bin/shutdown.smp
+make[2]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr/shutdown'
+make[1]: Leaving directory '/home/gamehunt/SmplOSV2/os/usr'
