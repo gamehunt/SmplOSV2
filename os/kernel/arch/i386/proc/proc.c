@@ -191,18 +191,18 @@ void sleep_insert(proc_t* proc){
 		uint32_t idx = 0;
 		uint8_t flag = 0;
 		for(idx;idx<sleep_procs_size;idx++){
-			delta += sleep_procs[idx]->sleep_time;
-			if(delta >= proc->sleep_time){
+			if(delta + sleep_procs[idx]->sleep_time>= proc->sleep_time){
 				idx++;
 				flag = 1;
 				break;
 			}
+			delta += sleep_procs[idx]->sleep_time;
 		}
 		proc->sleep_time -= delta;
 		if(!flag){
 			idx = sleep_procs_size;
-			sleep_procs_size++;
 		}
+		sleep_procs_size++;
 		uint32_t qidx = idx;
 		while(sleep_procs[qidx] && qidx < MAX_PROCESSES-1){
 			sleep_procs[qidx+1] = sleep_procs[qidx];
@@ -224,7 +224,7 @@ void sleep_remove(proc_t* proc){
 			sleep_procs[i]->queue_idx = i;
 		}
 	}
-	for(uint32_t i=sleep_procs_size-1;i>=0;i--){ //Probably we should do the same for other queues?
+	for(long i=sleep_procs_size-1;i>=0;i--){ //Probably we should do the same for other queues?
 		
 		if(!sleep_procs[i]){
 			sleep_procs_size--;
@@ -242,6 +242,8 @@ void setup_ctx(regs_t ctx,regs_t r,uint32_t pd,uint32_t ks){
 	
 	set_page_directory(pd,0);
 	tss_set_kernel_stack(ks);
+	
+	//kinfo("UHEAP: %x in %d\n",virtual2physical(USER_HEAP),current_process->pid);
 	
 	r->eax = ctx->eax;
 	r->ebx = ctx->ebx;
@@ -303,11 +305,14 @@ proc_t* create_process(const char* name, proc_t* parent){
 	
 	new_proc->thread->syscall_state = 0;
 	new_proc->signal_state = kmalloc(sizeof(struct registers));
+	
 	uint32_t cpdir = current_page_directory;
 	set_page_directory(kernel_page_directory,0);
+	
 	new_proc->pdir = copy_page_directory(kernel_page_directory);
 	new_proc->thread->kernel_stack = (uint32_t)kvalloc(KERNEL_STACK_PER_PROCESS,4096) + KERNEL_STACK_PER_PROCESS;
 	memset((uint32_t)new_proc->thread->kernel_stack-KERNEL_STACK_PER_PROCESS,0,KERNEL_STACK_PER_PROCESS);
+	
 	set_page_directory(cpdir,0);
 	
 	new_proc->group = kmalloc(sizeof(thread_group_t));
@@ -361,16 +366,15 @@ proc_t* create_process(const char* name, proc_t* parent){
 	new_proc->heap = USER_HEAP;
 	
 	set_page_directory(new_proc->pdir,0);
-	kralloc(USER_HEAP,USER_HEAP+USER_HEAP_SIZE);
 	
 	new_proc->heap_size = USER_HEAP_SIZE;
+	kralloc(USER_HEAP,USER_HEAP+USER_HEAP_SIZE);
 	kralloc(USER_STACK,USER_STACK+USER_STACK_PER_PROCESS);
-	
 	kralloc(SHARED_MEMORY_START,SHARED_MEMORY_END);
 	
-	if(current_process){
-		set_page_directory(current_process->pdir,0);
-	}
+//	if(current_process){
+	set_page_directory(cpdir,0);
+//	}
 	
 	new_proc->thread->state->useresp = USER_STACK + USER_STACK_PER_PROCESS;
 	new_proc->thread->state->ebp = new_proc->thread->state->useresp;
@@ -392,7 +396,7 @@ proc_t* create_process(const char* name, proc_t* parent){
 	total_prcs++;
 	ready_insert(new_proc);
 	
-	kinfo("Process created: '%s' with pid %d (stack %p)\n",new_proc->name,new_proc->pid,new_proc->thread->kernel_stack);
+	kinfo("Process created: '%s' with pid %d (stack %p)(parent: %s)\n",new_proc->name,new_proc->pid,new_proc->thread->kernel_stack,parent?parent->name:"NONE");
 
 	return new_proc;
 }
@@ -446,8 +450,13 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 			strcpy(envp_copy[i],envp[i]);
 		}
 	}
+	
+	uint32_t cpd = current_page_directory;
+	
 	set_page_directory(proc->pdir,0);
-	tss_set_kernel_stack(proc->thread->kernel_stack);
+	if(init){
+		tss_set_kernel_stack(proc->thread->kernel_stack);
+	}
 	
 	kinfo("Allocating space for %d cmd arguments and %d envp entries\n",argc,envsize);
 	
@@ -508,10 +517,12 @@ proc_t* execute(fs_node_t* node,char** argv,char** envp,uint8_t init){
 	PUSH(proc->thread->state->useresp,char**,usr_argv);
 	PUSH(proc->thread->state->useresp,int,   argc);
 	
-	if(!init){ //This is hack, TODO rewrite 
-		set_page_directory(current_process->pdir,0);
-		tss_set_kernel_stack(current_process->thread->kernel_stack);
+	//if(!init){ //This is hack, TODO rewrite 
+	if(!init){
+		set_page_directory(cpd,0);
 	}
+	//	tss_set_kernel_stack(current_process->thread->kernel_stack);
+	//}
 	
 	if(!entry || entry == 1){
 		kerr("Failed to load exec file!");
@@ -606,7 +617,7 @@ void clean_processes(){
 void schedule(regs_t reg,uint8_t save){
 	if(total_prcs){
 		while(sleep_procs_size){
-			//kinfo("Sleep time left: %d",sleep_procs[0]->sleep_time);
+			//kinfo("Sleep time left: %d for %s\n",sleep_procs[0]->sleep_time,sleep_procs[0]->name);
 			sleep_procs[0]->sleep_time--;
 			if(sleep_procs[0]->sleep_time <= 0){
 				process_awake(sleep_procs[0]);
@@ -681,6 +692,7 @@ void schedule(regs_t reg,uint8_t save){
 }
 
 void proc_exit(proc_t* proc){
+	kinfo("Trying to stop process %s(%d)\n",proc->name,proc->pid);
 	if(proc->pid == 1){
 		if(proc == current_process){
 			current_process = 0;
@@ -688,14 +700,15 @@ void proc_exit(proc_t* proc){
 		schedule(proc->thread->syscall_state,0);
 		return;
 	}
-	kinfo("Stopping process %s(%d)\n",proc->name,proc->pid);
 	if(proc->status == PROC_READY){
 		ready_remove(proc);
 	}
 	proc->status = PROC_DEAD;
+	//kinfo("Sending SIGCHILD to %s",proc->parent->name);
 	if(proc->parent){
 		send_signal(proc->parent,SIG_CHILD);
 	}
+	
 	for(uint32_t i=0;i<proc->child_count;i++){
 		proc->childs[i]->parent = 0;
 		proc->childs[i]->pwait = 0;
@@ -848,7 +861,7 @@ void set_sig_handler(proc_t* proc,sig_handler_t handl,uint32_t sig){
 	if(sig>=MAX_SIG){
 		return;
 	}
-	kinfo("Signal hadnler set: %d for %s\n",sig,proc->name);
+	kinfo("Signal handler set: %d for %s\n",sig,proc->name);
 	proc->sig_handlers[sig] = handl;
 }
 
@@ -929,6 +942,10 @@ uint32_t process_create_shared(proc_t* proc,uint32_t buffer_size){
 	block->size = buffer_size;
 	block->offset = proc->shmem_bytes;
 	proc->shmem_bytes += buffer_size;
+	//uint32_t cpd = current_page_directory;
+	//set_page_directory(proc->pdir,0);
+	//kinfo("Shmem created: %d index %x frame in process %s\n",proc->shmem_size-1,virtual2physical(SHARED_MEMORY_START),proc->name);
+	//set_page_directory(cpd,0);
 	return proc->shmem_size-1;
 }
 shmem_block_t* process_get_shared(proc_t* proc,uint32_t id){
@@ -943,7 +960,7 @@ void process_reset_shmem(proc_t* proc){
 	}
 	kfree(proc->shmem_blocks);
 	proc->shmem_size = 0;
-	kralloc(SHARED_MEMORY_START,SHARED_MEMORY_END);
+	proc->shmem_bytes = 0;
 }
 
 shmem_block_t* process_open_shmem(proc_t* proc,proc_t* target,uint32_t id){
@@ -951,6 +968,15 @@ shmem_block_t* process_open_shmem(proc_t* proc,proc_t* target,uint32_t id){
 	uint32_t id1 = process_create_shared(proc,bl->size);
 	shmem_block_t* own_bl = process_get_shared(proc,id1);
 	copy_region(target->pdir,proc->pdir,SHARED_MEMORY_START+bl->offset,bl->size,SHARED_MEMORY_START+own_bl->offset);
+	/*uint32_t cpd = current_page_directory;
+	set_page_directory(target->pdir,0);
+	uint32_t value1 = ((uint32_t*)(SHARED_MEMORY_START+bl->offset))[0];
+	uint32_t frame1 = virtual2physical(SHARED_MEMORY_START+bl->offset);
+	set_page_directory(proc->pdir,0);
+	uint32_t value2 = ((uint32_t*)(SHARED_MEMORY_START+own_bl->offset))[0];
+	uint32_t frame2 = virtual2physical(SHARED_MEMORY_START+own_bl->offset);
+	set_page_directory(cpd,0);*/
+	//kinfo("SHMEM VER: %x(%d)-%x:%x %x(%d)-%x:%x | LEN=%d/%d\n",value1,bl->offset,SHARED_MEMORY_START+bl->offset,frame1,value2,own_bl->offset,SHARED_MEMORY_START+own_bl->offset,frame2,bl->size,own_bl->size);
 	return own_bl;
 }
 

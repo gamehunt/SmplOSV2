@@ -24,6 +24,7 @@ int closedir (DIR * dir){
 }
 struct dirent * readdir (DIR * dirp){
 	struct dirent* dent = malloc(sizeof(struct dirent));
+	memset(dent,0,sizeof(struct dirent));
 	uint32_t resp = sys_readdir(dirp->fd,dirp->c_entry,dent);
 	if(resp){
 		free(dent);

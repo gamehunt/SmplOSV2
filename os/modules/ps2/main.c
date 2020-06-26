@@ -344,10 +344,10 @@ void ps2_mouse_int_handler(regs_t r){
 }
 
 uint8_t init_ps2_mouse(){
-	//if(ps2_mouse == 0xFF){
+	if(ps2_mouse == 0xFF){
 		kinfo("Mouse not found!\n");
 		return 0;
-	//}
+	}
 	asm("cli");
 	ps2_device_send(ps2_mouse,PS2_MS_CMD_DEFAULT);
 	ps2_device_read();

@@ -69,24 +69,23 @@ void map(uint32_t p_addr,uint32_t v_addr,uint8_t _flags){
 	uint32_t i_pd_entry = current_page_directory[pde];
 	if(!(flags(i_pd_entry) & PAGE_PRESENT)){
 		uint32_t pte = kfalloc();
-		//printf("New PT at %a\n",pte);
+	//	kinfo("New PT at %x\n",pte);
 		table_mappings[pde] = pt_entry(pte,_flags);
+		current_page_directory[pde] = pd_entry(pte,_flags);
 		if(paging_flag){
 			flush_tlb(KERNEL_PT_MAP + pde*4096);
 		}
-		current_page_directory[pde] = pd_entry(pte,_flags);
 	}
 	i_pd_entry = current_page_directory[pde];
 	uint32_t* k_pt = (uint32_t*)(paging_flag?(KERNEL_PT_MAP + pde*4096):(address(i_pd_entry)));
 	uint32_t i_pt_entry = k_pt[pte];
 	if(flags(i_pt_entry) & PAGE_PRESENT){
-		//kwarn("Trying to remap %p from %p to %p...\n",v_addr,virtual2physical(v_addr),p_addr);
+	//	kwarn("Trying to remap %p from %p to %p...\n",v_addr,virtual2physical(v_addr),p_addr);
 	}
 	k_pt[pte] = pt_entry(p_addr, _flags );
 	if(paging_flag){
 		flush_tlb(v_addr);
 	}
-
 }
 
 uint32_t virtual2physical(uint32_t v_addr){
@@ -110,10 +109,10 @@ uint32_t virtual2physical(uint32_t v_addr){
 uint32_t* copy_page_directory(uint32_t* src){
 	uint32_t* new_pdir = kvalloc(4096,4096);
 	memcpy(new_pdir,kernel_page_directory,4096);
-	if(src == kernel_page_directory){
-		return;
-	}
-	
+	//if(src == kernel_page_directory){
+	//	return new_pdir;
+	//}
+	//kinfo("not returning\n");
 	
 	uint32_t* pt_map = kvalloc(4096,4096);
 	new_pdir[1023] = pd_entry(virtual2physical(pt_map),PAGE_PRESENT | PAGE_RW);
@@ -129,12 +128,12 @@ uint32_t* copy_page_directory(uint32_t* src){
 			if(addr < 0x80000000 || addr > 0xF0000000){
 				continue;
 			}
-				uint32_t real = virtual2physical(addr);
-				if(real){
-					set_page_directory(new_pdir,0);
-					kmpalloc(addr,real,0);
-					set_page_directory(src,0);
-				}
+			uint32_t real = virtual2physical(addr);
+			if(real){
+				set_page_directory(new_pdir,0);
+				kmpalloc(addr,real,0);
+				set_page_directory(src,0);
+			}
 			
 		}
 	}
@@ -155,7 +154,9 @@ uint32_t* knpalloc(uint32_t vaddr){
 }
 
 void kralloc(uint32_t region_start,uint32_t region_end){
-	for(uint32_t i=region_start;i<region_end;i+=4096){
+	uint32_t aligned_start = region_start & 0xFFFFF000;
+	uint32_t aligned_end   = (region_end) & 0xFFFFF000;
+	for(uint32_t i=aligned_start;i<aligned_end;i+=4096){
 		//kinfo("Allocating block %a-%a...\n",i,i+4096);
 		knpalloc(i);
 	}
@@ -179,10 +180,11 @@ void kpfree(uint32_t v_addr){
 			for(int i=0;i<1024;i++){
 				if(k_pt[i]){
 					flag = 0;
+					break;
 				}
 			}
 			if(flag){
-				current_page_directory[pde] = 0x0;
+				current_page_directory[pde] = 0x0; 
 				kpfree(KERNEL_PT_MAP + pde*4096);
 			}
 		}
@@ -290,13 +292,23 @@ uint8_t validate(uint32_t ptr){
 
 void copy_region(uint32_t pd1,uint32_t pd2,uint32_t region_start,uint32_t size,uint32_t fin_start){
 	uint32_t aligned_start = region_start & 0xFFFFF000;
-	uint32_t aligned_end   = (region_start + size) & 0xFFFFF000 + 0x1000;
+	uint32_t aligned_end   = ((region_start + size) & 0xFFFFF000) + 4096;
 	uint32_t cpd = current_page_directory;
+	//kinfo("%x %x %x\n",((region_start + size) & 0xFFFFF000) + 4096 ,aligned_start,aligned_end);
 	for(uint32_t i=aligned_start;i<aligned_end;i+=4096){
 		set_page_directory(pd1,0);
-		uint32_t frame = virtual2physical(aligned_start);
+		uint32_t frame = virtual2physical(i);
+		uint32_t value = *((uint32_t*)i);
+		//kinfo("SHMEM FRAME: %x\n",virtual2physical(SHARED_MEMORY_START));
+		//kinfo("SRC FRAME: %x in %x\n",frame,pd1);
 		set_page_directory(pd2,0);
+		//kinfo("SHMEM FRAME: %x\n",virtual2physical(SHARED_MEMORY_START));
+		//kinfo("TARGET FRAME: %x in %x\n",virtual2physical(fin_start+i-aligned_start),pd2);
 		kmpalloc(fin_start+i-aligned_start,frame,0);
+		
+		//kinfo("COPY: %x from %x(%x) to %x(%x) | VER: %x(%x==%x)\n",frame,i,pd1,fin_start+i-aligned_start,pd2,virtual2physical(fin_start+i-aligned_start),value,*((uint32_t*)fin_start+i-aligned_start));
+		//while(1);
 	}
+	//kinfo("Copied %x from 0x%x in 0x%x to 0x%x in 0x%x",size,region_start,pd1,fin_start,pd2);
 	set_page_directory(cpd,0);
 }

@@ -116,7 +116,7 @@ uint32_t sys_open(uint32_t path,uint32_t flags,uint32_t a,uint32_t b,uint32_t c)
 			return -1;
 		}
 	}else if(!validate(node)){
-		//kwarn("[2]Failed to open %s\n",(char*)path);
+	//	kwarn("[2]Failed to open %s\n",(char*)path);
 		return -1;
 	}
 	node->open_flags = flags;

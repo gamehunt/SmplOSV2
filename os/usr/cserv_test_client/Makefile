@@ -3,7 +3,7 @@ CPPFLAGS:=$(CPPFLAGS)
 LIBS:
 all: cserv_tst.smp install
 cserv_tst.smp:
-	i686-smplos-g++ -o cserv_tst.smp main.cpp  $(CFLAGS) $(CPPFLAGS) -lcserv
+	i686-smplos-g++ -o cserv_tst.smp main.cpp  $(CFLAGS) $(CPPFLAGS) -lcserv -lfb
 install:
 	cp cserv_tst.smp $(HOME)/SmplOSV2/os/usr/bin/ctst.smp
 clean:

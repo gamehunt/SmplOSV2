@@ -40,22 +40,32 @@ FILE* second_in;
 char input_buffer[256];
 uint32_t input_size = 0;
 
-char screen_buffer[X_CELL_RES*Y_CELL_RES];
-
 void term_scroll(){
 	//Call some function from compositor to scroll down our context
 }
 
 void term_putchar(char c){
-		screen_buffer[ty*X_CELL_RES + tx] = c;
-		tx++;
-		if(tx >= X_CELL_RES){
+		if(c == '\n'){
 			tx = 0;
 			ty++;
-		}
-		if(ty >= Y_CELL_RES){
-			//TODO
-		}
+		}else{
+			CServer::C_GetContext()->restrict(tx*CELL_SZ_X,ty*CELL_SZ_Y,CELL_SZ_X,CELL_SZ_Y);
+			fb_optbuff_size(CELL_SZ_X,CELL_SZ_Y);
+			uint32_t* plain = CServer::C_GetContext()->ToPlain();
+			fb_char(c,0,0,0x00FFFFFF,0x00000000,plain);
+			CServer::C_GetContext()->FromPlain(plain);
+			delete[] plain;
+			CServer::RefreshScreen();
+			CServer::C_GetContext()->unrestrict();
+			tx++;
+			if(tx >= X_CELL_RES){
+				tx = 0;
+				ty++;
+			}
+			if(ty >= Y_CELL_RES){
+				term_scroll();
+			}
+	}
 }
 
 int sig_child(){
@@ -74,8 +84,9 @@ int sig_child(){
 }
 
 int term_init(int argc,char** argv){
-	CServer::C_InitClient();
-	CSPacket* p = new CSPacket(CS_TYPE_WIDGET);
+	CServer::C_InitClient(XRES,YRES);
+	fb_optbuff_size(XRES,YRES);
+	/*CSPacket* p = new CSPacket(CS_TYPE_WIDGET);
 	((uint32_t*)p->GetBuffer())[0] = getpid();
 	((uint32_t*)p->GetBuffer())[1] = WIDGET_PACK_ADD;
 	((uint32_t*)p->GetBuffer())[2] = 1;
@@ -85,7 +96,7 @@ int term_init(int argc,char** argv){
 	((uint32_t*)p->GetBuffer())[3] = 1024;
 	((uint32_t*)p->GetBuffer())[4] = 768;
 	CServer::C_SendPacket(p);
-	delete p;
+	delete p;*/
 	
 	//memset(screen_buffer,0,X_CELL_RES*Y_CELL_RES);
 	
@@ -121,7 +132,12 @@ void term_handle_input(char c){
 		}else{
 			tx--;
 		}
-		screen_buffer[tx*X_CELL_RES + ty] = 0;
+		CServer::C_GetContext()->restrict(tx,ty,CELL_SZ_X,CELL_SZ_Y);
+		uint32_t* plain = CServer::C_GetContext()->ToPlain();
+		fb_char(c,0,0,term_col_fg,term_col_bg,plain);
+		CServer::C_GetContext()->FromPlain(plain);
+		delete[] plain;
+		CServer::C_GetContext()->unrestrict();
 		return;
 	}else{
 		term_putchar(c);
@@ -148,32 +164,17 @@ int main(int argc, char** argv){
 	while(1){
 		memset(buffer,0,256);
 		uint32_t readen = fread(buffer,1,256,stdin);
-		while(readen){
-			for(uint32_t i=0;i<readen;i++){	
-					term_handle_input(buffer[i]);
-			}
-			readen = fread(buffer,1,256,stdin);
+	//	sys_echo("READEN FROM STDIN: %d\n",readen);
+		for(uint32_t i=0;i<readen;i++){	
+				term_handle_input(buffer[i]);
 		}
 		memset(buffer,0,256);
 		readen = fread(buffer,1,256,second_in);
-		while(readen){
-			for(uint32_t i=0;i<readen;i++){
-				term_putchar(buffer[i]);
-			}
-			readen = fread(buffer,1,256,second_in);
+	//	sys_echo("READEN FROM SECOND IN: %d\n",readen);
+		for(uint32_t i=0;i<readen;i++){
+			term_putchar(buffer[i]);
 		}
-		CSPacket* p = new CSPacket(CS_TYPE_WIDGET);
-		((uint32_t*)p->GetBuffer())[0] = getpid();
-		((uint32_t*)p->GetBuffer())[1] = WIDGET_PACK_UPD;
-		((uint32_t*)p->GetBuffer())[2] = 0;
-		char* text = reinterpret_cast<char*>(&(((uint32_t*)p->GetBuffer())[3]));
-		for(int i=0;i<X_CELL_RES*Y_CELL_RES;i+=127){
-			text[0] = (i==0);
-			std::memcpy(text+1,&screen_buffer[i],127);
-			CServer::C_SendPacket(p);
-		}
-		delete p;
-		sys_fswait(fds,2);
+		
 	}
 	return 0;
 }

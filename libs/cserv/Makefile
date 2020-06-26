@@ -2,7 +2,6 @@ ALL_OBJS=\
 cserv.o\
 widgets/widget.o\
 widgets/debug.o\
-widgets/text_screen.o\
 
 .PHONY: all clean install
 .SUFFIXES: .o .c .cpp .asm

@@ -30,6 +30,7 @@ FILE* exec_stdin  = 0;
 static volatile uint8_t in_exec = 0;
 
 int sig_child(){
+	//sys_echo("sig_child\n");
 	char proc_out[256];
 	memset(proc_out,0,256);
 	if(exec_stdout && fread(proc_out,1,256,exec_stdout)){
@@ -51,7 +52,7 @@ int sig_child(){
 	}
 	in_exec = 0;
 	printf("\n[process exited]\n");
-	printf("[%s %d]>> ",(getcwd(cwdbuffer,256)?cwdbuffer:"ERROR"),getuid());
+	printf("\n[%s %d]>> ",(getcwd(cwdbuffer,256)?cwdbuffer:"ERROR"),getuid());
 	sys_sigexit();
 }
 
@@ -186,26 +187,24 @@ void process_input(uint8_t* buffer,uint32_t buff_size){
 int main(int argc,char** argv,char** envp){
 	uint8_t* cmd_buffer  = malloc(2048);
 	char cwd[256];
-	//sys_signal(SIG_CHILD,sig_child);
+	
+	sys_signal(SIG_CHILD,sig_child);
 	
 	printf("Launched interactive shell session\n\n");
 	printf("[%s %d]>> ",(getcwd(cwdbuffer,256)?cwdbuffer:"ERROR"),getuid());
 
+	//sys_echo("ENTERED\n");
 
 	while(1){
-		
 		uint32_t readen = 0;
 		char proc_stdout[256];
 		memset(proc_stdout,0,256);
 		if(exec_stdout){
 			readen = fread(proc_stdout,1,256,exec_stdout);
 		}
-		
-		
 		for(uint32_t i =0;i<readen;i++){
 			putchar(proc_stdout[i]);
-		}
-				
+		}	
 		readen = fread(cmd_buffer,1,2048,stdin);
 		if(readen){				
 			if(in_exec){
