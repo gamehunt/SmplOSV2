@@ -30,6 +30,20 @@ int my=0;
 
 uint32_t clks = 0;
 
+static uint8_t volatile processes_lock = 0;
+
+//TODO move this in libc/pthreads/e.t.c
+
+static void lock(){
+	while(__sync_lock_test_and_set(&processes_lock, 0x01)) {
+		sys_yield();
+	}
+}
+
+static void unlock(){
+	__sync_lock_release(&processes_lock);
+}
+
 typedef struct{
 	int32_t x_mov;
 	int32_t y_mov;
@@ -41,17 +55,21 @@ int process_packet(){
 	while(packet){
 		if(packet->GetType() == CS_TYPE_PROCESS){
 				CSProcess* process = CSProcess::CreateProcess(BUFFER(packet,pid_t,0),0,0,BUFFER(packet,uint32_t,1),BUFFER(packet,uint32_t,2));
+				lock();
 				CServer::S_AddProcess(process);
+				unlock();
 				if(!active_process){
 					active_process = process;
 				}
 		}else if(packet->GetType() == CS_TYPE_ACTIVATE){
+				lock();
 				for(CSProcess* proc : CServer::S_GetAllProcesses()){
 					if(proc->GetPid() == ((int*)packet->GetBuffer())[0]){
 						active_process = proc;
 						break;
 					}
 				}	
+				unlock();
 		}else if(packet->GetType() == CS_TYPE_TERMINATE){
 				//Here we should delete process with sent pid from processes
 		}else if(packet->GetType() == CS_TYPE_KEY && active_process && !active_process->ApplyFilter(packet)){
@@ -85,6 +103,7 @@ int process_packet(){
 void render_thread(){
 	while(1){
 		fb_rect(0,0,1024,768,0x00000000,true,0);
+		lock();
 		for(CSProcess* proc : CServer::S_GetAllProcesses()){
 			shmem_block_t* block = new shmem_block_t;
 			sys_shmem_open(proc->GetPid(),0,block);
@@ -93,9 +112,10 @@ void render_thread(){
 			fb_inject_buffer(proc->GetCanvasX(),proc->GetCanvasY(),proc->GetCanvasWidth(),proc->GetCanvasHeight(),shared,0);
 			sys_shmem_reset();
 		}
+		unlock();
 		fb_rect(mx,my,4,4,0x0000FF00,true,0);
 		fb_swapbuffers();
-		sys_sleep(5);
+		sys_sleep(17); //~60 fps
 	}
 }
 
@@ -143,7 +163,7 @@ int main(int argc,char** argv){
 	
 	sys_send(getppid(),0); //send SIG_CHILD 
 	
-	sys_thread((uint32_t)render_thread);
+	sys_thread((uint32_t)&render_thread);
 	
 	sys_echo("[CSRV] Started server\n");
 	

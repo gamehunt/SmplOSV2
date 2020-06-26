@@ -142,7 +142,7 @@ ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Functio
 }
 
 void AcpiOsSleep(UINT64 Milliseconds){
-	process_sleep(get_current_process(),Milliseconds); //Todo convert to ticks
+	process_sleep(get_current_process(),Milliseconds); 
 }
 
 ACPI_STATUS AcpiOsEnterSleep(UINT8 State,UINT32 ra,UINT32 rb){

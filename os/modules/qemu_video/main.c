@@ -62,7 +62,7 @@ void qvid_set_resolution(uint16_t x,uint16_t y,uint16_t bpp,uint8_t use_lfb,uint
 	qvid_write_register(VBE_DISPI_INDEX_XRES, x);
 	qvid_write_register(VBE_DISPI_INDEX_YRES, y);
 	qvid_write_register(VBE_DISPI_INDEX_BPP, bpp);
-	qvid_write_register(VBE_DISPI_INDEX_VIRT_HEIGHT,4096);
+	qvid_write_register(VBE_DISPI_INDEX_VIRT_WIDTH,4096);
 	qvid_write_register(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_ENABLED |
 							(use_lfb ? VBE_DISPI_LFB_ENABLED : 0) |
 							(clear_video ? 0 : VBE_DISPI_NOCLEARMEM));

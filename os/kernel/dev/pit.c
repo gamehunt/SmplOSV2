@@ -72,6 +72,6 @@ uint32_t pit_system_ticks(){
 
 void  init_pit(){
 	irq_set_handler(TIMER_IRQ,pit_tick);
-	pit_phase(100);
+	pit_phase(1000);
 	
 }

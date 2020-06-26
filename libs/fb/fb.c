@@ -10,6 +10,7 @@ static uint16_t y_res;
 static uint16_t x_opt_res;
 static uint16_t y_opt_res;
 static uint32_t* back_buffer = 0;
+static uint8_t back_buffer_enabled = 0;
 
 static unsigned char lookup[16] = {
 0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
@@ -29,7 +30,7 @@ void    fb_pixel(int x,int y,uint32_t color,uint32_t* opt_buffer){
 		return;
 	}
 	if(framebuffer || opt_buffer){
-		if(!back_buffer && !opt_buffer){
+		if(!back_buffer_enabled && !opt_buffer){
 			__memcpy_opt(0xFD000000+(y*x_res+x)*4,&color,1);
 		}else{
 			uint32_t* bfr = opt_buffer?opt_buffer:back_buffer;
@@ -52,8 +53,25 @@ void __memset_opt(uint32_t* dest,uint32_t value,uint32_t size){
 }
 
 void fb_swapbuffers(){
-	if(back_buffer){
-		__memcpy_opt(0xFD000000,back_buffer,1024*768);
+	if(back_buffer_enabled){
+		if(back_buffer != 0xFD000000){
+			back_buffer = 0xFD000000;
+			uint32_t* arg = malloc(sizeof(uint32_t));
+			*arg = y_res;
+			sys_ioctl(framebuffer,0x20,arg);
+			*arg = 0;
+			sys_ioctl(framebuffer,0x30,arg);
+			free(arg);
+		}else{
+			//sys_echo("doing nothing...\n");
+			back_buffer = 0xFD000000 + x_res*y_res*4;
+			uint32_t* arg = malloc(sizeof(uint32_t));
+			*arg = 0;
+			sys_ioctl(framebuffer,0x20,arg);
+			*arg = 0;
+			sys_ioctl(framebuffer,0x30,arg);
+			free(arg);
+		}
 	}
 }
 
@@ -79,10 +97,8 @@ uint8_t fb_init(char* fb,uint16_t xres,uint16_t yres,uint8_t double_buffer){
 		printf("Failed to open framebuffer!\n");
 		return 1;
 	}
-	if(double_buffer){
-		back_buffer = malloc(2*1024*768*sizeof(uint32_t));
-		
-	}
+	back_buffer_enabled = double_buffer;
+	back_buffer = 0xFD000000 + x_res*y_res*4;
 	return 0;
 }
 
@@ -151,7 +167,7 @@ void fb_rect(int x,int y,int sx,int sy,uint32_t color,uint8_t filled,uint32_t* o
 		
 		for(int i=0;i<sy;i++){
 			
-			if(!back_buffer && !opt_buffer){
+			if(!back_buffer_enabled && !opt_buffer){
 				//TODO
 			}else{
 				int offset = (opt_buffer?x_opt_res:x_res) * (y + i) + x;
@@ -182,7 +198,7 @@ void    fb_inject_buffer(int x,int y,int bsx,int bsy,uint32_t* buffer,uint32_t* 
 	for(int i=0;i<bsy;i++){
 		uint16_t res = opt_buffer?x_opt_res:x_res;
 		int offset = res * (y + i) + x;
-		if(!back_buffer && !opt_buffer){
+		if(!back_buffer_enabled && !opt_buffer){
 			//TODO
 		}else{
 			uint32_t* buf = opt_buffer?opt_buffer:back_buffer;
