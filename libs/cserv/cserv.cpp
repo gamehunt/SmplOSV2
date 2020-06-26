@@ -20,88 +20,35 @@ CSContextPosition::CSContextPosition(int ax,int ay){
 CSContext::CSContext(int _sx,int _sy){
 	sx = _sx;
 	sy = _sy;
-	rsx = sx;
-	rsy = sy;
-	rx = 0;
-	ry = 0;
-	canvas = new uint32_t*[sy];
-	for(int i=0;i<sy;i++){
-		canvas[i] = new uint32_t[sx];
-	}
+	canvas = (uint32_t*)SHARED_MEMORY_START;
 
 }
 
 uint32_t& CSContext::operator[] (CSContextPosition const& pos){
-	int cy = ry + pos.y;
-	int cx = rx + pos.x;
-	if(!((cx >= rx && pos.x < rsx) && (cy >= ry && pos.y < rsy))){
+	int cy = pos.y;
+	int cx = pos.x;
+	if(!((cx >= 0 && pos.x < sx) && (cy >= 0 && pos.y < sy))){
 		//sys_echo("OUT OF BOUND EXCEPTION THROWN! Position (%d;%d) is invalid for restriction %d;%d + %d;%d\n",pos.x,pos.y,rsx,rsy,rx,ry);
 		throw std::out_of_range("CSContext::operator[]:invalid position specified!");
 	}
 	//sys_echo("%d %d\n",cx,cy);
-	return canvas[cy][cx];
+	return canvas[cy*sx + cx];
 }
 
-void CSContext::restrict(int x,int y,int sxr,int syr){
-		rx = x;
-		ry = y;
-		rsx = sxr;
-		rsy = syr;	
+
+
+uint32_t* CSContext::GetCanvas(){
+	return canvas;
+}
+void CSContext::SetCanvas(uint32_t* nw){
+	canvas = nw;
 }
 
-void CSContext::unrestrict(){
-		rsx = sx;
-		rsy = sy;
-		rx = 0;
-		ry = 0;
-}
-
-uint32_t CSContext::GetX(){
-	return rx;
-}
-
-uint32_t CSContext::GetY(){
-	return ry;		
-}
-
-uint32_t CSContext::GetSX(){
-	return rsx;	
-}
-
-uint32_t CSContext::GetSY(){
-	return rsy;
-}
-
-uint32_t CSContext::GetOriginSX(){
-	return sx;
-}
-
-uint32_t CSContext::GetOriginSY(){
-	return sy;
-}
-
-uint32_t* CSContext::ToPlain(){
-	uint32_t* plain_buffer = new uint32_t[rsx*rsy];
-	for(int i=0;i<rsx;i++){
-		for(int j=0;j<rsy;j++){
-			plain_buffer[j*rsx + i] = (*this)[CSContextPosition(i,j)];
-		}
-	}
-	return plain_buffer;
-}
 
 void CSContext::clear(){
-	for(int i=0;i<rsx;i++){
-		for(int j=0;j<rsy;j++){
+	for(int i=0;i<sx;i++){
+		for(int j=0;j<sy;j++){
 			(*this)[CSContextPosition(i,j)] = 0x00000000;
-		}
-	}
-}
-
-void CSContext::FromPlain(uint32_t* plain){
-	for(int i=0;i<rsx;i++){
-		for(int j=0;j<rsy;j++){
-			(*this)[CSContextPosition(i,j)] = plain[j*rsx + i];
 		}
 	}
 }
@@ -210,11 +157,6 @@ CSContext* CServer::C_GetContext(){
 
 static void cserver_atexit_handlr(){
 	sys_echo("[CSRV] Sending CS_TYPE_TERMINATE\n");
-}
-
-void CServer::RefreshScreen(){
-	fb_optbuff_size(1024,768);
-	fb_inject_buffer(c_ctx->GetX(),c_ctx->GetY(),c_ctx->GetSX(),c_ctx->GetSY(),c_ctx->ToPlain(),(uint32_t*)SHARED_MEMORY_START);
 }
 
 int CServer::C_InitClient(int sx,int sy){

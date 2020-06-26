@@ -7,7 +7,7 @@ void eld_init(){
 }
 
 static void eld_scroll(){
-	memcpy(VGA_MEMORY, ((uint8_t*)VGA_MEMORY)+160, VGA_WIDTH*VGA_HEIGHT*2);
+	memmove(VGA_MEMORY, ((uint8_t*)VGA_MEMORY)+160, VGA_WIDTH*VGA_HEIGHT*2);
 }
 
 void eld_putchar(char c){

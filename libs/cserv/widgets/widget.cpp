@@ -50,10 +50,7 @@ CSContext* CSWidget::GetContext(){
 }
 
 void CSWidget::Render(){
-	ctx->clear();
-	ctx->restrict(x,y,sx,sy);
 	this->Draw();
-	ctx->unrestrict();
 	for(CSWidget* w : childs){
 		w->Render();
 	}

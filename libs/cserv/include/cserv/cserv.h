@@ -44,20 +44,12 @@ class CSContext{
 	public:
 		CSContext(int sx,int sy);
 		uint32_t& operator[] (CSContextPosition const& pos);
-		void restrict(int x,int y,int sx,int sy);
-		void unrestrict();
-		uint32_t* ToPlain();
-		void FromPlain(uint32_t* plain);
-		uint32_t GetX();
-		uint32_t GetY();
-		uint32_t GetSX();
-		uint32_t GetSY();
-		uint32_t GetOriginSX();
-		uint32_t GetOriginSY();
+		uint32_t* GetCanvas();
+		void SetCanvas(uint32_t* nw);
 		void clear();
 	private:
-		int rx,ry,rsx,rsy,sx,sy;
-		uint32_t** canvas;
+	    int sx,sy;
+		uint32_t* canvas;
 };
 
 class CSProcess{

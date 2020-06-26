@@ -41,35 +41,36 @@ char input_buffer[256];
 uint32_t input_size = 0;
 
 void term_scroll(){
-	//Call some function from compositor to scroll down our context
+	uint32_t* plain = CServer::C_GetContext()->GetCanvas();
+	memmove(plain, plain+XRES*CELL_SZ_Y, XRES*(YRES)*4);
+	fb_rect(0,CELL_SZ_Y*(Y_CELL_RES-1),XRES,CELL_SZ_Y,term_col_bg,true,plain);
 }
 
 void term_putchar(char c){
 		if(c == '\n'){
 			tx = 0;
 			ty++;
+			if(ty >= Y_CELL_RES){
+				ty--;
+				term_scroll();
+			}
 		}else{
-			CServer::C_GetContext()->restrict(tx*CELL_SZ_X,ty*CELL_SZ_Y,CELL_SZ_X,CELL_SZ_Y);
-			fb_optbuff_size(CELL_SZ_X,CELL_SZ_Y);
-			uint32_t* plain = CServer::C_GetContext()->ToPlain();
-			fb_char(c,0,0,0x00FFFFFF,0x00000000,plain);
-			CServer::C_GetContext()->FromPlain(plain);
-			delete[] plain;
-			CServer::RefreshScreen();
-			CServer::C_GetContext()->unrestrict();
+			fb_optbuff_size(XRES,YRES);
+			uint32_t* plain = CServer::C_GetContext()->GetCanvas();
+			fb_char(c,tx*CELL_SZ_X,ty*CELL_SZ_Y,term_col_fg,term_col_bg,plain);
 			tx++;
 			if(tx >= X_CELL_RES){
 				tx = 0;
 				ty++;
 			}
 			if(ty >= Y_CELL_RES){
+				ty--;
 				term_scroll();
 			}
 	}
 }
 
 int sig_child(){
-	//sys_echo("SIGCHILD\n");
 	fclose(second_out);
 	if(fread(input_buffer,1,256,second_in)){
 		for(uint32_t i=0;i<256;i++){
@@ -86,24 +87,17 @@ int sig_child(){
 int term_init(int argc,char** argv){
 	CServer::C_InitClient(XRES,YRES);
 	fb_optbuff_size(XRES,YRES);
-	/*CSPacket* p = new CSPacket(CS_TYPE_WIDGET);
-	((uint32_t*)p->GetBuffer())[0] = getpid();
-	((uint32_t*)p->GetBuffer())[1] = WIDGET_PACK_ADD;
-	((uint32_t*)p->GetBuffer())[2] = 1;
-	CServer::C_SendPacket(p);
-	((uint32_t*)p->GetBuffer())[1] = WIDGET_PACK_RES;
-	((uint32_t*)p->GetBuffer())[2] = 0;
-	((uint32_t*)p->GetBuffer())[3] = 1024;
-	((uint32_t*)p->GetBuffer())[4] = 768;
-	CServer::C_SendPacket(p);
-	delete p;*/
+	uint32_t* ctx = CServer::C_GetContext()->GetCanvas();
 	
-	//memset(screen_buffer,0,X_CELL_RES*Y_CELL_RES);
+	term_col_bg = fb_rgb2linear(0,0,0x8B);
+	term_col_fg = fb_rgb2linear(255,255,255);
 	
+	fb_rect(0,0,XRES,YRES,term_col_bg,true,ctx);
+
 	tx = 0;
 	ty = 0;
-	term_col_bg = fb_rgb2linear(0,0,0);
-	term_col_fg = fb_rgb2linear(255,255,255);
+	
+
 	
 	sys_signal(SIG_CHILD,sig_child);
 	uint32_t shell_exec = execv(argc?argv[0]:"/usr/bin/shell.smp",0);
@@ -126,18 +120,15 @@ void term_handle_input(char c){
 	if(c==0x08 && input_size){
 		input_size--;
 		input_buffer[input_size] = 0;
-		if(!tx){
+		if(!tx && ty){
 			tx = X_CELL_RES-1;
 			ty--;
 		}else{
 			tx--;
 		}
-		CServer::C_GetContext()->restrict(tx,ty,CELL_SZ_X,CELL_SZ_Y);
-		uint32_t* plain = CServer::C_GetContext()->ToPlain();
-		fb_char(c,0,0,term_col_fg,term_col_bg,plain);
-		CServer::C_GetContext()->FromPlain(plain);
-		delete[] plain;
-		CServer::C_GetContext()->unrestrict();
+		fb_optbuff_size(XRES,YRES);
+		uint32_t* plain = CServer::C_GetContext()->GetCanvas();
+		fb_char(0,tx*CELL_SZ_X,ty*CELL_SZ_Y,term_col_fg,term_col_bg,plain);
 		return;
 	}else{
 		term_putchar(c);
@@ -164,13 +155,11 @@ int main(int argc, char** argv){
 	while(1){
 		memset(buffer,0,256);
 		uint32_t readen = fread(buffer,1,256,stdin);
-	//	sys_echo("READEN FROM STDIN: %d\n",readen);
 		for(uint32_t i=0;i<readen;i++){	
 				term_handle_input(buffer[i]);
 		}
 		memset(buffer,0,256);
 		readen = fread(buffer,1,256,second_in);
-	//	sys_echo("READEN FROM SECOND IN: %d\n",readen);
 		for(uint32_t i=0;i<readen;i++){
 			term_putchar(buffer[i]);
 		}
