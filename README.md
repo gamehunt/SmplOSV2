@@ -25,6 +25,6 @@ What is done:
   
   --> framebuffer and keyboard userspace libraries
   
-  --> INDEV: Shell and terminal emulator
+  --> Shell and terminal emulator
   
   --> INDEV: Compositor server and widgets
