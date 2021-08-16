@@ -1,4 +1,5 @@
 # SmplOSV2
+# Archived, rewrite is available at https://github.com/gamehunt/SmplOSV3
 SmplOS rework - W.I.P - In dev since 2018
 
 What is done:
